@@ -16,7 +16,7 @@ Imperative apps for React
 
 ```
 yarn install impact-app
-```
+``` 
 
 # Description
 
