@@ -251,5 +251,64 @@ class Visibility {
 | state.**subscribe(callback)** | Subscribe to state changes |
 | state.**use()** | Use the state in a React component |
 
+## ObservableBarrier<Result>
+
+```ts
+import { ObservableBarrier } from 'impact-app'
+
+class AlertModal {
+    private alertBarrier = new ObservableBarrier<'yes' | 'no' | null>()
+    state = this.alertBarrier.state
+    show() {
+        return this.alertBarrier.enable()
+    }
+    hide() {
+        this.alertBarrier.resolve(null)
+    }
+    async executeRandomAsyncAnswer() {
+        try {
+          const answer = await getRandomAsyncAnswer<'yes' | 'no'>()    
+          this.alertBarrier.resolve(answer)
+        } catch (error) {
+          this.alertBarrier.reject(error)
+        }
+    }
+    
+    
+}
+```
+
+The barrier state is expressed as:
+
+```ts
+type ObservableBarrierState<T> =
+  | {
+      status: "ACTIVE";
+      promise: Promise<T>;
+      resolve: (value: T) => void;
+      reject: (error: unknown) => void;
+    }
+  | {
+      status: "INACTIVE";
+    }
+  | {
+      status: "RESOLVED";
+      result: T;
+    }
+  | {
+      status: "REJECTED";
+      error: unknown;
+    }
+```
+
+| Method | Description |
+|--|--|
+| barrier.**get()** | Get current state of the barrier |
+| barrier.**subscribe(callback)** | Subscribe to state changes |
+| barrier.**enable()** | Initialises the barrier and returns the blocking promise |
+| barrier.**resolve(result)** | Resolves the barrier promise with the value |
+| barrier.**reject(error)** | Rejects the barrier promise with the error |
+| barrier.**use()** | Use the state in a React component |
+
 # Why the name Impact?
 **Imperative React**... cute, right? 
