@@ -26,7 +26,8 @@ export class Observable<A extends any[]> {
       this.subscribers.delete(subscriber);
     };
   };
-  dispose(): void {
+
+  protected dispose(): void {
     this.subscribers.clear();
     this.isDisposed = true;
   }
