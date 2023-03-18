@@ -2,47 +2,32 @@ import { useEffect, useSyncExternalStore } from "react";
 
 export class Observable<A extends any[]> {
   protected subscribers = new Set<(...args: A) => void>();
-  private onSubscribers = new Set<(size: number) => void>();
-  private isDisposed = false;
+
+  protected isDisposed = false;
 
   protected notify(...args: A) {
-    this.subscribers.forEach((subscriber) => {
+    // When calling subscribers, they might be removed/added again during the forEach
+    // of the Set, so we want to make sure we only notify the current subscribers
+    const currentSubscribers = Array.from(this.subscribers);
+
+    currentSubscribers.forEach((subscriber) => {
       subscriber(...args);
     });
   }
 
-  protected onSubscribe(onSubscriber: (size: number) => void) {
-    if (this.isDisposed) {
-      throw new Error("Observable is disposed");
-    }
-
-    this.onSubscribers.add(onSubscriber);
-
-    return () => {
-      this.onSubscribers.delete(onSubscriber);
-    };
-  }
-  subscribe(subscriber: (...args: A) => void) {
+  subscribe = (subscriber: (...args: A) => void) => {
     if (this.isDisposed) {
       throw new Error("Observable is disposed");
     }
 
     this.subscribers.add(subscriber);
 
-    this.onSubscribers.forEach((onSubscriber) =>
-      onSubscriber(this.subscribers.size)
-    );
-
     return () => {
       this.subscribers.delete(subscriber);
-      this.onSubscribers.forEach((onSubscriber) =>
-        onSubscriber(this.subscribers.size)
-      );
     };
-  }
+  };
   dispose(): void {
     this.subscribers.clear();
-    this.onSubscribers.clear();
     this.isDisposed = true;
   }
 }
@@ -51,18 +36,33 @@ export class ObservableEmitter<T> extends Observable<[event: T]> {
   emit(event: T) {
     this.notify(event);
   }
-  use(cb: (event: T) => void) {
+  use = (cb: (event: T) => void) => {
     useEffect(() => this.subscribe(cb), []);
-  }
+  };
 }
+
+let globalComputingContext: ObservableState<any>[] | undefined;
 
 export class ObservableState<T> extends Observable<[value: T, prevValue: T]> {
   constructor(private value: T) {
     super();
   }
+
+  use = () => {
+    return useSyncExternalStore<T>(
+      (listener) => this.subscribe(listener),
+      () => this.get()
+    );
+  };
+
   get() {
+    if (globalComputingContext && !globalComputingContext.includes(this)) {
+      globalComputingContext.push(this);
+    }
+
     return this.value;
   }
+
   set(newValue: T) {
     const prevValue = this.value;
     this.value = newValue;
@@ -79,48 +79,73 @@ export class ObservableState<T> extends Observable<[value: T, prevValue: T]> {
 
     return this.value;
   }
-  use() {
-    return useSyncExternalStore<T>(
-      (listener) => this.subscribe(listener),
-      () => this.get()
-    );
+}
+
+export class ObservableComputedState<T> extends ObservableState<T> {
+  constructor(computeFn: () => T) {
+    let computingDisposers: Array<() => void> = [];
+    const compute = () => {
+      computingDisposers.forEach((dispose) => dispose());
+      computingDisposers.length = 0;
+
+      const computingContext: ObservableState<any>[] = [];
+      globalComputingContext = computingContext;
+
+      const value = computeFn();
+
+      globalComputingContext = undefined;
+
+      computingDisposers = computingContext.map((observableState) => {
+        return observableState.subscribe(() => {
+          this.set(compute());
+        });
+      });
+
+      return value;
+    };
+
+    super(compute());
   }
 }
 
-export class ObservableSubscription<T> extends Observable<[value: T]> {
+export class ObservableSubscription<T> extends ObservableState<T> {
+  private disposeSubscription: () => void = () => {};
   constructor(
-    private value: T,
-    subscription: (update: (value: T) => void) => () => void,
-    activeOnlyWithSubscribers: boolean = false
+    value: T,
+    private subscription: (update: (value: T) => void) => () => void,
+    private activeOnlyWithSubscribers: boolean = false
   ) {
-    super();
-    let dispose: (() => void) | undefined;
-    if (activeOnlyWithSubscribers) {
-      this.onSubscribe((size) => {
-        if (size === 1) {
-          dispose = subscription((value) => {
-            this.value = value;
-            this.notify(value);
-          });
-        } else if (size === 0 && dispose) {
-          dispose();
-        }
-      });
-    } else {
-      subscription((value) => {
-        this.value = value;
-        this.notify(value);
+    super(value);
+
+    if (!activeOnlyWithSubscribers) {
+      this.disposeSubscription = subscription((value) => {
+        this.set(value);
       });
     }
+
+    const _subscribe = this.subscribe;
+
+    this.subscribe = (subscriber: (value: T, prevValue: T) => void) => {
+      const disposeSubscriber = _subscribe(subscriber);
+
+      if (this.activeOnlyWithSubscribers && this.subscribers.size === 1) {
+        this.disposeSubscription = this.subscription((value) => {
+          this.set(value);
+        });
+      }
+
+      return () => {
+        disposeSubscriber();
+        if (this.activeOnlyWithSubscribers && this.subscribers.size === 0) {
+          this.disposeSubscription();
+        }
+      };
+    };
   }
-  get() {
-    return this.value;
-  }
-  use() {
-    return useSyncExternalStore<T>(
-      (listener) => this.subscribe(listener),
-      () => this.get()
-    );
+
+  dispose(): void {
+    super.dispose();
+    this.disposeSubscription();
   }
 }
 
@@ -149,31 +174,32 @@ export class ObservablePromiseAbortError extends Error {
 }
 
 export class ObservablePromise<T> extends Observable<
-  [state: Omit<ObservablePromiseState<T>, "controller" | "promise">]
+  [state: ObservablePromiseState<T>]
 > {
-  private state: ObservablePromiseState<T> = {
+  private state = new ObservableState<ObservablePromiseState<T>>({
     status: "IDLE",
-  };
-  get() {
-    return this.state;
+  });
+  get use() {
+    return this.state.use;
   }
+
   set(sourcePromise: Promise<T>) {
     const controller = new AbortController();
     const promise = new Promise<T>((resolve, reject) => {
       controller.signal.addEventListener("abort", () => {
         reject(new ObservablePromiseAbortError());
-        this.state = {
+        this.state.set({
           status: "REJECTED",
           error: "Aborted",
-        };
-        this.notify(this.state);
+        });
       });
 
       const shouldBeResolved = () => {
+        const state = this.state.get();
         return (
           !controller.signal.aborted &&
-          this.state.status === "PENDING" &&
-          this.state.promise === promise
+          state.status === "PENDING" &&
+          state.promise === promise
         );
       };
 
@@ -183,11 +209,11 @@ export class ObservablePromise<T> extends Observable<
             return;
           }
 
-          this.state = {
+          this.state.set({
             status: "RESOLVED",
             value,
-          };
-          this.notify(this.state);
+          });
+
           resolve(value);
         })
         .catch((error) => {
@@ -195,34 +221,26 @@ export class ObservablePromise<T> extends Observable<
             return;
           }
 
-          this.state = {
+          this.state.set({
             status: "REJECTED",
             error,
-          };
-          this.notify(this.state);
+          });
           reject(error);
         });
     });
-    this.state = {
+
+    return this.state.set({
       status: "PENDING",
       controller,
       promise,
-    };
-
-    this.notify(this.state);
-
-    return this.state.promise;
+    });
   }
   abort() {
-    if (this.state.status === "PENDING") {
-      this.state.controller.abort();
+    const state = this.state.get();
+
+    if (state.status === "PENDING") {
+      state.controller.abort();
     }
-  }
-  use() {
-    return useSyncExternalStore<ObservablePromiseState<T>>(
-      (listener) => this.subscribe(listener),
-      () => this.get()
-    );
   }
 }
 

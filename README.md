@@ -30,7 +30,8 @@ Impact seeks to create a bridge between object oriented imperative logic and the
 import { ObservableState } from 'impact-app'
 
 class Counter {
-    count = new ObservableState(0)
+    private _count = new ObservableState(0)
+    useCount = this.count.use
     increase() {
         this.count.update((current) => current + 1)
     }
@@ -40,7 +41,7 @@ class Counter {
 const counter = new Counter()
 
 const CounterComponent = () => {
-    const count = counter.count.use()
+    const count = counter.useCount()
     
     return (
         <div>
@@ -61,13 +62,14 @@ import { DependencyInjection, ObservableState } from 'impact-app'
 // You define your classes as interfaces. This allows you to expose different
 // implementations in different environments, like testing
 interface ICounter {
-    count: ObservableState<number>
+    private count: ObservableState<number>
     increase(): void
 }
 
 // You create your class as normal
 class Counter implements ICount {
-    count = new ObservableState(0)
+    private count = new ObservableState(0)
+    useCount = this.count.use
     increase() {
         this.count.update((current) => current + 1)
     }    
@@ -88,7 +90,7 @@ const CounterComponent = () => {
     // The global dependency injector has no implementation, but the hook uses
     // the React context to consume a container with the implementation of the class
     const counter = di.useInject('Counter')
-    const count = counter.count.use()
+    const count = counter.useCount()
     
     return (
         <div>
@@ -140,12 +142,16 @@ const di = new DependencyInjection<{
 ```ts
 import { ObservableEmitter } from 'impact-app'
 
-class Counter {
-    onCount = new ObservableEmitter<number>()
-    count = 0
-    increase() {
-        this.count++
-        this.onCount.emit(this.count)
+class SomeThingAsync {
+    private errorEmitter = new ObservableEmitter<string>()
+    onError = this.countEmitter.subscribe
+    useOnError = this.countEmitter.use
+    doSomethingAsync() {
+        doAsync()
+          .then(() => {})
+          .catch(() => {
+              this.errorEmitter.emit('Something bad happened')
+          })
     }
 }
 ```

@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
-    "prepublish": "yarn build",
+    "prepublish": "yarn test && yarn build",
     "test": "jest"
   },
   "keywords": [
@@ -32,11 +32,13 @@
     "dist"
   ],
   "dependencies": {
-    "react": "*"
+    "react": "*",
+    "ts-jest": "^29.0.5"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.0",
     "@types/react": "^18.0.28",
-    "jest": "^28.1.0",
+    "jest": "^29.5.0",
     "prettier": "^2.2.1",
     "rimraf": "^2.6.1",
     "tslib": "^2.1.0",
