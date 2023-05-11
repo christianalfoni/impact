@@ -42,9 +42,9 @@ export class ObservableEmitter<T> extends Observable<[event: T]> {
   };
 }
 
-let globalComputingContext: ObservableState<any>[] | undefined;
+let globalComputingContext: ObservableValue<any>[] | undefined;
 
-export class ObservableState<T> extends Observable<[value: T, prevValue: T]> {
+export class ObservableValue<T> extends Observable<[value: T, prevValue: T]> {
   constructor(private value: T) {
     super();
   }
@@ -82,14 +82,14 @@ export class ObservableState<T> extends Observable<[value: T, prevValue: T]> {
   }
 }
 
-export class ObservableComputedState<T> extends ObservableState<T> {
+export class ObservableComputedState<T> extends ObservableValue<T> {
   constructor(computeFn: () => T) {
     let computingDisposers: Array<() => void> = [];
     const compute = () => {
       computingDisposers.forEach((dispose) => dispose());
       computingDisposers.length = 0;
 
-      const computingContext: ObservableState<any>[] = [];
+      const computingContext: ObservableValue<any>[] = [];
       globalComputingContext = computingContext;
 
       const value = computeFn();
@@ -109,7 +109,7 @@ export class ObservableComputedState<T> extends ObservableState<T> {
   }
 }
 
-export class ObservableSubscription<T> extends ObservableState<T> {
+export class ObservableSubscription<T> extends ObservableValue<T> {
   private disposeSubscription: () => void = () => {};
   constructor(
     value: T,
@@ -156,8 +156,6 @@ export type ObservablePromiseState<T> =
     }
   | {
       status: "PENDING";
-      controller: AbortController;
-      promise: Promise<T>;
     }
   | {
       status: "RESOLVED";
@@ -177,70 +175,69 @@ export class ObservablePromiseAbortError extends Error {
 export class ObservablePromise<T> extends Observable<
   [state: ObservablePromiseState<T>]
 > {
-  private state = new ObservableState<ObservablePromiseState<T>>({
+  private state = new ObservableValue<ObservablePromiseState<T>>({
     status: "IDLE",
   });
+
+  private currentController?: AbortController;
+
   get use() {
     return this.state.use;
   }
 
   set(sourcePromise: Promise<T>) {
     const controller = new AbortController();
-    const promise = new Promise<T>((resolve, reject) => {
-      controller.signal.addEventListener("abort", () => {
-        reject(new ObservablePromiseAbortError());
+    const pendingState = {
+      status: "PENDING" as const,
+    };
+
+    controller.signal.addEventListener("abort", () => {
+      this.state.set({
+        status: "REJECTED",
+        error: "Aborted",
+      });
+    });
+
+    this.currentController = controller;
+
+    const shouldBeResolved = () => {
+      const state = this.state.get();
+      return !controller.signal.aborted && state === pendingState;
+    };
+
+    sourcePromise
+      .then((value) => {
+        if (!shouldBeResolved()) {
+          return;
+        }
+
+        this.currentController = undefined;
+
+        this.state.set({
+          status: "RESOLVED",
+          value,
+        });
+      })
+      .catch((error) => {
+        if (!shouldBeResolved()) {
+          return;
+        }
+
+        this.currentController = undefined;
+
         this.state.set({
           status: "REJECTED",
-          error: "Aborted",
+          error,
         });
       });
 
-      const shouldBeResolved = () => {
-        const state = this.state.get();
-        return (
-          !controller.signal.aborted &&
-          state.status === "PENDING" &&
-          state.promise === promise
-        );
-      };
-
-      sourcePromise
-        .then((value) => {
-          if (!shouldBeResolved()) {
-            return;
-          }
-
-          this.state.set({
-            status: "RESOLVED",
-            value,
-          });
-
-          resolve(value);
-        })
-        .catch((error) => {
-          if (!shouldBeResolved()) {
-            return;
-          }
-
-          this.state.set({
-            status: "REJECTED",
-            error,
-          });
-          reject(error);
-        });
-    });
-
-    return this.state.set({
-      status: "PENDING",
-      controller,
-      promise,
-    });
+    return this.state.set(pendingState);
   }
   abort() {
     const state = this.state.get();
 
-    if (state.status === "PENDING") {
-      state.controller.abort();
+    if (state.status === "PENDING" && this.currentController) {
+      this.currentController.abort();
     }
   }
 }
@@ -248,9 +245,6 @@ export class ObservablePromise<T> extends Observable<
 type ObservableBarrierState<T> =
   | {
       status: "ACTIVE";
-      promise: Promise<T>;
-      resolve: (value: T) => void;
-      reject: (error: unknown) => void;
     }
   | {
       status: "INACTIVE";
@@ -264,9 +258,13 @@ type ObservableBarrierState<T> =
       error: unknown;
     };
 
-export class ObservableBarrier<T> extends ObservableState<
+export class ObservableBarrier<T> extends ObservableValue<
   ObservableBarrierState<T>
 > {
+  private currentPromiseResolvement?: {
+    resolve: (value: T) => void;
+    reject: (error: unknown) => void;
+  };
   constructor() {
     super({
       status: "INACTIVE",
@@ -278,18 +276,15 @@ export class ObservableBarrier<T> extends ObservableState<
       return;
     }
 
-    let resolve: (value: T) => void;
-    let reject: (error: unknown) => void;
-    const promise = new Promise<T>((_resolve, _reject) => {
-      resolve = _resolve;
-      reject = _reject;
+    const promise = new Promise<T>((resolve, reject) => {
+      this.currentPromiseResolvement = {
+        resolve,
+        reject,
+      };
     });
 
     this.set({
       status: "ACTIVE",
-      promise,
-      resolve: resolve!,
-      reject: reject!,
     });
 
     return promise;
@@ -297,11 +292,13 @@ export class ObservableBarrier<T> extends ObservableState<
   resolve(result: T) {
     const state = this.get();
 
-    if (state.status !== "ACTIVE") {
+    if (state.status !== "ACTIVE" || !this.currentPromiseResolvement) {
       return;
     }
 
-    state.resolve(result);
+    this.currentPromiseResolvement.resolve(result);
+    this.currentPromiseResolvement = undefined;
+
     this.set({
       status: "RESOLVED",
       result,
@@ -310,15 +307,48 @@ export class ObservableBarrier<T> extends ObservableState<
   reject(error: unknown) {
     const state = this.get();
 
-    if (state.status !== "ACTIVE") {
+    if (state.status !== "ACTIVE" || !this.currentPromiseResolvement) {
       return;
     }
 
-    state.reject(error);
+    this.currentPromiseResolvement.reject(error);
+    this.currentPromiseResolvement = undefined;
 
     this.set({
       status: "REJECTED",
       error,
     });
   }
+}
+
+export function value<T>(value: T) {
+  return new ObservableValue<T>(value);
+}
+
+export function emitter<T>() {
+  return new ObservableEmitter<T>();
+}
+
+export function promise<T>() {
+  return new ObservablePromise<T>();
+}
+
+export function barrier<T>() {
+  return new ObservableBarrier<T>();
+}
+
+export function subscription<T>(
+  initialValue: T,
+  subscription: (update: (value: T) => void) => () => void,
+  activeOnlyWithSubscribers: boolean = false
+) {
+  return new ObservableSubscription<T>(
+    initialValue,
+    subscription,
+    activeOnlyWithSubscribers
+  );
+}
+
+export function computed<T>(computeFn: () => T) {
+  return new ObservableComputedState<T>(computeFn);
 }

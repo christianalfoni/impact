@@ -6,11 +6,12 @@ Imperative apps for React
 - [Dependency Injection](#dependency-injection)
 - [API](#api)
   - [DependencyInjection](#dependencyinjection)
-  - [ObservableEmitter](#observableemitter)
-  - [ObservablePromise](#observablepromise)
-  - [ObservableState](#observablestate)
-  - [ObservableSubscription](#observablesubscription)
-  - [ObservableBarrier](#observablebarrier)
+  - [Emitter](#emitter)
+  - [Promise](#promise)
+  - [Value](#value)
+  - [Subscription](#subscription)
+  - [Barrier](#barrier)
+  - [Computed](#computed)
 
 # Install
 
@@ -20,19 +21,20 @@ yarn install impact-app
 
 # Description
 
-React with its reactive paradigm works increadibly well for building UIs. Writing components with hooks like **useState** and **useReducer** is a pure joy. Where React becomes challenging is when you need to deal with asynchronous flows, mutable state and side effects. Reacts primitives of **useEffect**, **useRef** and even **useState**, to instantiate singletons, are primitives that should not be asynchronous in nature and forces you to decouple code in a reactive way, which is hard to reason abuot.
+React works really well to build UIs. Where React becomes challenging is when its reactive paradigm creates code where a change of state in one component creates unknown side effects in other components. With a dispatch or a setState it is difficult to follow what happens next. In imperative programming you call a method and the method describes exactly what happens. What state is changed and what other side effects occur.
 
 Impact seeks to create a bridge between object oriented imperative logic and the reactive declarative world of React. It does this by providing some simple observable primitives and dependency injection for class consumption in components.
 
 # Get started
 
 ```ts
-import { ObservableState } from 'impact-app'
+import * as Impact from 'impact-app'
 
 class Counter {
-    count = new ObservableState(0)
+    private _count = Impact.value(0)
+    useCount = this._count.use
     increase() {
-        this.count.update((current) => current + 1)
+        this._count.update((current) => current + 1)
     }
 }
 
@@ -40,7 +42,7 @@ class Counter {
 const counter = new Counter()
 
 const CounterComponent = () => {
-    const count = counter.count.use()
+    const count = counter.useCount()
     
     return (
         <div>
@@ -55,21 +57,29 @@ const CounterComponent = () => {
 
 You want to avoid creating global class instances like in the _Get Started_ example. Instead of composing a nested structure of classes and instantiate them all, _Impact_ gives you dependency injection.
 
+| Method | Description |
+|--|--|
+| di.**createContainer(classes)** | Pass the classes representing the implementation of the given interfaces |
+| di.**inject(className)** | Injects the class into an other class |
+| di.**useInject(className)** | Injects the class into a React component |
+| di.**Provider** | The React provider for a container returned by **createContainer**, passed on **container** prop |
+
 ```tsx
-import { DependencyInjection, ObservableState } from 'impact-app'
+import * as Impact from 'impact-app'
 
 // You define your classes as interfaces. This allows you to expose different
 // implementations in different environments, like testing
 interface ICounter {
-    count: ObservableState<number>
+    count: Impact.Value<number>
     increase(): void
 }
 
 // You create your class as normal
 class Counter implements ICount {
-    count = new ObservableState(0)
+    private _count = Impact.value(0)
+    useCount = this._count.use
     increase() {
-        this.count.update((current) => current + 1)
+        this._count.update((current) => current + 1)
     }    
 }
 
@@ -78,17 +88,11 @@ const di = new DependencyInjection<{
     Counter: ICounter
 }>()
 
-// A container provides the actual implementation to be used
-const container = di.createContainer({
-    Counter
-})
-
-
 const CounterComponent = () => {
     // The global dependency injector has no implementation, but the hook uses
     // the React context to consume a container with the implementation of the class
     const counter = di.useInject('Counter')
-    const count = counter.count.use()
+    const count = counter.useCount()
     
     return (
         <div>
@@ -97,6 +101,12 @@ const CounterComponent = () => {
         </div>
     )
 }
+
+// A container provides the actual implementation to be used
+const container = di.createContainer({
+    Counter
+})
+
 
 // The dependency injector instance has a Provider to provide a container
 // with the implementation of the classes
@@ -128,29 +138,9 @@ const di = new DependencyInjection<{
 }>()
 ```
 
-| Method | Description |
-|--|--|
-| di.**createContainer(classes)** | Pass the classes representing the implementation of the given interfaces |
-| di.**inject(className)** | Injects the class into an other class |
-| di.**useInject(className)** | Injects the class into a React component |
-| di.**Provider** | The React provider for a container returned by **createContainer**, passed on **container** prop |
 
-## ObservableEmitter<Event>
 
-```ts
-import { ObservableEmitter } from 'impact-app'
-
-class SomeThingAsync {
-    onError = new ObservableEmitter<string>()
-    doSomethingAsync() {
-        doAsync()
-          .then(() => {})
-          .catch(() => {
-              this.onError.emit('Something bad happened')
-          })
-    }
-}
-```
+## Emitter<Event>
 
 | Method | Description |
 |--|--|
@@ -158,13 +148,40 @@ class SomeThingAsync {
 | emitter.**subscribe(callback)** | Subscribe to the emitted event |
 | emitter.**use(callback)** | Use in React component |
 
-## ObservablePromise<Value>
+```ts
+import * as Impact from 'impact-app'
+
+class SomeThingAsync {
+    private _onErrorEmitter = Impact.emitter<string>()
+    useOnError = this._onErrorEmitter.use
+    
+    doSomethingAsync() {
+        doAsync()
+          .then(() => {})
+          .catch(() => {
+              this._onErrorEmitter.emit('Something bad happened')
+          })
+    }
+}
+```
+
+
+
+## Promise<Value>
+
+| Method | Description |
+|--|--|
+| promise.**get()** | Get current promise state |
+| promise.**set(Promise<Value>)** | Set a promise that resolves the value. Replacing a pending promise will abort it. |
+| promise.**subscribe(callback)** | Subscribe to the state changes |
+| promise.**use()** | Use in React component |
 
 ```ts
-import { ObservablePromise } from 'impact-app'
+import * as Impact from 'impact-app'
 
 class AsyncCurrentDate {
-    date = new ObservablePromise<Date>()
+    private _date = Impact.promise<Date>()
+    useDate = this._date.use
     increase() {
         this.date.set(Promise.resolve(new Date()))
     }
@@ -174,7 +191,7 @@ class AsyncCurrentDate {
 The value is expressed as a union of states:
 
 ```ts
-type ObservablePromiseState<T> =
+type PromiseState<T> =
   | {
       status: "IDLE";
     }
@@ -193,41 +210,41 @@ type ObservablePromiseState<T> =
     };
 ```
 
+## Value<Value>
+
 | Method | Description |
 |--|--|
-| promise.**get()** | Get current promise state |
-| promise.**set(Promise<Value>)** | Set a promise that resolves the value. Replacing a pending promise will abort it. |
-| promise.**subscribe(callback)** | Subscribe to the state changes |
-| promise.**use()** | Use in React component |
-
-## ObservableState<State>
+| value.**get()** | Get current state |
+| value.**set(state)** | Set some state |
+| value.**update(updateFunction)** | Set some state using update function with current value |
+| value.**subscribe(callback)** | Subscribe to value changes |
+| value.**use()** | Use the state in a React component |
 
 ```ts
-import { ObservableState } from 'impact-app'
+import * as Impact from 'impact-app'
 
 class Counter {
-    count = new ObservableState(0)
+    private _count = Impact.value(0)
+    useCount = this._count.use
     increase() {
-        this.count.update((current) => current++)
+        this._count.update((current) => current++)
     }
 }
 ```
 
+## Subscription<State>
+
 | Method | Description |
 |--|--|
-| state.**get()** | Get current state |
-| state.**set(state)** | Set some state |
-| state.**update(updateFunction)** | Set some state using update function with current value |
-| state.**subscribe(callback)** | Subscribe to value changes |
-| state.**use()** | Use the state in a React component |
-
-## ObservableSubscription<State>
+| subscription.**get()** | Get current state |
+| subscription.**subscribe(callback)** | Subscribe to state changes |
+| subscription.**use()** | Use the state in a React component |
 
 ```ts
-import { ObservableSubscription } from 'impact-app'
+import * as Impact from 'impact-app'
 
 class Visibility {
-    isVisible = new ObservableSubscription(
+    private _visibility = Impact.subscription(
         // Initial value
         document.visibilityState === 'visible',
         // Subscription updating the value
@@ -241,38 +258,47 @@ class Visibility {
                 window.removeEventListener('visibilitychange', listener)
             }
         },
-        // Only activate subscription when someone subscribes
+        // Default inactive, will only activate subscription when someone subscribes
         false
     )
+    useVisibility = this.visibility.use
+    onVisible = this.visibility.subscribe
+    get isVisible {
+        return this._visibility.get()
+    }
+    
 }
 ```
 
+## ObservableBarrier<Result>
+
 | Method | Description |
 |--|--|
-| state.**get()** | Get current state |
-| state.**subscribe(callback)** | Subscribe to state changes |
-| state.**use()** | Use the state in a React component |
-
-## ObservableBarrier<Result>
+| barrier.**get()** | Get current state of the barrier |
+| barrier.**subscribe(callback)** | Subscribe to state changes |
+| barrier.**enable()** | Initialises the barrier and returns the blocking promise |
+| barrier.**resolve(result)** | Resolves the barrier promise with the value |
+| barrier.**reject(error)** | Rejects the barrier promise with the error |
+| barrier.**use()** | Use the state in a React component |
 
 ```ts
 import { ObservableBarrier } from 'impact-app'
 
 class AlertModal {
-    private alertBarrier = new ObservableBarrier<'yes' | 'no' | null>()
-    state = this.alertBarrier.state
+    private _alertBarrier = new ObservableBarrier<'yes' | 'no' | null>()
+    useModal = this._alertBarrier.use
     show() {
-        return this.alertBarrier.enable()
+        return this._alertBarrier.enable()
     }
     hide() {
-        this.alertBarrier.resolve(null)
+        this._alertBarrier.resolve(null)
     }
     async executeRandomAsyncAnswer() {
         try {
           const answer = await getRandomAsyncAnswer<'yes' | 'no'>()    
-          this.alertBarrier.resolve(answer)
+          this._alertBarrier.resolve(answer)
         } catch (error) {
-          this.alertBarrier.reject(error)
+          this._alertBarrier.reject(error)
         }
     }
     
@@ -303,14 +329,7 @@ type ObservableBarrierState<T> =
     }
 ```
 
-| Method | Description |
-|--|--|
-| barrier.**get()** | Get current state of the barrier |
-| barrier.**subscribe(callback)** | Subscribe to state changes |
-| barrier.**enable()** | Initialises the barrier and returns the blocking promise |
-| barrier.**resolve(result)** | Resolves the barrier promise with the value |
-| barrier.**reject(error)** | Rejects the barrier promise with the error |
-| barrier.**use()** | Use the state in a React component |
+
 
 # Why the name Impact?
 **Imperative React**... cute, right? 

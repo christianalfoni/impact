@@ -1,8 +1,8 @@
-import { ObservableEmitter } from "../src";
+import * as Impact from "../src";
 
 describe("ObservableEmitter", () => {
   it("should subscribe, emit and dispose", () => {
-    const emitter = new ObservableEmitter<void>();
+    const emitter = Impact.emitter<void>();
 
     let notifiedCount = 0;
 
