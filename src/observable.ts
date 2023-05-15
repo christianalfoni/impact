@@ -18,7 +18,7 @@ export function observer<T extends (...args: any[]) => any>(component: T): T {
 
 const observableMetadataKey = Symbol("observable");
 
-export function Observable(...args: any[]) {
+export function observable(...args: any[]) {
   const descriptor = args[2] as {
     initializer?: () => unknown;
     configurable: boolean;
