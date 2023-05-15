@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -33,7 +33,7 @@
   ],
   "dependencies": {
     "react": "*",
-    "ts-jest": "^29.0.5"
+    "typedi": "^0.10.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
@@ -42,6 +42,7 @@
     "prettier": "^2.2.1",
     "rimraf": "^2.6.1",
     "tslib": "^2.1.0",
-    "typescript": "^5.0.2"
+    "typescript": "^5.0.2",
+    "ts-jest": "^29.0.5"
   }
 }

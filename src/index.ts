@@ -1,2 +1,2 @@
 export * from "./Container";
-export * from "./Observable";
+export * from "./observable";
