@@ -140,10 +140,10 @@ There are no async restrictions or transactional behaviour to an observable. Rea
 
 ### Consuming promises
 
-As a rich web application it will most certainly require you to produce some promises. In the context of React, promises can be quite a challenge to express properly. There is actually a proposal from the React team on a first class primitive for React to consume promises, using the [use hook](https://irvingvjuarez.medium.com/the-coming-use-promise-hook-in-react-a5fe78186288). In the meantime you can use [react-promise-suspense](https://github.com/vigzmv/react-promise-suspense).
+As a rich web application it will most certainly require you to produce some promises. In the context of React, promises can be quite a challenge to express properly. There is actually a proposal from the React team on a first class primitive for React to consume promises, using the [use hook](https://irvingvjuarez.medium.com/the-coming-use-promise-hook-in-react-a5fe78186288). In the meantime you can use the accompanying `use` hook from this library or [react-promise-suspense](https://github.com/vigzmv/react-promise-suspense).
 
 ```ts
-import usePromise from 'react-promise-suspense';
+import { use } from 'impact-app';
 
 class Post {
     constructor(public id: string, public title: string, public body: string) {}
@@ -165,7 +165,7 @@ class Posts {
 
 const PostComponent = ({ id }: { id: string }) => {
     const posts = useInject(Posts)
-    const post = usePromise(posts.fetchPost(id))
+    const post = use(posts.fetchPost(id))
 }
 ```
 
