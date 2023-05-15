@@ -4,7 +4,7 @@ import * as typedi from "typedi";
 
 export { typedi };
 
-export const Injectable = typedi.Service;
+export const Injectable = typedi.Service();
 
 const diContext = createContext<typedi.ContainerInstance>(
   null as unknown as typedi.ContainerInstance
