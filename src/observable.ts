@@ -18,12 +18,12 @@ export function observer<T extends (...args: any[]) => any>(component: T): T {
 
 export function observable(...args: any[]) {
   const descriptor = args[2] as {
-    initializer: () => unknown;
+    initializer?: () => unknown;
     configurable: boolean;
     enumerable: boolean;
   };
 
-  let value = descriptor.initializer();
+  let value = descriptor.initializer ? descriptor.initializer() : undefined;
   const subscribers = new Set<(value: unknown) => void>();
 
   const useObserver = () => {

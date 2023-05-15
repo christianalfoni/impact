@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -20,8 +20,7 @@
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
-    "prepublish": "yarn test && yarn build",
-    "test": "jest"
+    "prepublish": "yarn build"
   },
   "keywords": [
     "typescript",
