@@ -57,9 +57,9 @@ class Logger {
     }
 }
 
-@Injectable
+@Injectable()
 class Counter {
-    @observable
+    @Observable()
     count = 0;
     constructor(private logger: Logger) {}
     increase() {

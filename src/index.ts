@@ -1,5 +1,5 @@
 export * from "./Container";
-export * from "./observable";
+export * from "./Observable";
 
 const RESOLVED_PROMISE_SYMBOL = Symbol("RESOLVED_PROMISE_SYMBOL");
 const REJECTED_PROMISE_SYMBOL = Symbol("REJECTED_PROMISE_SYMBOL");
