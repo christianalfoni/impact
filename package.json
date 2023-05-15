@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

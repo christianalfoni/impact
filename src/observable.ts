@@ -76,5 +76,5 @@ export function observable(...args: any[]) {
     },
     configurable: descriptor.configurable,
     enumerable: descriptor.enumerable,
-  };
+  } as any;
 }
