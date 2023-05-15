@@ -16,48 +16,65 @@ export function observer<T extends (...args: any[]) => any>(component: T): T {
   }) as T;
 }
 
-export function Observable() {
-  let value: unknown;
-  const subscribers = new Set<(value: unknown) => void>();
+const observableMetadataKey = Symbol("observable");
 
-  return function (...args: any[]) {
-    const descriptor = args[2] as {
-      initializer?: () => unknown;
-      configurable: boolean;
-      enumerable: boolean;
+export function Observable(...args: any[]) {
+  const descriptor = args[2] as {
+    initializer?: () => unknown;
+    configurable: boolean;
+    enumerable: boolean;
+  };
+
+  const getMetaData = (target: unknown) => {
+    // @ts-ignore
+    const metadata = Reflect.getOwnMetadata(
+      observableMetadataKey,
+      target,
+      args[1]
+    ) || {
+      value: descriptor.initializer ? descriptor.initializer() : undefined,
+      subscribers: new Set(),
     };
 
-    value = descriptor.initializer ? descriptor.initializer() : undefined;
+    // @ts-ignore
+    Reflect.defineMetadata(observableMetadataKey, metadata, target, args[1]);
 
-    const useObserver = () => {
-      const state = useSyncExternalStore(
-        (updateStore) => {
-          subscribers.add(updateStore);
-
-          return () => {
-            subscribers.delete(updateStore);
-          };
-        },
-        () => value
-      );
-
-      return state;
+    return metadata as {
+      value: unknown;
+      subscribers: Set<(value: unknown) => void>;
     };
+  };
 
-    return {
-      get() {
-        if (isTracking) {
-          return useObserver();
-        }
+  return {
+    get() {
+      const metadata = getMetaData(this);
 
-        return value;
-      },
-      set(newValue: unknown) {
-        value = newValue;
-        subscribers.forEach((cb) => cb(value));
-      },
-      configurable: descriptor.configurable,
-      enumerable: descriptor.enumerable,
-    } as any;
+      if (isTracking) {
+        const state = useSyncExternalStore(
+          (updateStore) => {
+            metadata.subscribers.add(updateStore);
+
+            return () => {
+              metadata.subscribers.delete(updateStore);
+            };
+          },
+          () => metadata.value
+        );
+
+        return state;
+      }
+
+      return metadata.value;
+    },
+    set(newValue: unknown) {
+      const metadata = getMetaData(this);
+      metadata.value = newValue;
+
+      metadata.subscribers.forEach((cb) => cb(newValue));
+      // @ts-ignore
+      Reflect.defineMetadata(observableMetadataKey, metadata, this, args[1]);
+    },
+    configurable: descriptor.configurable,
+    enumerable: descriptor.enumerable,
   };
 }
