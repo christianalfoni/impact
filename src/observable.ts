@@ -1,16 +1,40 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 
-let isTracking = false;
+class ObserverContext {
+  private disposeListeners = new Set<() => void>();
+  private subscribeListeners = new Set<() => void>();
+  constructor(private update: (update: (current: number) => number) => void) {}
+  onSubscribe(cb: () => void) {
+    this.subscribeListeners.add(cb);
+  }
+  onDisposed(cb: () => void) {
+    this.disposeListeners.add(cb);
+  }
+  subscribe() {
+    this.subscribeListeners.forEach((cb) => cb());
+    return () => {
+      this.disposeListeners.forEach((cb) => cb());
+    };
+  }
+  notify() {
+    this.update((current) => current + 1);
+  }
+}
+
+let observerContext: ObserverContext | undefined;
+
 export function observer<T extends (...args: any[]) => any>(component: T): T {
   return ((...args: unknown[]) => {
-    isTracking = true;
     // Suspense
+    const [_, setState] = useState(0);
+    const context = (observerContext = new ObserverContext(setState));
     try {
+      useEffect(() => context.subscribe());
       const result = component(...args);
-      isTracking = false;
+      observerContext = undefined;
       return result;
     } catch (error) {
-      isTracking = false;
+      observerContext = undefined;
       throw error;
     }
   }) as T;
@@ -33,7 +57,7 @@ export function observable(...args: any[]) {
       args[1]
     ) || {
       value: descriptor.initializer ? descriptor.initializer() : undefined,
-      subscribers: new Set(),
+      subscribers: new Set<ObserverContext>(),
     };
 
     // @ts-ignore
@@ -41,7 +65,7 @@ export function observable(...args: any[]) {
 
     return metadata as {
       value: unknown;
-      subscribers: Set<(value: unknown) => void>;
+      subscribers: Set<ObserverContext>;
     };
   };
 
@@ -49,28 +73,25 @@ export function observable(...args: any[]) {
     get() {
       const metadata = getMetaData(this);
 
-      if (isTracking) {
-        const state = useSyncExternalStore(
-          (updateStore) => {
-            metadata.subscribers.add(updateStore);
+      if (observerContext) {
+        const context = observerContext;
 
-            return () => {
-              metadata.subscribers.delete(updateStore);
-            };
-          },
-          () => metadata.value
-        );
-
-        return state;
+        observerContext.onSubscribe(() => {
+          metadata.subscribers.add(context);
+        });
+        observerContext.onDisposed(() => {
+          metadata.subscribers.delete(context);
+        });
       }
 
       return metadata.value;
     },
     set(newValue: unknown) {
       const metadata = getMetaData(this);
-      metadata.value = newValue;
 
-      metadata.subscribers.forEach((cb) => cb(newValue));
+      metadata.value = newValue;
+      metadata.subscribers.forEach((context) => context.notify());
+
       // @ts-ignore
       Reflect.defineMetadata(observableMetadataKey, metadata, this, args[1]);
     },

@@ -28,7 +28,6 @@ import 'reflect-metadata'
 {
     "compilerOptions": {
         "emitDecoratorMetadata": true,
-        // Not after Typescript 5.0
         "experimentalDecorators": true
     }
 }
@@ -48,18 +47,18 @@ import 'reflect-metadata'
 ## Get started
 
 ```ts
-import { Injectable, observer, observable, ContainerProvider, useInject } from 'impact-app'
+import { feature, observer, observable, ContainerProvider, useFeature } from 'impact-app'
 
-@Injectable
+@feature()
 class Logger {
     log(msg: string) {
         console.log(msg)
     }
 }
 
-@Injectable()
+@feature()
 class Counter {
-    @Observable()
+    @observable()
     count = 0;
     constructor(private logger: Logger) {}
     increase() {
@@ -69,7 +68,7 @@ class Counter {
 }
 
 const CounterComponent = observer(() => {
-    const count = useInject(Counter)
+    const count = useFeature(Counter)
     
     return (
         <div>
@@ -88,11 +87,11 @@ const App = () => (
 
 ## Explanation
 
-- **Injectable**: Marks a class to be injectable and will resolve any constructor params and inject other classes
+- **feature**: Marks a class to be injectable and will resolve any constructor params and inject other classes
 - **observable**: Marks a property as observable. Whenever a component accesses an observable during component render it will return a hook which subscribes to it, as opposed to just getting the value in any other context. No proxies, no magic...
 - **observer**: Tracks when an observable should return a React hook as opposed to the plain value
 - **ContainerProvider**: Exposes a dependency injection container which holds on to classes requested by the **useInject** hook. 
-- **useInject**: Uses the container on the context to inject the referenced class and any dependencies it has
+- **useFeature**: Uses the container on the context to inject the referenced class and any dependencies it has
 
 ## Why
 
@@ -140,10 +139,12 @@ There are no async restrictions or transactional behaviour to an observable. Rea
 
 ### Consuming promises
 
-As a rich web application it will most certainly require you to produce some promises. In the context of React, promises can be quite a challenge to express properly. There is actually a proposal from the React team on a first class primitive for React to consume promises, using the [use hook](https://irvingvjuarez.medium.com/the-coming-use-promise-hook-in-react-a5fe78186288). In the meantime you can use the accompanying `use` hook from this library or [react-promise-suspense](https://github.com/vigzmv/react-promise-suspense).
+As a rich web application it will most certainly require you to produce some promises. In the context of React, promises can be quite a challenge to express properly. There is actually a proposal from the React team on a first class primitive for React to consume promises, using the [use hook](https://github.com/acdlite/rfcs/blob/first-class-promises/text/0000-first-class-support-for-promises.md#conditionally-suspending-on-data). As part of this suggestion they also suggest the ability to cache promises and read their cached state.
+
+In terms of your imperative layer that means you want to hold on to promises representing resources, this ensures promises are being reused in the UI, but to be best consumable by React they also need a cache state. That is why **Impact** allows you to create a **CachedPromise**. This is a plain `Promise` instance with the additional cache status suggested by the React team.
 
 ```ts
-import { use } from 'impact-app';
+import { use, CachedPromise } from 'impact-app';
 
 class Post {
     constructor(public id: string, public title: string, public body: string) {}
@@ -151,12 +152,15 @@ class Post {
 
 @Injectable
 class Posts {
-    private posts: Record<string, Promise<Post>> = {}
+    private posts: Record<string, CachedPromise<Post>> = {}
     constructor(private api: Api) {}
     fetchPost(id: string) {
         if (!this.posts[id]) {
-            this.posts[id] = this.api.fetchPost(id)
-                .then(({ id, title, body}) => new Post(id, title, body))
+            this.posts[id] = CachedPromise.from(
+                this.api.fetchPost(id).then(
+                    ({ id, title, body}) => new Post(id, title, body)
+                )
+            )
         }
         
         return this.posts[id]
@@ -168,5 +172,7 @@ const PostComponent = ({ id }: { id: string }) => {
     const post = use(posts.fetchPost(id))
 }
 ```
+
+The great thing about this is that you can now safely consume values without having to determine if they are instantied or not. Use a `CachedPromise` and React will read it synchronously if it is resolved already and for your imperative layer you can still `await` these values.
 
 This approach requires the use of Suspense and Error boundaries in React to handle the pending and error state of the promise.
