@@ -28,6 +28,7 @@ import 'reflect-metadata'
 {
     "compilerOptions": {
         "emitDecoratorMetadata": true,
+        // Even though TS 5, use this for typing purposes
         "experimentalDecorators": true
     }
 }
@@ -47,16 +48,16 @@ import 'reflect-metadata'
 ## Get started
 
 ```ts
-import { feature, observer, observable, ContainerProvider, useFeature } from 'impact-app'
+import { singleton, observer, observable, ContainerProvider, useInject } from 'impact-app'
 
-@feature()
+@singleton()
 class Logger {
     log(msg: string) {
         console.log(msg)
     }
 }
 
-@feature()
+@singleton()
 class Counter {
     @observable()
     count = 0;
@@ -68,7 +69,7 @@ class Counter {
 }
 
 const CounterComponent = observer(() => {
-    const count = useFeature(Counter)
+    const count = useInject(Counter)
     
     return (
         <div>
@@ -87,25 +88,25 @@ const App = () => (
 
 ## Explanation
 
-- **feature**: Marks a class to be injectable and will resolve any constructor params and inject other classes
-- **observable**: Marks a property as observable. Whenever a component accesses an observable during component render it will return a hook which subscribes to it, as opposed to just getting the value in any other context. No proxies, no magic...
+- **singleton**: Marks a class to be injectable and will resolve any constructor params and inject other classes. The [tsyringe](https://github.com/microsoft/tsyringe) library from Microsoft is used and is also exposed as an export if needed.
+- **observable**: Marks a property as observable. Whenever a component accesses an observable during component render it will subscribe to it. No proxies, just a plain getter/setter
 - **observer**: Tracks when an observable should return a React hook as opposed to the plain value
 - **ContainerProvider**: Exposes a dependency injection container which holds on to classes requested by the **useInject** hook. 
-- **useFeature**: Uses the container on the context to inject the referenced class and any dependencies it has
+- **useInject**: Uses the container on the context to inject the referenced class and any dependencies it has
 
 ## Why
 
 React is an amazing tool to build UIs, though it is typically used to build applications which primarily fetches and displays data, where interactions are by majority driven by a router. There are really good tools to take advantage of Reacts reactive and declarative paradigm to make this an excellent developer experience.
 
-Where React falls short is when you are building complex rich applications. In these kinds of applications you quickly end up in putting all your state at the top using context providers and your asynchronous flows becomes a spaghetti of different effects reacting to state changes.
+Where React falls short is when you build complex rich applications. In these kinds of applications you quickly end up in putting all your state at the top using context providers and your asynchronous flows becomes a spaghetti of different effects, in different components, reacting to state changes.
 
-There are tools that aid this already, but it is well worth providing an imperative and object oritented version for developers who already embraces an this paradigm for application logic.
+There are tools that aid this already, but it is well worth providing an imperative and object oritented version for developers who already embraces an this paradigm for application logic. Allowing them to take full advantage of the latest asynchronous primitives that React itself offers.
 
 ## Deep Dive
 
 ### observable
 
-Unlike [Mobx](https://mobx.js.org/README.html) which wraps values in proxies to track mutations, the observable is a simple getter/setter tracker. It is considered an immutable value, which is what React requires. That means updating an observable always needs to set the value. With React and favoured patterns in object oriented programming we manage this by:
+Unlike [Mobx](https://mobx.js.org/README.html) which wraps values in proxies to track mutations, the observable is a simple getter/setter tracker. It is considered an immutable value, which is what React requires. That means updating an observable always needs to set the value. With React and favoured patterns in object oriented programming which properly separate private and public access, we can:
 
 ```ts
 class Todo {
@@ -132,8 +133,6 @@ class Todo {
     }
 }
 ```
-
-Now we have proper constraints on how this class can be consumed and we ensure that we properly change the state of the class.
 
 There are no async restrictions or transactional behaviour to an observable. React itself does synchronous batching of state updates.
 
@@ -173,6 +172,6 @@ const PostComponent = ({ id }: { id: string }) => {
 }
 ```
 
-The great thing about this is that you can now safely consume values without having to determine if they are instantied or not. Use a `CachedPromise` and React will read it synchronously if it is resolved already and for your imperative layer you can still `await` these values.
+The great thing about this is that you can now safely consume values without having to determine if they have their initial value or not. Use a `CachedPromise` and React will read it synchronously if it is resolved already and for your imperative layer you can still `await` these values.
 
 This approach requires the use of Suspense and Error boundaries in React to handle the pending and error state of the promise.
