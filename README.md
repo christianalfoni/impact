@@ -10,7 +10,7 @@ Imperative apps for React
 
 ## Install
 
-```
+```bash
 yarn install impact-app reflect-metadata
 ```
 
@@ -44,6 +44,14 @@ import 'reflect-metadata'
     ]
 }
 ```
+
+## Who it is for
+
+**If you are building an app**
+- which is more about client state management than data fetching
+- where interactions are not primarily navigation, but client state changes
+- which has complex asynchronous flows
+- and you prefer and/or already have other projects with imperative object oriented code
 
 ## Get started
 
