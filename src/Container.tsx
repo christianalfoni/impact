@@ -28,7 +28,7 @@ export const ContainerProvider: React.FC<{
   });
 
   useEffect(() => {
-    container.reset();
+    container.dispose();
   }, []);
 
   return (
