@@ -40,6 +40,8 @@ export function observer<T extends (...args: any[]) => any>(component: T): T {
   }) as T;
 }
 
+export const useObserver = <T>(observerCb: () => T) => observer(observerCb);
+
 const observableMetadataKey = Symbol("observable");
 
 export function observable(...args: any[]) {
