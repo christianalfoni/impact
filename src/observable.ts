@@ -11,9 +11,11 @@ class ObserverContext {
     this.disposeListeners.add(cb);
   }
   subscribe() {
-    this.subscribeListeners.forEach((cb) => cb());
+    const subscribeListeners = Array.from(this.subscribeListeners);
+    subscribeListeners.forEach((cb) => cb());
     return () => {
-      this.disposeListeners.forEach((cb) => cb());
+      const disposeListeners = Array.from(this.disposeListeners);
+      disposeListeners.forEach((cb) => cb());
     };
   }
   notify() {

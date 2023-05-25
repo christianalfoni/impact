@@ -14,6 +14,8 @@ export const singleton = tsyringe.singleton;
 
 export const inject = tsyringe.inject;
 
+export type Disposable = tsyringe.Disposable;
+
 const diContext = createContext<tsyringe.DependencyContainer>(
   null as unknown as tsyringe.DependencyContainer
 );
