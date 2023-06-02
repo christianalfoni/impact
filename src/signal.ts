@@ -25,28 +25,37 @@ class ObserverContext {
 
 let observerContext: ObserverContext | undefined;
 
-export function observer<T extends (...args: any[]) => any>(component: T): T {
-  return ((...args: unknown[]) => {
-    // Suspense
-    const [_, setState] = useState(0);
-    const context = (observerContext = new ObserverContext(setState));
-    try {
-      useEffect(() => context.subscribe());
-      const result = component(...args);
-      observerContext = undefined;
-      return result;
-    } catch (error) {
-      observerContext = undefined;
-      throw error;
-    }
-  }) as T;
+function observe(fn: (...args: any[]) => any, ...args: any[]) {
+  const [_, setState] = useState(0);
+  const context = (observerContext = new ObserverContext(setState));
+  try {
+    useEffect(() => context.subscribe());
+    const result = fn(...args);
+    observerContext = undefined;
+    return result;
+  } catch (error) {
+    observerContext = undefined;
+    throw error;
+  }
 }
 
-export const useObserver = <T>(observerCb: () => T) => observer(observerCb);
+/**
+ * Wrap a component to track any signal consumed
+ */
+export function observer<T extends (...args: any[]) => any>(component: T): T {
+  return ((...args: unknown[]) => observe(component, ...args)) as T;
+}
 
-const observableMetadataKey = Symbol("observable");
+/**
+ * Return this hook from a component, creating the JSX and consuming any signals
+ */
+export function useSignals<T extends () => any>(fn: T) {
+  return observe(fn);
+}
 
-export function observable(...args: any[]) {
+const signalMetadataKey = Symbol("observable");
+
+export function signal(...args: any[]) {
   const descriptor = args[2] as {
     initializer?: () => unknown;
     configurable: boolean;
@@ -56,7 +65,7 @@ export function observable(...args: any[]) {
   const getMetaData = (target: unknown) => {
     // @ts-ignore
     const metadata = Reflect.getOwnMetadata(
-      observableMetadataKey,
+      signalMetadataKey,
       target,
       args[1]
     ) || {
@@ -65,7 +74,7 @@ export function observable(...args: any[]) {
     };
 
     // @ts-ignore
-    Reflect.defineMetadata(observableMetadataKey, metadata, target, args[1]);
+    Reflect.defineMetadata(signalMetadataKey, metadata, target, args[1]);
 
     return metadata as {
       value: unknown;
@@ -94,10 +103,12 @@ export function observable(...args: any[]) {
       const metadata = getMetaData(this);
 
       metadata.value = newValue;
-      metadata.subscribers.forEach((context) => context.notify());
+
+      const subscribers = Array.from(metadata.subscribers);
+      subscribers.forEach((context) => context.notify());
 
       // @ts-ignore
-      Reflect.defineMetadata(observableMetadataKey, metadata, this, args[1]);
+      Reflect.defineMetadata(signalMetadataKey, metadata, this, args[1]);
     },
     configurable: descriptor.configurable,
     enumerable: descriptor.enumerable,

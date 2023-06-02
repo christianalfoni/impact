@@ -1,3 +1,3 @@
 export * from "./Container";
-export * from "./observable";
+export * from "./signal";
 export * from "./CachedPromise";

@@ -5,12 +5,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-
 import * as tsyringe from "tsyringe";
 
 export { tsyringe };
 
-export const singleton = tsyringe.singleton;
+export const injectable = tsyringe.injectable;
 
 export const inject = tsyringe.inject;
 
@@ -22,7 +21,7 @@ const diContext = createContext<tsyringe.DependencyContainer>(
 
 export const ContainerProvider: React.FC<{
   children: any;
-  values?: [tsyringe.InjectionToken<unknown>, unknown][];
+  values?: Array<[tsyringe.InjectionToken<unknown>, unknown]>;
 }> = (props) => {
   const ummountTimeoutRef = useRef<number | undefined>();
   const parentContainer = useContext(diContext);

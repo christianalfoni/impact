@@ -1,185 +1,108 @@
-# impact
-Imperative apps for React
+# @codesandbox/impact
 
-- [Install](#install)
-- [Get Started](#get-started)
-- [Configuring](#configuring)
-- [Explanation](#explanation)
-- [Why](#why)
-- [Deep Dive](#deep-dive)
+> Bridging object oriented code with React.
 
-## Install
+## Why
 
-```bash
-yarn install impact-app reflect-metadata
-```
+At CodeSandbox we write most of our code in an object oriented paradigm. This includes projects like **pitcher**, **VSCode extension**, **@codesandbox/pitcher-client** and **@codesandbox/api**. To make it easier for us to move between these projects, reuse existing tools and practices and work more effeciently, we use Impact to bridge the gap between this paradigm and Reacts paradigm.
 
-## Configuring
+## Exposing classes to React
 
-**reflect-metadata**
+Instead of creating a tree of class instances representing the different domains of the app we rather expose the classes using dependency injection. This has some benefits:
 
-```ts
-// In your entry file
-import 'reflect-metadata'
-```
+- It is the React component injecting the class which determines if it will be instantiated. So for example if you never open the VM Metrics devtool, its logic will not be instantiated either
+- We avoid having to wire up the dependencies of the class. You just add dependencies as constructor params and they are made available. This makes it easier for us to try out ideas and create prototypes
 
-**tsconfig**
-```json
-{
-    "compilerOptions": {
-        "emitDecoratorMetadata": true,
-        // Even though TS 5, use this for typing purposes
-        "experimentalDecorators": true
-    }
-}
-```
+This is how a container is exposed and how a class would be injected:
 
-**babel**
-```json
-{
-    "plugins": [
-        "babel-plugin-transform-typescript-metadata",
-        ["@babel/plugin-proposal-decorators", { version: "legacy" }],
-        "@babel/plugin-proposal-class-properties"
-    ]
-}
-```
+```tsx
+import { ContainerProvider, useInject, injectable } from '@codesandbox/impact'
 
-## Who it is for
-
-**If you are building an app**
-- which is more about client state management than data fetching
-- where interactions are not primarily navigation, but client state changes
-- which has complex asynchronous flows
-- and you prefer and/or already have other projects with imperative object oriented code
-
-## Get started
-
-```ts
-import { singleton, observer, observable, ContainerProvider, useInject } from 'impact-app'
-
-@singleton()
-class Logger {
-    log(msg: string) {
-        console.log(msg)
-    }
+@injectable()
+class Test {
+    foo = 'bar'
 }
 
-@singleton()
-class Counter {
-    @observable()
-    count = 0;
-    constructor(private logger: Logger) {}
-    increase() {
-        this.count++
-        this.logger.log("increased count")
-    }
-}
-
-const CounterComponent = observer(() => {
-    const count = useInject(Counter)
+const TestComponent = () => {
+    const test = useInject(Test)
     
-    return (
-        <div>
-          <p>{count}</p>
-          <button onClick={() => counter.increase()}>Increase</button>
-        </div>
-    )
-})
+    return <h1>{test.foo}</h1>
+}
 
-const App = () => (
+export const App = () => (
     <ContainerProvider>
-      <CounterComponent />
+      <TestComponent />
     </ContainerProvider>
 )
 ```
 
-## Explanation
+## Creating reactive values
 
-- **singleton**: Marks a class to be injectable and will resolve any constructor params and inject other classes. The [tsyringe](https://github.com/microsoft/tsyringe) library from Microsoft is used and is also exposed as an export if needed.
-- **observable**: Marks a property as observable. Whenever a component accesses an observable during component render it will subscribe to it. No proxies, just a plain getter/setter
-- **observer**: Tracks when an observable should return a React hook as opposed to the plain value
-- **ContainerProvider**: Exposes a dependency injection container which holds on to classes requested by the **useInject** hook. 
-- **useInject**: Uses the container on the context to inject the referenced class and any dependencies it has
-
-## Why
-
-React is an amazing tool to build UIs, though it is typically used to build applications which primarily fetches and displays data, where interactions are by majority driven by a router. There are really good tools to take advantage of Reacts reactive and declarative paradigm to make this an excellent developer experience.
-
-Where React falls short is when you build complex rich applications. In these kinds of applications you quickly end up in putting all your state at the top using context providers and your asynchronous flows becomes a spaghetti of different effects, in different components, reacting to state changes.
-
-There are tools that aid this already, but it is well worth providing an imperative and object oritented version for developers who already embraces an this paradigm for application logic. Allowing them to take full advantage of the latest asynchronous primitives that React itself offers.
-
-## Deep Dive
-
-### observable
-
-Unlike [Mobx](https://mobx.js.org/README.html) which wraps values in proxies to track mutations, the observable is a simple getter/setter tracker. It is considered an immutable value, which is what React requires. That means updating an observable always needs to set the value. With React and favoured patterns in object oriented programming which properly separate private and public access, we can:
+For React to be able to subscribe to changes in the classes we need to change how values are defined, but we do not not want to change how values are set and consumed in the imperative layer. To achieve this we use a decorator which makes any property of a class a **signal**. This just creates a `getter/setter` for the property.
 
 ```ts
-class Todo {
-    @observable
-    private state = {
-        id: 0,
-        title: "Hello there",
-        isChecked: false
-    }
-    get id () {
-        return this.state.id
-    }
-    get title () {
-        return this.state.title
-    }
-    get isChecked () {
-        return this.state.isChecked
-    }
-    toggle() {
-        this.state = {
-            ...this.state,
-            isChecked: !this.state.isChecked
-        }
+import { signal } from '@codesandbox/impact'
+
+class SomeFeature {
+    @signal
+    foo = 'bar'
+}
+```
+
+This value can now be used just as normal in the imperative layer, but when being accessed by a component during reconciliation it will subscribe to the `setter`, triggering a new component reconciliation.
+
+```tsx
+import { useInject, useSignals } from '@codesandbox/impact'
+
+const SomeComponent = () => {
+    const feature = useInject(Feature)
+    
+    return useSignals(() => (
+        <h1>{feature.foo}</h1>
+    ))
+}
+```
+
+**NOTE!** You should think about this signal as an immutable value. You update it like you would update any state in React.
+
+```ts
+import { signal, injectable } from '@codesandbox/impact'
+
+@injectable()
+class SomeClass {
+    @signal
+    list = []
+    addToList(item) {
+        this.list = this.list.concat(item)
     }
 }
 ```
 
-There are no async restrictions or transactional behaviour to an observable. React itself does synchronous batching of state updates.
+## Providing promises
 
-### Consuming promises
+As part of Reacts roadmap it will have native support for promises with the **use** hook. As stated in the current documentation it is up to the external layer providing the promises to make them optimal for React consumption. Again we want to consume these promise values as normal in the imperative layer, but still make them optimal for React to consume.
 
-As a rich web application it will most certainly require you to produce some promises. In the context of React, promises can be quite a challenge to express properly. There is actually a proposal from the React team on a first class primitive for React to consume promises, using the [use hook](https://github.com/acdlite/rfcs/blob/first-class-promises/text/0000-first-class-support-for-promises.md#conditionally-suspending-on-data). As part of this suggestion they also suggest the ability to cache promises and read their cached state.
-
-In terms of your imperative layer that means you want to hold on to promises representing resources, this ensures promises are being reused in the UI, but to be best consumable by React they also need a cache state. That is why **Impact** allows you to create a **CachedPromise**. This is a plain `Promise` instance with the additional cache status suggested by the React team.
+The **CachedPromise** utility and the polyfilled **use** hook makes this possible.
 
 ```ts
-import { use, CachedPromise } from 'impact-app';
+import { CachedPromise, signal, use, useInject } from '@codesandbox/impact'
 
-class Post {
-    constructor(public id: string, public title: string, public body: string) {}
-}
-
-@Injectable
-class Posts {
-    private posts: Record<string, CachedPromise<Post>> = {}
-    constructor(private api: Api) {}
-    fetchPost(id: string) {
-        if (!this.posts[id]) {
-            this.posts[id] = CachedPromise.from(
-                this.api.fetchPost(id).then(
-                    ({ id, title, body}) => new Post(id, title, body)
-                )
-            )
-        }
-        
-        return this.posts[id]
+class SomeFeature {
+    @signal
+    somePromise: CachedPromise<string>
+    constructor() {
+        this.somePromise = CachedPromise.from(createStringPromise())
     }
 }
 
-const PostComponent = ({ id }: { id: string }) => {
-    const posts = useInject(Posts)
-    const post = use(posts.fetchPost(id))
+const SomeComponent = () => {
+    const feature = useInject(SomeFeature)
+    const stringValue = use(feature.somePromise)
+    
 }
 ```
 
-The great thing about this is that you can now safely consume values without having to determine if they have their initial value or not. Use a `CachedPromise` and React will read it synchronously if it is resolved already and for your imperative layer you can still `await` these values.
+The use of the **use** hook requires a suspense and error boundary as the component will throw when the promise is pending (suspense) or rejected (error).
 
-This approach requires the use of Suspense and Error boundaries in React to handle the pending and error state of the promise.
+To update the value of the promise, for example data from a subscription, you can use `CachedPromise.fulfilled('hello')` to replace the promise with the new resolved value, which can be synchronously read by React. Combine it with a signal to make the component reconcile again if the value of the promise changes.
+
