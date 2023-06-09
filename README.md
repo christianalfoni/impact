@@ -12,7 +12,10 @@ This tool is designed for rich single page applications. These applications has 
 
 ## Documentation
 
-[Getting Started](./docs/01_Getting_Started.md)
-[Hello World](./docs/02_Hello_World.md)
-[Reactivity](./docs/03_Reactivity.md)
-[Promises](./docs/04_Promises.md)
+- [Getting Started](./docs/01_Getting_Started.md)
+- [Hello World](./docs/02_Hello_World.md)
+- [Reactivity](./docs/03_Reactivity.md)
+- [Promises](./docs/04_Promises.md)
+- [Service In Depth](./docs/05_Services_In_Depth.md)
+- [Signals In Depth](./docs/06_Signals_In_Depth.md)
+- [Promises In Depth](./docs/07_Promises_In_Depth.md)
