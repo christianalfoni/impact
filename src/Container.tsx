@@ -9,17 +9,18 @@ import * as tsyringe from "tsyringe";
 
 export { tsyringe };
 
-export const injectable = tsyringe.injectable;
+export const service = () =>
+  tsyringe.scoped(tsyringe.Lifecycle.ContainerScoped);
 
 export const inject = tsyringe.inject;
 
-export type Disposable = tsyringe.Disposable;
+export type IDisposable = tsyringe.Disposable;
 
 const diContext = createContext<tsyringe.DependencyContainer>(
   null as unknown as tsyringe.DependencyContainer
 );
 
-export const ContainerProvider: React.FC<{
+export const ServiceProvider: React.FC<{
   children: any;
   values?: Array<[tsyringe.InjectionToken<unknown>, unknown]>;
 }> = (props) => {
@@ -53,7 +54,7 @@ export const ContainerProvider: React.FC<{
   );
 };
 
-export function useInject<T>(classReference: tsyringe.InjectionToken<T>): T {
+export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
 
   return container.resolve(classReference);

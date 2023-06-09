@@ -87,7 +87,7 @@ function isRejectedCachedPromise(
 }
 
 // There is an official RFC for this hook: https://github.com/reactjs/rfcs/pull/229
-export function use<T>(promise: CachedPromise<T>) {
+export function usePromise<T>(promise: CachedPromise<T>) {
   if (isFulfilledCachedPromise(promise)) {
     return promise.value as T;
   }

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 class ObserverContext {
   private disposeListeners = new Set<() => void>();
   private subscribeListeners = new Set<() => void>();
-  constructor(private update: (update: (current: number) => number) => void) {}
+  constructor(private update: () => void) {}
   onSubscribe(cb: () => void) {
     this.subscribeListeners.add(cb);
   }
@@ -19,38 +19,42 @@ class ObserverContext {
     };
   }
   notify() {
-    this.update((current) => current + 1);
+    this.update();
   }
 }
 
 let observerContext: ObserverContext | undefined;
 
-function observe(fn: (...args: any[]) => any, ...args: any[]) {
-  const [_, setState] = useState(0);
-  const context = (observerContext = new ObserverContext(setState));
-  try {
-    useEffect(() => context.subscribe());
-    const result = fn(...args);
-    observerContext = undefined;
-    return result;
-  } catch (error) {
-    observerContext = undefined;
-    throw error;
-  }
+function observe(fn: (...args: any[]) => any, deps?: any[]) {
+  const [version, setState] = useState(0);
+
+  const context = (observerContext = new ObserverContext(() =>
+    setState((current) => current + 1)
+  ));
+
+  const result = deps ? useMemo(() => fn(), [version, ...deps]) : fn();
+
+  useEffect(() => context.subscribe());
+
+  observerContext = undefined;
+
+  return result;
 }
 
 /**
  * Wrap a component to track any signal consumed
  */
 export function observer<T extends (...args: any[]) => any>(component: T): T {
-  return ((...args: unknown[]) => observe(component, ...args)) as T;
+  return ((...args: unknown[]) => observe(() => component(...args))) as T;
 }
 
 /**
- * Return this hook from a component, creating the JSX and consuming any signals
+ * Use this hook to produce a result tracking signals. Typically used when defining the
+ * React elements returned from a component, but can also be used to memoize by passing
+ * an empty array or related dependendent values in the array
  */
-export function useSignals<T extends () => any>(fn: T) {
-  return observe(fn);
+export function useSignals<T extends () => any>(fn: T, deps?: any[]) {
+  return observe(fn, deps);
 }
 
 const signalMetadataKey = Symbol("observable");
