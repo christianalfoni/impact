@@ -127,7 +127,7 @@ class Posts {
 The `useSignals` hook allows you to add depdencies, meaning it will memoize the value returned from it. This is useful when you need to compute a value, but only when the actual signal changes are any dependent references.
 
 ```tsx
-import { useService } from 'impact-app'
+import { useService, useSignals } from 'impact-app'
 
 const SomeComponent = ({ foo }: { foo: string }) => {
     const service = useService(SomeService)
@@ -137,3 +137,44 @@ const SomeComponent = ({ foo }: { foo: string }) => {
     return <div/>
 }
 ```
+
+## Using hooks in useSignals
+
+You are free to use hooks inside `useSignals`, but **NOTE** that you can not combine that behaviour with dependencies.
+
+```tsx
+import { useService, useSignals } from 'impact-app'
+
+const SomeComponent = ({ foo }: { foo: string }) => {
+    const service = useService(SomeService)
+    
+    // This is perfectly fine
+    return useSignals(() => {
+        useSomeOtherHook()
+        
+        return (
+            <div>
+                Hello {service.foo}
+            </div>
+        )
+    })
+}
+
+const SomeBadComponent = ({ foo }: { foo: string }) => {
+    const service = useService(SomeService)
+    
+    // This is BAD, because now the callback of `useSignals` will not run
+    // on every reconciliation, creating a React error
+    return useSignals(() => {
+        useSomeOtherHook()
+        
+        return (
+            <div>
+                Hello {service.foo}
+            </div>
+        )
+    }, [foo])
+}
+```
+
+**NOTE!** The `usePromise` hook, just like the upcoming `use` hook, can be used conditionally.
