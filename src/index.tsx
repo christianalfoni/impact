@@ -1,3 +1,5 @@
+import "reflect-metadata";
+
 import React, {
   createContext,
   useContext,
@@ -9,7 +11,7 @@ import * as tsyringe from "tsyringe";
 
 export { tsyringe };
 
-export const service = () =>
+export const injectable = () =>
   tsyringe.scoped(tsyringe.Lifecycle.ContainerScoped);
 
 export const inject = tsyringe.inject;
@@ -20,7 +22,7 @@ const diContext = createContext<tsyringe.DependencyContainer>(
   null as unknown as tsyringe.DependencyContainer
 );
 
-export const ServiceProvider: React.FC<{
+export const InjectionProvider: React.FC<{
   children: any;
   values?: Array<[tsyringe.InjectionToken<unknown>, unknown]>;
 }> = (props) => {
@@ -54,7 +56,7 @@ export const ServiceProvider: React.FC<{
   );
 };
 
-export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
+export function useInject<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
 
   return container.resolve(classReference);

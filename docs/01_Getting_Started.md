@@ -1,6 +1,6 @@
 # Getting Started
 
-`npm install impact-app reflect-metadata`
+`npm install impact-app`
 
 ## Configuration
 
@@ -13,24 +13,15 @@
 ```
 
 
-**.babelrc**
-`npm install babel-plugin-transform-typescript-metadata @babel/plugin-proposal-decorators @babel/plugin-proposal-class-properties --dev`
+**babel**
+`npm install babel-plugin-transform-typescript-metadata @babel/plugin-proposal-decorators --dev`
 
 ```json
 {
     plugins: [
         "babel-plugin-transform-typescript-metadata",
-        ["@babel/plugin-proposal-decorators", { "legacy": true }],
-        ["@babel/plugin-proposal-class-properties", { "loose": true }],
+        ["@babel/plugin-proposal-decorators", { "legacy": true }]
     ]
 }
-```
-
-## Reflect Metadata
-
-You will have to import the `reflect-metadata` package in your main entry point, before resolving any dependencies:
-
-```ts
-import 'reflect-metadata'
 ```
 
