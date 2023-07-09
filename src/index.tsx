@@ -12,7 +12,7 @@ import * as tsyringe from "tsyringe";
 export { tsyringe };
 
 export const injectable = () =>
-  tsyringe.scoped(tsyringe.Lifecycle.ContainerScoped);
+  tsyringe.scoped(tsyringe.Lifecycle.ResolutionScoped);
 
 export const inject = tsyringe.inject;
 
