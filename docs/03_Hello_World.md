@@ -23,11 +23,11 @@ const HelloWorldComponent = () => {
 }
 
 /*
-  Use the "InjectionProvider" to provide a container. When a nested component injects a class, it will be
-  injected in the nearest container provider. That means you can have multiple nested container providers
+  Use the "InjectionProvider" to provide a container. When a nested component injects a class, it will create the instance
+  if it has not been created yet
 */
 export const App = () => (
-    <InjectionProvider>
+    <InjectionProvider classes={[HelloWorld]}>
       <HelloWorldComponent />
     </InjectionProvider>
 )

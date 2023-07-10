@@ -36,7 +36,8 @@ const SomeOtherComponent = () => {
 }
 
 const App = () => (
-    <InjectionProvider>
+    // You always have to explicitly register the class to the provider. 
+    <InjectionProvider classes={[SomeClass]}>
       <SomeComponent />
       <SomeOtherComponent />
     </InjectionProvider>
@@ -55,8 +56,7 @@ import { Api } from './Api'
 
 @injectable()
 class Posts {
-    constructor(private api: Api) {
-    }
+    constructor(private api: Api) {}
     getPost(id: string) {
         return this.api.fetchPost(id)
     }
@@ -97,7 +97,7 @@ const api = SomeApi({})
 
 const App = () => {
     return (
-        <InjectionProvider values={[SomeApi, api]}>
+        <InjectionProvider classes={[SomeFeature]} values={[SomeApi, api]}>
             <Content />
         </InjectionProvider>
     )
@@ -125,7 +125,7 @@ const CONFIG: Record<string, string> = {}
 
 const App = () => {
     return (
-        <InjectionProvider values={['CONFIG', CONFIG]}>
+        <InjectionProvider classes={[SomeFeature]} values={['CONFIG', CONFIG]}>
             <Content />
         </InjectionProvider>
     )
@@ -171,7 +171,7 @@ const ProjectPage = ({ id }: { id: string }) => {
     const projectData = use(projects.fetch(id))
     
     return (
-        <InjectionProvider values={[['PROJECT_DATA', projectData]]}>
+        <InjectionProvider classes={[Project]} values={[['PROJECT_DATA', projectData]]}>
             <Project />
         </InjectionProvider>
     )

@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.8.1",
+  "version": "0.9.1",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -34,7 +34,7 @@
   "dependencies": {
     "react": "*",
     "reflect-metadata": "^0.1.13",
-    "tsyringe": "^4.7.0"
+    "tsyringe": "^4.8.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.0",
