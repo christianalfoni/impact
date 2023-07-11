@@ -35,7 +35,7 @@ Now any component can consume the application state and logic through a hook. Du
 
 - You would still have to manually orchestrate disposal of classes and recreating them
 - You would still have to manually create instances and passing dependencies down to other classes
-- You hardwire new classes into an existing class structure, especially when providing instances of other classes
+- You hardwire new classes into an existing class structure, especially when one class depends on an other class
 - Lazy loading state and logic becomes a challenge as everything is wired into a single root class
 
 But there is a mechanism we can use to solve all these challenges. Dependency Injection is not a common mechanism used in the world of JavaScript, but there is no lack of solutions. [tsyringe]() is a library from Microsoft. Tsyringe is a general purpose dependency injector which takes advantage of features not yet fully available in the language, but it allows for an ergonomic experience and solves all the before mentioned issues.

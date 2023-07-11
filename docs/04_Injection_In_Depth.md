@@ -65,22 +65,15 @@ class Posts {
 
 ## Disposing classes
 
-When an injection provider is unmounted it will be disposed. Any classes registered to that injection provider will also be disposed, given they implement the `IDisposable` interface, which is practically just a `dispose` method.
+When an injection provider is unmounted it will be disposed. Any classes registered to that injection provider will also be disposed, given they implement the `IDisposable` interface, which is practically just a `dispose` method. You could write this dispose method yourself, but `impact` also allows you to extend a `Disposable` class where you rather use the `constructor` to define what should be disposed.
 
 ```ts
-import { injectable, IDisposable } from 'impact-app'
+import { injectable, Disposable } from 'impact-app'
 
 @injectable()
-class SomeSubscriber implements IDisposable {
-    private disposeSubscription: () => void
+class SomeSubscriber extends Disposable {
     constructor(private api: Api) {
-        this.disposeSubscription = this.api.subscribeSomething()
-    }
-    /*
-      This runs when the related injection provider unmounts from the React component tree
-    */
-    dispose() {
-        this.disposeSubscription()
+        this.addDisposable(this.api.subscribeSomething())
     }
 }
 ```

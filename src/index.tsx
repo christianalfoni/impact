@@ -1,37 +1,75 @@
 import "reflect-metadata";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { createContext, useContext } from "react";
 import * as tsyringe from "tsyringe";
 import { constructor } from "tsyringe/dist/typings/types";
 
 export { injectable, inject } from "tsyringe";
 
-export type IDisposable = tsyringe.Disposable;
+export interface IDisposable {
+  /**
+   * Dispose this object.
+   */
+  dispose(): void;
+}
 
-const diContext = createContext<tsyringe.DependencyContainer>(
-  null as unknown as tsyringe.DependencyContainer
-);
+export class Disposable implements IDisposable {
+  private toDispose: IDisposable[] = [];
+  public isDisposed = false;
 
-export const InjectionProvider: React.FC<{
+  public addDisposable<T extends IDisposable>(disposable: T): T {
+    this.toDispose.push(disposable);
+    return disposable;
+  }
+
+  public onDispose(cb: () => void): void {
+    this.toDispose.push(Disposable.create(cb));
+  }
+
+  public dispose(): void {
+    if (this.isDisposed) return;
+
+    this.isDisposed = true;
+    this.toDispose.forEach((disposable) => {
+      disposable.dispose();
+    });
+  }
+
+  public static is(arg: any): arg is Disposable {
+    return typeof arg["dispose"] === "function";
+  }
+
+  public static create(cb: () => void): IDisposable {
+    return {
+      dispose: cb,
+    };
+  }
+}
+
+const diContext = createContext<tsyringe.DependencyContainer | null>(null);
+
+export type InjectionProviderProps = {
   children: React.ReactNode;
   values?: Array<[tsyringe.InjectionToken, unknown]>;
   classes?: constructor<unknown>[];
-}> = (props) => {
-  const ummountTimeoutRef = useRef<number | undefined>();
-  const parentContainer = useContext(diContext);
-  const [container] = useState(() => {
+};
+
+export class InjectionProvider extends React.Component<
+  InjectionProviderProps,
+  tsyringe.DependencyContainer
+> {
+  static contextType = diContext;
+  constructor(
+    props: InjectionProviderProps,
+    parentContainer: tsyringe.DependencyContainer | null
+  ) {
+    super(props);
     const container = (
       parentContainer || tsyringe.container
     ).createChildContainer();
     if (props.values) {
-      props.values.forEach(([claz, value]) => {
-        container.register(claz, { useValue: value });
+      props.values.forEach(([token, value]) => {
+        container.register(token, { useValue: value });
       });
     }
     if (props.classes) {
@@ -45,27 +83,26 @@ export const InjectionProvider: React.FC<{
         );
       });
     }
-    return container;
-  });
-
-  // To ensure we dispose on actual unmount (not with strict mode double running effects), we
-  // use a timeout to ensure that we are still unmounted
-  useEffect(() => {
-    clearTimeout(ummountTimeoutRef.current);
-    return () => {
-      ummountTimeoutRef.current = setTimeout(() => {
-        container.dispose();
-      }) as unknown as number;
-    };
-  }, []);
-
-  return (
-    <diContext.Provider value={container}>{props.children}</diContext.Provider>
-  );
-};
+    this.state = container;
+  }
+  componentWillUnmount(): void {
+    this.state.dispose();
+  }
+  render() {
+    return (
+      <diContext.Provider value={this.state}>
+        {this.props.children}
+      </diContext.Provider>
+    );
+  }
+}
 
 export function useInject<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
+
+  if (!container) {
+    throw new Error("useInject used in an invalid context");
+  }
 
   if (!container.isRegistered(classReference)) {
     throw new Error(
@@ -76,4 +113,46 @@ export function useInject<T>(classReference: tsyringe.InjectionToken<T>): T {
   }
 
   return container.resolve(classReference);
+}
+
+/**
+ * A typed event.
+ */
+export interface Event<T> {
+  /**
+   *
+   * @param listener The listener function will be called when the event happens.
+   * @return a disposable to remove the listener again.
+   */
+  (listener: (e: T) => void): IDisposable;
+}
+
+export class Emitter<T> implements IDisposable {
+  private registeredListeners = new Set<(e: T) => void>();
+  private _event: Event<T> | undefined;
+
+  get event(): Event<T> {
+    if (!this._event) {
+      this._event = (listener: (e: T) => void) => {
+        this.registeredListeners.add(listener);
+
+        return Disposable.create(() => {
+          this.registeredListeners.delete(listener);
+        });
+      };
+    }
+
+    return this._event;
+  }
+
+  /** Invoke all listeners registered to this event. */
+  fire(event: T): void {
+    this.registeredListeners.forEach((listener) => {
+      listener(event);
+    });
+  }
+
+  dispose(): void {
+    this.registeredListeners = new Set();
+  }
 }
