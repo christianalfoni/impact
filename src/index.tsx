@@ -59,11 +59,13 @@ export class InjectionProvider extends React.Component<
   tsyringe.DependencyContainer
 > {
   static contextType = diContext;
-  constructor(
-    props: InjectionProviderProps,
-    parentContainer: tsyringe.DependencyContainer | null
-  ) {
+  constructor(...args: unknown[]) {
+    const props = args[0] as InjectionProviderProps;
+    // due to typing issue
+    const parentContainer = args[1] as tsyringe.DependencyContainer | null;
+
     super(props);
+
     const container = (
       parentContainer || tsyringe.container
     ).createChildContainer();
