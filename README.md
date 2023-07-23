@@ -1,6 +1,6 @@
-# @codesandbox/impact
+# impact-app
 
-> Bridging object oriented code with React.
+> Rich Single Page Application Framework for React
 
 ## Background
 
@@ -8,7 +8,9 @@ At [CodeSandbox](https://codesandbox.io) we write most of our code in an object 
 
 ## Who is this for?
 
-Even though you love React for its ability to compose UIs, you feel frustrated when it gets down to business of exposing and consuming application wide state, organising code into domains and making it all discoverable for new developers. Maybe you are using Mobx already, but want to avoid passing class instances all over the place or maybe you are using Redux and miss the ability to just have some internal state not exposed through the reducer.
+Even though you love React for its ability to compose UIs, you feel frustrated when it gets down to business of exposing and consuming application wide state, organising code into domains and making it all discoverable for new developers. Maybe you are using Mobx already, but want to avoid passing class instances all over the place or maybe you are using Redux and miss the ability to encapsulate asynchronous flows and private state.
+
+This framework is not built for solutions like [Next JS](https://nextjs.org/) or [Remix](https://remix.run/), which are more "e-commerce" types of experiences which are primarily data and route driven applications. This framework is for rich single page applications where you are building "editor" type of experiences on the web using React.
 
 ## Documentation
 
@@ -16,7 +18,3 @@ Even though you love React for its ability to compose UIs, you feel frustrated w
 - [Hello World](./docs/02_Hello_World.md)
 - [Injection In Depth](./docs/03_Injection_In_Depth.md)
 
-## Examples
-
-- [Sandbox with Mobx](https://codesandbox.io/p/sandbox/fervent-euclid-4z855q)
-- [Sandbox with Signalit](https://codesandbox.io/p/sandbox/boring-danny-f2wdxc)

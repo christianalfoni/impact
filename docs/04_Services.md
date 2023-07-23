@@ -1,42 +1,44 @@
-# Injection In Depth
+# Services
 
-An injectable class is just a class which is enhanced with the ability to be injected by components and other classes. You never instantiate the class directly, the constructor is only used to inject other classes or values, and run initialization logic.
+A service just a class which is enhanced with the ability to be injected into components and other classes. You never instantiate the class directly, the constructor is only used to inject other classes or values, and run initialization logic.
 
 ```ts
-import { injectable } from 'impact-app'
+import { Service } from 'impact-app'
 import { Api } from './Api'
 
-@injectable()
+@Service()
 class SomeFeature {
+    // Now you can use any other service in the
+    // constructor and it will be injected as
+    // this class is instantiated by a component
+    // or some other service
     constructor(private api: Api) {}
 }
 ```
 
-## InjectionProvider
+**NOTE!** Make sure you do not `import type` when referencing classes in the constructor.
 
-To be able to inject a service you will need to provide an InjectionProvider to your components.
+## ServiceProvider
+
+To be able to inject a service you will need to mount a ServiceProvider in your component tree.
 
 ```tsx
-import { InjectionProvider, useInject } from 'impact-app'
+import { ServiceProvider, useService } from 'impact-app'
 
 const SomeComponent = () => {
-    /* 
-      This will register to the injection provider
-    */
-    const someClass = useInject(SomeClass)
+    const someClass = useService(SomeClass)
 }
 
 const SomeOtherComponent = () => {
     /* 
       This will get the same instance of the class as
-      "SomeComponent" because they use the same injection
-      provider
+      "SomeComponent" because they use the same ServiceProvider
     */
     const someClass = useInject(SomeClass)
 }
 
 const App = () => (
-    // You always have to explicitly register the class to the provider. 
+    // You always have to explicitly register the class to the provider or it will throw an error
     <InjectionProvider classes={[SomeClass]}>
       <SomeComponent />
       <SomeOtherComponent />
@@ -45,16 +47,15 @@ const App = () => (
 ```
 
 
-## Injecting classes into classes
+## Injecting services into services
 
-To inject a class into a class you use the constructor. Any argument pointing to a class registered to an injection provider will be available:
+To inject a service into a service you use the constructor. Unlike the "useService" hook, the class does not need to be exposed on a ServiceProvider.
 
 ```ts
-import { injectable } from 'impact-app'
-// Make sure you do not use "import type" here
+import { Service } from 'impact-app'
 import { Api } from './Api'
 
-@injectable()
+@Service()
 class Posts {
     constructor(private api: Api) {}
     getPost(id: string) {
@@ -63,36 +64,36 @@ class Posts {
 }
 ```
 
-## Disposing classes
+## Disposing services
 
-When an injection provider is unmounted it will be disposed. Any classes registered to that injection provider will also be disposed, given they implement the `IDisposable` interface, which is practically just a `dispose` method. You could write this dispose method yourself, but `impact` also allows you to extend a `Disposable` class where you rather use the `constructor` to define what should be disposed.
+When a ServiceProvider is unmounted it will be disposed. Any services registered to that ServiceProvider will also be disposed. The `useService` hook will throw if you consume a service without extending `Disposable`
 
 ```ts
-import { injectable, Disposable } from 'impact-app'
+import { Service, Disposable } from 'impact-app'
 
-@injectable()
+@Service()
 class SomeSubscriber extends Disposable {
     constructor(private api: Api) {
-        this.addDisposable(this.api.subscribeSomething())
+        this.onDispose(this.api.subscribeSomething())
     }
 }
 ```
 
 ## Injecting values
 
-When adding an `InjectionProvider` you can preconfigure it with values. This is very useful for instantating external libraries, exposing configuration or provide initial data.
+When adding a ServiceProvider you can preconfigure it with values. This is very useful for instantating external libraries, exposing configuration or provide initial data.
 
 ```tsx
 import { SomeApi } from 'some-api'
-import { InjectionProvider } from 'impact-app'
+import { ServiceProvider } from 'impact-app'
 
 const api = SomeApi({})
 
 const App = () => {
     return (
-        <InjectionProvider classes={[SomeFeature]} values={[SomeApi, api]}>
+        <ServiceProvider classes={[SomeFeature]} values={[SomeApi, api]}>
             <Content />
-        </InjectionProvider>
+        </ServiceProvider>
     )
 }
 ```
@@ -101,9 +102,9 @@ The **values** property is a tuple of the type and the value. Now in any other c
 
 ```ts
 import { SomeApi } from 'some-api'
-import { injectable } from 'impact-app'
+import { Service } from 'impact-app'
 
-@injectable()
+@Service()
 class SomeFeature {
     constructor(api: SomeApi) {}
 }
@@ -112,31 +113,31 @@ class SomeFeature {
 Sometimes you just want to inject some value which is not a class. In that case you can use a string and inject it in a constructor using the `@inject` decorator. 
 
 ```tsx
-import { InjectionProvider } from 'impact-app'
+import { ServiceProvider } from 'impact-app'
 
 const CONFIG: Record<string, string> = {}
 
 const App = () => {
     return (
-        <InjectionProvider classes={[SomeFeature]} values={['CONFIG', CONFIG]}>
+        <ServiceProvider classes={[SomeFeature]} values={['CONFIG', CONFIG]}>
             <Content />
-        </InjectionProvider>
+        </ServiceProvider>
     )
 }
 ```
 
 ```tsx
-import { injectable, inject } from 'impact-app'
+import { Service, Value } from 'impact-app'
 
-@injectable()
+@Service()
 class SomeFeature {
-    constructor(@inject('CONFIG'): Record<string, string>) {}
+    constructor(@Value('CONFIG'): Record<string, string>) {}
 }
 ```
 
-## Nested injection providers
+## Nested service providers
 
-It can be a good idea to use nested injection providers. For a typical setup you would high up in your component tree have an injection provider which holds all your "global classes". These are classes used regardless of what url/page you are displaying. Typically APIs, configuration etc.
+It can be a good idea to use nested service providers. For a typical setup you would high up in your component tree have a service provider which holds all your "global classes". These are classes used regardless of what url/page you are displaying. Typically APIs, configuration etc.
 
 ```tsx
 import { InjectionProvider } from 'impact-app'
