@@ -140,16 +140,16 @@ class SomeFeature {
 It can be a good idea to use nested service providers. For a typical setup you would high up in your component tree have a service provider which holds all your "global classes". These are classes used regardless of what url/page you are displaying. Typically APIs, configuration etc.
 
 ```tsx
-import { InjectionProvider } from 'impact-app'
+import { ServiceProvider } from 'impact-app'
 import { SomeApi } from 'some-api'
 
 const api = new SomeApi({})
 
 const MainComponent = () => {
     return (
-        <InjectionProvider values={[[SomeApi, Api]]}>
+        <ServiceProvider values={[[SomeApi, Api]]}>
             <App />
-        </InjectionProvider>
+        </ServiceProvider>
     )
 }
 ```
@@ -157,17 +157,17 @@ const MainComponent = () => {
 And then as you open a specific url/page you do any asynchronous fetching of initial data required by that specific url/page to display:
 
 ```tsx
-import { InjectionProvider, useInject } from 'impact-app'
+import { ServiceProvider, useService } from 'impact-app'
 import { Projects, ProjectDTO } from './services/Projects'
 
 const ProjectPage = ({ id }: { id: string }) => {
-    const projects = useInject(Projects)
-    const projectData = use(projects.fetch(id))
+    const projects = useService(Projects)
+    const projectData = projects.fetch(id).use()
     
     return (
-        <InjectionProvider classes={[Project]} values={[['PROJECT_DATA', projectData]]}>
+        <ServiceProvider classes={[Project]} values={[['PROJECT_DATA', projectData]]}>
             <Project />
-        </InjectionProvider>
+        </ServiceProvider>
     )
 }
 ```
@@ -175,14 +175,33 @@ const ProjectPage = ({ id }: { id: string }) => {
 This `projectData` could now be used with a `Project` class available to any project components.
 
 ```ts
-import { injectable, inject } from 'impact-app'
+import { Service, Value } from 'impact-app'
 import type { ProjectDTO } from './services/Projects'
 
-@injectable()
+@Service()
 class Project {
     data: ProjectDTO
-    constructor(@inject('PROJECT_DATA') data: ProjectDTO) {
+    constructor(@Value('PROJECT_DATA') data: ProjectDTO) {
         this.data = data
     }
+}
+```
+
+## Lazy loading services
+
+Since classes are defined and consumed through a ServiceProvider component, you can just lazy load the component which has the ServiceProvider and all related classes will also be lazy loaded.
+
+```tsx
+import { lazy } from 'react'
+import { ServiceProvider, useService } from 'impact-app'
+import { Projects, ProjectDTO } from './services/Projects'
+
+// ProjectPage has a ServiceProvider for related classes
+const ProjectPage = lazy(() => import('./ProjectPage'))
+
+const Layout = () => {
+  return (
+    <ProjectPage />
+  )
 }
 ```

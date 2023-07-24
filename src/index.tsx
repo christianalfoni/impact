@@ -130,14 +130,14 @@ export function emitter<T>() {
   const registeredListeners = new Set<(e: T) => void>();
 
   return {
-    event(listener: (e: T) => void) {
+    on(listener: (e: T) => void) {
       registeredListeners.add(listener);
 
       return () => {
         registeredListeners.delete(listener);
       };
     },
-    fire(event: T) {
+    emit(event: T) {
       registeredListeners.forEach((listener) => {
         listener(event);
       });
