@@ -1,92 +1,26 @@
 # Understanding The Design
 
-There are different ways you can expose an instantiated class to React:
+React is not a framework, it is a UI library. It is focused on the challenge of composing dynamic user interfaces across the client and server boundary. A functional and declarative paradigm makes sense for React.
 
-```tsx
-const someGlobalClass = new SomeGlobalClass()
+The primitives of React for managing state and side effects are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic. This very quickly creates a lot of indirection in your code which leads to a confusing developer experience and affects performance.
 
-export const SomeComponent = () => {
-    return <div></div>
-}
-```
+A core principle of **Impact** is to allow developers to write object oriented code decoupled from React, but still naturally bridge it to the world of React. It does this by using reactive primitives that is consumed just as natural in the object oriented world as in the functional component world and binds the lifecycle of classes to the lifecycle of component trees.
 
-You can just create a class and instantiate it globally in your application. This works, but has a few drawbacks:
+In short. A functional paradigm is a great tool to compose UIs, while object oriented code arguably deals better with organising and managing complex state management.
 
-- There is really no way to dispose of any instantiated class and recreate it, as they are all global
-- When one class depends on an other class you'll have to pass the instance manually
-- There is no specific pattern on how to organise the classes and consuming them
-- Testing can be difficult as there is no good way to access and mock the classes being exposed to the components
+## The bridge
 
-We could take a different approach and rather create a master `App` class and expose it through a context provider. Any other classes are instantiated within this master class:
+Classes is at the core of object oriented programming and there are different ways you can expose an instantiated class to React. A core feature of **Impact** is to bind the lifecycle of a class to the lifecycle of a component tree. In other words classes are created and disposed related to what components are consuming them.
 
-```tsx
-export const AppComponent = () => {
-    const [app] = useState(() => new App())
-    
-    return (
-        <context.Provider value={app}>
-          <OtherComponents />
-        </context.Provider>
-    )
-}
-```
+To enable this mechanism **Impact** relies on [tsyringe](https://github.com/microsoft/tsyringe), a library from Microsoft, under the hood. Tsyringe is a general purpose dependency injector which enables the developer experience **Impact** is aiming for. There are other types of dependency injection, but TSyringe covers the following requirements:
 
-Now any component can consume the application state and logic through a hook. During testing you could test any component in isolation and provide a mocked version of the `App`. Though there are still some drawbacks here:
+- Nested injection containers with scoped class resolvement
+- No type overrides (`!`) to express the validity of injection
+- Injection of values
 
-- You would still have to manually orchestrate disposal of classes and recreating them
-- You would still have to manually create instances and passing dependencies down to other classes
-- You hardwire new classes into an existing class structure, especially when one class depends on an other class
-- Lazy loading state and logic becomes a challenge as everything is wired into a single root class
+## Reactive primitives
 
-But there is a mechanism we can use to solve all these challenges. Dependency Injection is not a common mechanism used in the world of JavaScript, but there is no lack of solutions. [tsyringe]() is a library from Microsoft. Tsyringe is a general purpose dependency injector which takes advantage of features not yet fully available in the language, but it allows for an ergonomic experience and solves all the before mentioned issues.
+To enable components to reconcile when state changes inside classes **Impact** relies on a sibling standalone project called [SignalIt](https://github.com/christianalfoni/signalit). It exposes a simple `signal` and `asyncSignal` primitive that can be consumed as natural in the object oriented world as in the component world of React. Its API is designed to allow typical object oriented patterns like the accessor pattern and treats its values as immutable, which conforms to Reacts expectations.
 
-Being a general purpose dependency injector `impact` creates an abstraction over Tsyringe, basically hiding it from you. It uses features from TSyringe to bind classes to React context providers which handles the resolvement and disposal of the classes. Binding to React context providers creates a natural way to organise your state and logic. An example of this is:
 
-```
-/src
-  /global-services
-    index.ts
-    Api.ts
-    Visibility.ts
-    PostsCache.ts
-  /posts
-    /services
-      index.ts
-      Posts.ts
-    /components
-      Posts.tsx
-    index.tsx
-  index.tsx
-```
-
-Each `index.ts` services file defines an `InjectionProvider` where it registers all related classes. Then the `InjectionProvider` is mounted at the top level of the component tree representing a page, feature or whatever you want to scope state and logic to. Whenever this part of the component tree is unmounted, your classes will be disposed. This also creates a natural nesting behaviour where `GlobalServices` would be mounted at the very top level and `PostsServices` would be nested as a child on the Posts page for example.
-
-This also simplifies lazy loading as you can lazy load the component exposing the related `InjectionProvider`. That means when lazy loading the entire Posts page component, you'll also lazy load all the state and logic related to it as well.
-
-A hidden, but important, feature of this approach is that you by default write code that can easily be removed. You can create a class, start consuming other classes without any wiring and consume it. This puts you in a good position to prototype ideas, test features and by deleting the class TypeScript tells what else would need cleaning up.
-
-**The tradefoff** made with this design is that you require more initial setup. Both TypeScript config and babel needs to be configured to enable the decorators and the metadata. There are dependency injection libraries that does not require this initial setup, but their APIs and typing is not as ergonomic. For example:
-
-```ts
-class SomeService {
-    // Strings that are not typed, just magically mapped to certain properties
-    static injects = ['logger']
-    // As you do not instantiate the dependency in the constructor you have to use exclamation
-    // to override that it really is, which typically breaks linting
-    logger: Logger!
-}
-```
-
-There are solutions that uses decorators without reflection:
-
-```ts
-@injectable()
-class SomeService {
-    // But still we have to override the typing with the exclamation likely to break linting
-    @inject()
-    logger: Logger!
-}
-```
-
-Another design decision was to not allow automatic injection. With TSyringe you can inject any class and control the injection with different lifecyle options, but this implicit behaviour makes it difficult to control and understand the behaviour of injection at the point of where you do it, inside a component. So it was decided that the `InjectionProvider` throws if you try to inject a class that is not bound to a specific available `InjectionProvider` in the component tree. This makes you confident controlling where classes can and should be consumed.
 

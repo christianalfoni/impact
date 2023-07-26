@@ -4,63 +4,50 @@ import React, { createContext, useContext } from "react";
 import * as tsyringe from "tsyringe";
 import { constructor } from "tsyringe/dist/typings/types";
 
-export { injectable, inject } from "tsyringe";
+export const Service = tsyringe.injectable;
 
-export interface IDisposable {
-  /**
-   * Dispose this object.
-   */
-  dispose(): void;
-}
+export const Value = tsyringe.inject;
 
-export class Disposable implements IDisposable {
-  private toDispose: IDisposable[] = [];
+export * from "signalit";
+
+export class Disposable {
+  private toDispose = new Set<() => void>();
   public isDisposed = false;
 
-  public addDisposable<T extends IDisposable>(disposable: T): T {
-    this.toDispose.push(disposable);
-    return disposable;
+  public onDispose(cb: () => void) {
+    this.toDispose.add(cb);
+
+    return () => {
+      this.toDispose.delete(cb);
+    };
   }
 
-  public onDispose(cb: () => void): void {
-    this.toDispose.push(Disposable.create(cb));
-  }
-
-  public dispose(): void {
+  public dispose() {
     if (this.isDisposed) return;
 
     this.isDisposed = true;
-    this.toDispose.forEach((disposable) => {
-      disposable.dispose();
+    this.toDispose.forEach((dispose) => {
+      dispose();
     });
-  }
-
-  public static is(arg: any): arg is Disposable {
-    return typeof arg["dispose"] === "function";
-  }
-
-  public static create(cb: () => void): IDisposable {
-    return {
-      dispose: cb,
-    };
+    this.toDispose.clear();
   }
 }
 
 const diContext = createContext<tsyringe.DependencyContainer | null>(null);
 
-export type InjectionProviderProps = {
+export type ServiceProviderProps = {
   children: React.ReactNode;
-  values?: Array<[tsyringe.InjectionToken, unknown]>;
-  classes?: constructor<unknown>[];
+  values?: [[tsyringe.InjectionToken, unknown]];
+  services?: constructor<unknown>[];
 };
 
-export class InjectionProvider extends React.Component<
-  InjectionProviderProps,
+export class ServiceProvider extends React.Component<
+  ServiceProviderProps,
   tsyringe.DependencyContainer
 > {
   static contextType = diContext;
   constructor(...args: unknown[]) {
-    const props = args[0] as InjectionProviderProps;
+    const props = args[0] as ServiceProviderProps;
     // due to typing issue
     const parentContainer = args[1] as tsyringe.DependencyContainer | null;
 
@@ -71,14 +58,16 @@ export class InjectionProvider extends React.Component<
     ).createChildContainer();
     if (props.values) {
       props.values.forEach(([token, value]) => {
-        container.register(token, { useValue: value });
+        container.register(token, {
+          useValue: value,
+        });
       });
     }
-    if (props.classes) {
-      props.classes.forEach((claz) => {
+    if (props.services) {
+      props.services.forEach((service) => {
         container.register(
-          claz,
-          { useClass: claz },
+          service,
+          { useClass: service },
           {
             lifecycle: tsyringe.Lifecycle.ContainerScoped,
           }
@@ -99,22 +88,30 @@ export class InjectionProvider extends React.Component<
   }
 }
 
-export function useInject<T>(classReference: tsyringe.InjectionToken<T>): T {
+export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
 
   if (!container) {
-    throw new Error("useInject used in an invalid context");
+    throw new Error("useService used in an invalid context");
   }
 
   if (!container.isRegistered(classReference)) {
     throw new Error(
-      `Trying to inject a class (${String(
+      `Trying to inject a service (${String(
         classReference
       )}) that has not been registered`
     );
   }
 
-  return container.resolve(classReference);
+  const service = container.resolve(classReference);
+
+  if (!(service instanceof Disposable)) {
+    throw new Error(
+      `Service (${String(classReference)}) does not extends Disposable`
+    );
+  }
+
+  return service;
 }
 
 /**
@@ -126,35 +123,27 @@ export interface Event<T> {
    * @param listener The listener function will be called when the event happens.
    * @return a disposable to remove the listener again.
    */
-  (listener: (e: T) => void): IDisposable;
+  (listener: (e: T) => void): () => void;
 }
 
-export class Emitter<T> implements IDisposable {
-  private registeredListeners = new Set<(e: T) => void>();
-  private _event: Event<T> | undefined;
+export function emitter<T>() {
+  const registeredListeners = new Set<(e: T) => void>();
 
-  get event(): Event<T> {
-    if (!this._event) {
-      this._event = (listener: (e: T) => void) => {
-        this.registeredListeners.add(listener);
+  return {
+    on(listener: (e: T) => void) {
+      registeredListeners.add(listener);
 
-        return Disposable.create(() => {
-          this.registeredListeners.delete(listener);
-        });
+      return () => {
+        registeredListeners.delete(listener);
       };
-    }
-
-    return this._event;
-  }
-
-  /** Invoke all listeners registered to this event. */
-  fire(event: T): void {
-    this.registeredListeners.forEach((listener) => {
-      listener(event);
-    });
-  }
-
-  dispose(): void {
-    this.registeredListeners = new Set();
-  }
+    },
+    emit(event: T) {
+      registeredListeners.forEach((listener) => {
+        listener(event);
+      });
+    },
+    dispose() {
+      registeredListeners.clear();
+    },
+  };
 }
