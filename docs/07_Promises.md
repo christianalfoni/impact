@@ -1,9 +1,9 @@
 
 # Promises
 
-With an objected oriented external layer we have an opportunity to take advantage of the upcoming feature of first class support for promises in React. What this means in a nutshell is that React can now consume promises directly in components using the [use](https://blixtdev.com/all-about-reacts-new-use-hook/) hook.
+With an objected oriented external layer we have an opportunity to take advantage of the upcoming feature of first class support for promises in React. What this means in a nutshell is that React can now consume promises directly in components using a [use](https://blixtdev.com/all-about-reacts-new-use-hook/) hook.
 
-The `AsyncSignal` from **SignalIt** extends a normal promise and adds the status of the promise so React can access it synchronously. It also adds the upcoming `use` hook as a method on the promise until it becomes available in React. That means when we want to expose a promise to React we can use an `AsyncSignal`.
+The `AsyncSignal` from **SignalIt** extends a normal promise and adds the status of the promise so React can access it synchronously, making i compatible with the future **use** hook. It also adds the upcoming `use` hook as a method on the promise until it becomes available in React. That means when we want to expose a promise to React we can use an `AsyncSignal`.
 
 ```ts
 import { signal, CachedPromise, asCachedPromise, Service } from 'impact-app'
@@ -23,7 +23,7 @@ export class Posts {
 }
 ```
 
-The `AsyncSignal` value is just a promise, but enhanced with additional state and a `use` method. When consumed in a component using the `use` method, it will throw to the suspense boundary if pending, to the error boundary if rejected or resolve synchronously if already resolved. The promise is consumed the same way in the object oriented context.
+The `AsyncSignal` value is just a promise, but enhanced with additional state and a `use` method. When consumed in a component using the `use` method, it will throw to the suspense boundary if pending, to the error boundary if rejected or resolve synchronously if already resolved. In the object oriented context you would just consume the promise as normal.
 
 ```tsx
 import { useService } from 'impact-app'
@@ -45,14 +45,14 @@ import { Api, StatusDTO } from './Api'
 
 @Service()
 export class Status extends Disposable {
-    private _status: AsyncSignal<StatusDTO>
+    #status: AsyncSignal<StatusDTO>
     get status() {
-        return this._status.value
+        return this.#status.value
     }
     constructor(api: Api) {
-        this._status = asyncSignal(api.getStatus())
+        this.#status = asyncSignal(api.getStatus())
         this.onDispose(api.subscribeStatus((status) => {
-            this._status.value = status
+            this.#status.value = status
         }))
     }
 }

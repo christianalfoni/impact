@@ -1,6 +1,6 @@
 # Reactivity
 
-**impact-app** uses the [signalit](https://github.com/christianalfoni/signalit) library to enable reactivity. In other words you define state as signals when you want components to be able to observe any changes to that state.
+**Impact** uses the [SignalIt](https://github.com/christianalfoni/signalit) library to enable reactivity. In other words you define state as signals when you want components to be able to consume the state of your classes.
 
 An example of this would be:
 
@@ -40,12 +40,12 @@ import { signal, Service } from 'impact-app'
 
 @Service()
 export class Counter {
-    private _count = signal(0)
+    #count = signal(0)
     get count() {
-        return this._count.value
+        return this.#count.value
     }
     increaseCount() {
-        this._count.value++
+        this.#count.value++
     }
 }
 ```

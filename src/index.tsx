@@ -38,7 +38,7 @@ const diContext = createContext<tsyringe.DependencyContainer | null>(null);
 export type ServiceProviderProps = {
   children: React.ReactNode;
   values?: [[tsyringe.InjectionToken, unknown]];
-  classes?: constructor<unknown>[];
+  services?: constructor<unknown>[];
 };
 
 export class ServiceProvider extends React.Component<
@@ -63,11 +63,11 @@ export class ServiceProvider extends React.Component<
         });
       });
     }
-    if (props.classes) {
-      props.classes.forEach((claz) => {
+    if (props.services) {
+      props.services.forEach((service) => {
         container.register(
-          claz,
-          { useClass: claz },
+          service,
+          { useClass: service },
           {
             lifecycle: tsyringe.Lifecycle.ContainerScoped,
           }

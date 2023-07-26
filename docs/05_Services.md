@@ -1,6 +1,6 @@
 # Services
 
-A service just a class which is enhanced with the ability to be injected into components and other classes. You never instantiate the class directly, the constructor is only used to inject other classes or values, and run initialization logic.
+A service is just a class which is enhanced with the ability to be injected into components and other classes. You never instantiate the class directly, the constructor is only used to inject other classes or values, and run initialization logic.
 
 ```ts
 import { Service } from 'impact-app'
@@ -8,10 +8,12 @@ import { Api } from './Api'
 
 @Service()
 class SomeFeature {
-    // Now you can use any other service in the
-    // constructor and it will be injected as
-    // this class is instantiated by a component
-    // or some other service
+    /* 
+        Now you can use other services in the
+        constructor and they will be injected when
+        this class is instantiated by a component
+        or an other service
+    */
     constructor(private api: Api) {}
 }
 ```
@@ -34,15 +36,19 @@ const SomeOtherComponent = () => {
       This will get the same instance of the class as
       "SomeComponent" because they use the same ServiceProvider
     */
-    const someClass = useInject(SomeClass)
+    const someClass = useService(SomeClass)
 }
 
 const App = () => (
-    // You always have to explicitly register the class to the provider or it will throw an error
-    <InjectionProvider classes={[SomeClass]}>
+    /*
+        You always have to explicitly register the class 
+        to the provider or it will throw an error when
+        consumed
+    */
+    <ServiceProvider services={[SomeClass]}>
       <SomeComponent />
       <SomeOtherComponent />
-    </InjectionProvider>
+    </ServiceProvider>
 )
 ```
 
@@ -91,7 +97,7 @@ const api = SomeApi({})
 
 const App = () => {
     return (
-        <ServiceProvider classes={[SomeFeature]} values={[SomeApi, api]}>
+        <ServiceProvider services={[SomeFeature]} values={[SomeApi, api]}>
             <Content />
         </ServiceProvider>
     )
@@ -119,7 +125,7 @@ const CONFIG: Record<string, string> = {}
 
 const App = () => {
     return (
-        <ServiceProvider classes={[SomeFeature]} values={['CONFIG', CONFIG]}>
+        <ServiceProvider services={[SomeFeature]} values={['CONFIG', CONFIG]}>
             <Content />
         </ServiceProvider>
     )
@@ -165,7 +171,7 @@ const ProjectPage = ({ id }: { id: string }) => {
     const projectData = projects.fetch(id).use()
     
     return (
-        <ServiceProvider classes={[Project]} values={[['PROJECT_DATA', projectData]]}>
+        <ServiceProvider services={[Project]} values={[['PROJECT_DATA', projectData]]}>
             <Project />
         </ServiceProvider>
     )
