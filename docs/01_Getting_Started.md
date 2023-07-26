@@ -4,7 +4,7 @@
 
 ## Configuration
 
-**impact-app** depends on [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) and [explicit resource management](https://github.com/tc39/proposal-explicit-resource-management). This requires some configuration of the project, but improves the developer experience.
+**Impact** depends on [decorators](https://www.typescriptlang.org/docs/handbook/decorators.html) and [explicit resource management](https://github.com/tc39/proposal-explicit-resource-management). This requires some configuration of the project, but improves the developer experience.
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/5c4a8b43-27a2-4553-a710-146d94fbc612" width="25"/> **TypeScript 5.2**
 ```json

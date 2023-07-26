@@ -1,5 +1,15 @@
 # API
 
+- [Service](#service)
+- [Value](#value)
+- [Disposable](#disposable)
+- [ServiceProvider](#serviceprovider)
+- [useService](#useservice)
+- [signal](#signal)
+- [asyncSignal](#asyncSignal)
+- [observe](#observe)
+- [emitter](#emitter)
+
 ## Service
 
 The decorator which enables injection of other services and sets the lifecycle of the class to be tied to the ServiceProvider.

@@ -2,6 +2,11 @@
 
 > Rich Single Page Application Framework for React
 
+- 🗄️ Write state and logic in an object oriented paradigm using classes
+- 🔗 Bind classes to the lifecycle of component trees
+- 📶 Expose observable state using signals
+- 🕐 Async signals with suspense support
+
 ## Background
 
 At [CodeSandbox](https://codesandbox.io) we write most of our code in an object oriented paradigm. This includes projects like **pitcher**, **VSCode extension**, **@codesandbox/pitcher-client** and **@codesandbox/api**. This in combination with creating rich single page applications with a high degree of client side managed state, we wanted to explore a tool where we can more easily move between object oriented codebases and solve some of the challenges of building rich single page applications.
