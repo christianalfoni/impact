@@ -6,19 +6,19 @@ With an objected oriented external layer we have an opportunity to take advantag
 The `AsyncSignal` from **SignalIt** extends a normal promise and adds the status of the promise so React can access it synchronously, making i compatible with the future **use** hook. It also adds the upcoming `use` hook as a method on the promise until it becomes available in React. That means when we want to expose a promise to React we can use an `AsyncSignal`.
 
 ```ts
-import { signal, CachedPromise, asCachedPromise, Service } from 'impact-app'
+import { asyncSignal, AsyncSignal, Service, Disposable } from 'impact-app'
 import { Api, PostDTO } from './Api'
 
 @Service()
-export class Posts {
-    private _posts: Record<string, AsyncSignal<PostDTO>>
-    constructor(private _api: Api) {}
+export class Posts extends Disposable {
+    #posts: Record<string, AsyncSignal<PostDTO>>
+    constructor(private api: Api) {}
     fetchPost(id: string) {
-        if (!this._posts[id]) {
-            this._posts[id] = asyncSignal(this._api.getPost(id))
+        if (!this.#posts[id]) {
+            this.#posts[id] = asyncSignal(this.api.getPost(id))
         }
 
-        return this._posts[id]
+        return this.#posts[id]
     }
 }
 ```

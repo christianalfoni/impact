@@ -2,10 +2,16 @@
 
 > Rich Single Page Application Framework for React
 
-- 🗄️ Write state and logic in an object oriented paradigm using classes
-- 🔗 Bind classes to the lifecycle of component trees
-- 📶 Expose observable state using signals
-- 🕐 Async signals with suspense support
+🗄️ Write state and logic in an object oriented paradigm using classes
+
+🔗 Bind classes to the lifecycle of component trees
+
+📶 Expose observable state using signals
+
+🕐 Async signals with suspense support
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open template on CodeSandbox](https://codesandbox.io/p/sandbox/impact-vite-template-xkcw8q)
+
 
 ## Background
 

@@ -1,14 +1,15 @@
 # Hello World
 
 ```tsx
-import { ServiceProvider, useService, Service } from 'impact-app'
+import { ServiceProvider, Service, Disposable, useService } from 'impact-app'
 
 /*
   The "Service" decorator ties the lifecycle of the class
-  to the component tree where it is exposed
+  to the component tree where it is exposed. We extend "Disposable"
+  as this class will be disposed when the "App" component unmounts
 */
 @Service()
-export class HelloWorld {
+export class HelloWorld extends Disposable {
     message = 'Hello World'
 }
 
