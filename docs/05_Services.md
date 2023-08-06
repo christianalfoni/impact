@@ -116,7 +116,7 @@ class SomeFeature {
 }
 ```
 
-Sometimes you just want to inject some value which is not a class. In that case you can use a string and inject it in a constructor using the `@inject` decorator. 
+Sometimes you just want to inject some value which is not a class. In that case you can use a string and inject it in a constructor using the `@Value` decorator. 
 
 ```tsx
 import { ServiceProvider } from 'impact-app'
@@ -181,14 +181,17 @@ const ProjectPage = ({ id }: { id: string }) => {
 This `projectData` could now be used with a `Project` class available to any project components.
 
 ```ts
-import { Service, Value } from 'impact-app'
+import { Service, Value, signal } from 'impact-app'
 import type { ProjectDTO } from './services/Projects'
 
 @Service()
 class Project {
-    #data: ProjectDTO
+    #data: Signal<ProjectDTO>
+    get title() {
+        return this.#data.title
+    }
     constructor(@Value('PROJECT_DATA') data: ProjectDTO) {
-        this.#data = data
+        this.#data = signal(data)
     }
 }
 ```
