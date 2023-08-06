@@ -34,7 +34,7 @@
   "dependencies": {
     "react": "*",
     "reflect-metadata": "^0.1.13",
-    "signalit": "^0.3.0",
+    "signalit": "*",
     "tsyringe": "^4.8.0"
   },
   "devDependencies": {

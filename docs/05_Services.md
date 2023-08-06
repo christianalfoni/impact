@@ -112,7 +112,7 @@ import { Service } from 'impact-app'
 
 @Service()
 class SomeFeature {
-    constructor(api: SomeApi) {}
+    constructor(private api: SomeApi) {}
 }
 ```
 
@@ -186,9 +186,9 @@ import type { ProjectDTO } from './services/Projects'
 
 @Service()
 class Project {
-    data: ProjectDTO
+    #data: ProjectDTO
     constructor(@Value('PROJECT_DATA') data: ProjectDTO) {
-        this.data = data
+        this.#data = data
     }
 }
 ```

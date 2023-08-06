@@ -5,10 +5,10 @@
 An example of this would be:
 
 ```ts
-import { signal, Service } from 'impact-app'
+import { signal, Service, Disposable } from 'impact-app'
 
 @Service()
-export class Counter {
+export class Counter extends Disposable {
     count = signal(0)
 }
 ```
@@ -36,10 +36,10 @@ export function CounterComponent() {
 To adhere better to preferred object oriented patterns we could express the same as:
 
 ```ts
-import { signal, Service } from 'impact-app'
+import { signal, Service, Disposable } from 'impact-app'
 
 @Service()
-export class Counter {
+export class Counter extends Disposable {
     #count = signal(0)
     get count() {
         return this.#count.value
