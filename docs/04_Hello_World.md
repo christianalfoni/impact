@@ -1,7 +1,7 @@
 # Hello World
 
 ```tsx
-import { ServiceProvider, Service, Disposable, useService } from 'impact-app'
+import { ServiceProvider, Service, Disposable, useService, signal, observe } from 'impact-app'
 
 /*
   The "Service" decorator ties the lifecycle of the class
@@ -10,7 +10,13 @@ import { ServiceProvider, Service, Disposable, useService } from 'impact-app'
 */
 @Service()
 export class HelloWorld extends Disposable {
-    message = 'Hello World'
+    #message = signal<string>('Hello World')
+    get message() {
+      return this.#message.get()
+    }
+    upperCaseMessage() [
+      this.#message.set((current) => current.toUpperCase())
+    ]
 }
 
 /*
@@ -25,6 +31,9 @@ export const App = () => (
 )
 
 function HelloWorldComponent() {
+    // Observe any signals consumed
+    using _ = observe()
+    
     /*
       Use the "useService" hook to inject a class into a
       component. The class will be instantiated if it has
@@ -33,6 +42,6 @@ function HelloWorldComponent() {
     */
     const helloWorld = useService(HelloWorld)
     
-    return <h1>{helloWorld.message}</h1>
+    return <h1 onClick={() => helloWorld.upperCaseMessage()}>{helloWorld.message}</h1>
 }
 ```
