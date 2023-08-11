@@ -6,16 +6,18 @@
 
 🔗 Bind classes to the lifecycle of component trees
 
-📶 Expose observable state using signals
+⚛️ Expose reactive state using signals
 
-🕐 Async signals with suspense support
+🐛 Epic debugging experience
+
+<br/>
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open template on CodeSandbox](https://codesandbox.io/p/sandbox/impact-vite-template-xkcw8q)
 
 
 ## Background
 
-At [CodeSandbox](https://codesandbox.io) we write most of our code in an object oriented paradigm. This includes projects like **pitcher**, **VSCode extension**, **@codesandbox/pitcher-client** and **@codesandbox/api**. This in combination with creating rich single page applications with a high degree of client side managed state, we wanted to explore a tool where we can more easily move between object oriented codebases and solve some of the challenges of building rich single page applications.
+At [CodeSandbox](https://codesandbox.io) we write most of our code in an object oriented paradigm. This in combination with creating rich single page applications with a high degree of client side managed state, we wanted to explore a tool where we can more easily move between object oriented codebases and solve some of the challenges of building rich single page applications.
 
 ## Who is this for?
 

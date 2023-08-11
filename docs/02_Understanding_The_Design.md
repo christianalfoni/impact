@@ -4,9 +4,14 @@ React is not really a framework, it is more a UI library. It is focused on the c
 
 The primitives of React for managing state and side effects are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic. This very quickly creates levels of indirection. In other words when developers looks at a component they can not CMD+Click some state or function to find its origin, it is often passed multiple times through props or the origin is a React context.
 
-A core principle of **Impact** is to allow developers to write object oriented code decoupled from React, but still naturally bridge it to the world of React. It does this by using reactive primitives that is consumed just as natural in the object oriented world as in the functional component world and binds the lifecycle of classes to the lifecycle of component trees. It also prevents multi level indirection as you will always consume an implementation of state and logic in your component, just a CMD+Click away.
+The first core principle of **Impact** is to allow developers to write object oriented code decoupled from React, but still naturally bridge it to the world of React. It does this by using reactive primitives that is consumed just as natural in the object oriented world as in the functional component world and binds the lifecycle of classes to the lifecycle of component trees. It also prevents multi level indirection as you will always consume an implementation of state and logic in your component, just a CMD+Click away.
 
-In short. A functional paradigm is a great tool to compose UIs, while object oriented code arguably deals better with organising and managing complex state management and related logic.
+The second core principle of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single click away from finding executing code. In React applications you often find yourself:
+
+- Searching for action types
+- Figuring out the relationship between reducers and logic related to that reducer state
+- Crawling up the component tree to find the logic related to a callback or owner of the state passed as a prop
+- Getting cut off by a dispatcher reference or a context reference
 
 ## The bridge
 
@@ -21,7 +26,6 @@ To enable this mechanism **Impact** relies on [tsyringe](https://github.com/micr
 
 ## Reactive primitives
 
-To enable components to reconcile when state changes inside classes, **Impact** relies on a sibling standalone project called [SignalIt](https://github.com/christianalfoni/signalit). It exposes a simple `signal` and `asyncSignal` primitive that can be consumed as natural in the object oriented world as in the component world of React. Its API is designed to allow typical object oriented patterns like the accessor pattern and treats its values as immutable, which conforms to Reacts expectations.
+**Impact** implements a reactive primitive called signals. This is a very simple reactive primitive which is designed to work just as well in an object oriented world, as in the functional and declarative world of React. That means the API for consuming the value of a signal needs to feel natural in both programming paradigms. Also changing the value should be allowed using mutation, though result in an "immutable" value for React to consume. On top of that promises also needs to be just as easily consumed by both worlds. All these considerations went into the design of the signals API.
 
-
-
+"Change" is where things go wrong in your application. A user interacts with the application and you have unexpected state changes. The signal debugger gives you exact information about where a state change occurs in your code and also where state changes are being observed in your code. With VSCode you will be able to click debugging information in the browser and go straight to the code location inside VSCode. 
