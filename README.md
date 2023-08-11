@@ -12,7 +12,7 @@
 
 <br/>
 
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open template on CodeSandbox](https://codesandbox.io/p/sandbox/impact-vite-template-xkcw8q)
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open template on CodeSandbox](https://codesandbox.io/p/sandbox/impact-vite-template-whz9qh)
 
 
 ## Background
