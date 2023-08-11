@@ -6,8 +6,8 @@
 - [ServiceProvider](#serviceprovider)
 - [useService](#useservice)
 - [signal](#signal)
-- [asyncSignal](#asyncSignal)
 - [compute](#compute)
+- [SuspensePromise](#suspensepromise)
 - [observe](#observe)
 - [emitter](#emitter)
 
@@ -107,7 +107,7 @@ export const SomeComponent = () => {
 
 ## signal
 
-Creates a value that can be observed by React and consumed by your services as well. Values in signals are considered serializable, like all state in React ideally is. That means you can use `JSON.stringify` on them to safely send the value, store it in local storage etc.
+Creates a value that can be observed by React and consumed by your services as well. Values in signals are considered JSON values and are serializable. That means you can use `JSON.stringify` on them to safely send the value, store it in local storage etc.
 
 ```ts
 import { Service, signal } from 'impact-app'
@@ -137,41 +137,6 @@ export class SomeService {
         this.#todo.set((todo) => {
             todo.completed = !todo.completed
         })
-    }
-}
-```
-
-## asyncSignal
-
-Creates a promise that can be observed, supports suspense and be consumed as just a promise from your services.
-
-```ts
-import { Service, asyncSignal, AsyncSignal } from 'impact-app'
-import { Api } from './Api'
-
-@Service()
-export class SomeService {
-    #data: AsyncSignal<{}>
-    get data() {
-        return this.#data.get()
-    }
-    constructor(private api: Api) {
-        this.#data = asyncSignal(api.getData())
-    }
-    refetchData() {
-        /*
-            You can update the value with a new promise. If a component
-            is consuming the signal, it will not notified until the new
-            promise resolves
-        */
-        this.#data.set(this.api.getData())
-    }
-    updateData(newData: {}) {
-        /*
-            You can also just change the value, where the signal
-            will wrap it in a promise
-        */
-        this.#data.set(newData)
     }
 }
 ```
@@ -206,6 +171,45 @@ export const SomeComponent = () => {
     )
 }
 ```
+
+## SuspensePromise
+
+An enhanced promise which allows React to consume it directly in components. It is just a normal `Promise` which has some additional properties.
+
+```ts
+import { Service, Disposable, SuspensePromise } from 'impact-app'
+import { Api, PostDTO } from './Api'
+
+@Service
+export class Posts {
+  #posts: Record<string, SuspensePromise<PostDTO>> = {}
+  constructor(private api: Api ) {}
+  fetchPost(id: string) {
+    if (!this.#posts[id]) { 
+      this.#posts[id] = SuspensePromise.from(this.api.fetchPost(id))
+    }
+    
+    return this.#posts[id]
+  }
+}
+```
+
+And now in a component you can consume it directly:
+
+```tsx
+import { useService } from 'impact-app'
+import { Posts } from '../services/Posts'
+
+export const PostComponent = ({ id }: { id: string }) => {
+  const posts = useService(Posts)
+  // When React gets its own "use" hook, you can use that instead
+  const post = posts.fetchPost(id).use()
+}
+```
+
+This promise throws to the closest Suspense boundary when pending and to the Error boundary when rejected. If the promise is already resolved it will synchronously resolve.
+
+You can also use `SuspensePromise.resolve` to create a resolved SuspensePromise.
 
 ## emitter
 
