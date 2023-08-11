@@ -1,10 +1,6 @@
-import { useRef, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
 import { produce } from "immer";
-
-import * as CachedPromise from "./CachedPromise";
-
-export type { CachedPromise } from "./CachedPromise";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -130,72 +126,6 @@ export function signal<T extends JSONValue>(value: T) {
       return value;
     },
   } as Signal<T>;
-}
-
-export type AsyncSignal<T extends JSONValue> = {
-  get(): CachedPromise.CachedPromise<T>;
-  set(
-    value: T | Promise<T> | ((value: T) => T | void)
-  ): CachedPromise.CachedPromise<T>;
-  onChange(listener: (newValue: T, prevValue: T) => void): () => void;
-};
-
-export function asyncSignal<T extends JSONValue>(value: Promise<T>) {
-  const signal = new SignalTracker(() => value);
-  let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
-
-  value = CachedPromise.from(value);
-
-  return {
-    onChange(listener: (newValue: T, prevValue: T) => void) {
-      listeners = listeners || new Set();
-
-      listeners.add(listener);
-
-      return () => {
-        listeners?.delete(listener);
-      };
-    },
-    get() {
-      if (ObserverContext.current) {
-        ObserverContext.current.registerSignal(signal);
-        if (process.env.NODE_ENV === "development") {
-          createObserveDebugEntry(signal);
-        }
-      }
-
-      return value;
-    },
-    set(newValue) {
-      const prevValue = value;
-
-      if (typeof newValue === "function") {
-        value = prevValue.then((prev) => produce(prev, newValue));
-      } else if (newValue instanceof Promise) {
-        value = CachedPromise.from(newValue);
-      } else {
-        value = CachedPromise.fromValue(newValue);
-      }
-
-      if (process.env.NODE_ENV === "development") {
-        createSetterDebugEntry(signal, value);
-      }
-
-      value
-        .then((resolvedValue) => {
-          prevValue.then((resolvedPrevValue) => {
-            listeners?.forEach((listener) =>
-              listener(resolvedValue, resolvedPrevValue)
-            );
-          });
-        })
-        .finally(() => {
-          signal.notify();
-        });
-
-      return value;
-    },
-  } as AsyncSignal<T>;
 }
 
 export function compute<T>(cb: () => T) {
