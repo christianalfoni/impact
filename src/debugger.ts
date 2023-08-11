@@ -105,7 +105,7 @@ function createSourceMappedStackFrame(
   });
 }
 
-export function createObserveDebugEntry(signal: Signal) {
+export function createObserveDebugEntry(signal: SignalTracker) {
   const stack = new Error().stack!;
 
   const { file, line, column, functionName } =
@@ -132,7 +132,7 @@ export function createObserveDebugEntry(signal: Signal) {
 }
 
 export function createSetterDebugEntry(
-  signal: Signal,
+  signal: SignalTracker,
   value: unknown,
   isComputed = false
 ) {
