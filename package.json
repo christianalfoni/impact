@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "Imperative apps for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -48,6 +48,6 @@
     "rimraf": "^2.6.1",
     "ts-jest": "^29.0.5",
     "tslib": "^2.1.0",
-    "typescript": "^5.0.2"
+    "typescript": "^5.2.1-rc"
   }
 }

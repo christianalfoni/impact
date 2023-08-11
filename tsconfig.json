@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES2017",
     "rootDir": "src",
-    "lib": ["dom", "es2017"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "jsx": "react",
     "moduleResolution": "node",
     "skipLibCheck": true,
