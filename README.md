@@ -1,6 +1,15 @@
-# impact-app
 
-> Rich Single Page Application Framework for React
+<p align="center">
+  <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
+</p>
+<p align="center">
+  <b>Rich Single Page Application Framework for React</b>
+</p>
+
+
+<br />
+
+
 
 🗄️ Write state and logic in an object oriented paradigm using classes
 
