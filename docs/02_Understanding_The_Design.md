@@ -1,15 +1,18 @@
 # Understanding The Design
 
-React is not really a framework, it is more a UI library. It is focused on the challenge of composing dynamic user interfaces and doing so across the client and server boundary. A functional and declarative paradigm makes sense for React.
+React is scoped to the challenge of composing dynamic user interfaces and doing so across the client and server boundary. The primitives of React for managing state and side effects are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic. A functional and declarative paradigm makes sense for React.
 
-The primitives of React for managing state and side effects are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic. This very quickly creates levels of indirection. In other words when developers looks at a component they can not CMD+Click some state or function to find its origin, it is often passed multiple times through props or the origin is a React context.
+Where React comes short is when the scale of your client managed state and logic creates friction. This friction appears in two ways:
 
-The first core principle of **Impact** is to allow developers to write object oriented code decoupled from React, but still naturally bridge it to the world of React. It does this by using reactive primitives that is consumed just as natural in the object oriented world as in the functional component world and binds the lifecycle of classes to the lifecycle of component trees. It also prevents multi level indirection as you will always consume an implementation of state and logic in your component, just a CMD+Click away.
+1. Performance becomes and issue and you start throwing memo components left and right and split up your context providers
+2. The passing of props and usage of context providers creates levels of indirection, meaning it is difficult to navigate your code to find where state is defined and logic is executed
 
-The second core principle of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single click away from finding executing code. In React applications you often find yourself:
+**The first core principle** of **Impact** is to allow developers to write object oriented code decoupled from React, but still naturally bridge it to the world of React. It does this by using reactive primitives that is consumed just as natural in the object oriented world as in the functional component world and binds the lifecycle of classes to the lifecycle of component trees.
+
+**The second core principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single click away from finding executing code. In React applications you often find yourself:
 
 - Searching for action types
-- Figuring out the relationship between reducers and logic related to that reducer state
+- Figuring out the relationship between actions, reducers and logic related to that reducer state
 - Crawling up the component tree to find the logic related to a callback or owner of the state passed as a prop
 - Getting cut off by a dispatcher reference or a context reference
 

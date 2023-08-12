@@ -15,14 +15,16 @@
 
 🔗 Bind classes to the lifecycle of component trees
 
-⚛️ Expose reactive state using signals
+⚛️ Expose reactive state using signals and suspense promises
 
-🐛 Epic debugging experience
+🐛 Accessible code navigation and debugging experience
 
 <br/>
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open template on CodeSandbox](https://codesandbox.io/p/sandbox/impact-vite-template-whz9qh)
 
+Explore some code or use as a starting point.
+<br />
 
 ## Background
 
