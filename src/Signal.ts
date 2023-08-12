@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
-import { produce } from "immer";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
