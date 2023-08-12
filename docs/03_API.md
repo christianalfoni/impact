@@ -13,7 +13,7 @@
 
 ## Service
 
-The decorator which enables injection of other services and sets the lifecycle of the class to be tied to the ServiceProvider.
+The decorator which enables injection of other services and sets the lifecycle of the class to be tied to the `ServiceProvider` component.
 
 ```ts
 import { Service } from 'impact-app'
@@ -28,7 +28,7 @@ export class SomeService {
 
 ## Value
 
-The decorator which enables injection of values from the ServiceProvider where a string has been used as a token.
+The decorator which enables injection of values from the `ServiceProvider` component where a string has been used as a token.
 
 ```ts
 import { Service, Value } from 'impact-app'
@@ -36,14 +36,14 @@ import { SomeOtherService } from './SomeOtherService'
 
 @Service()
 export class SomeService {
-    // "KEY" is used to inject a string value in the related ServiceProvider
+    // "KEY" is used to inject a string value in the related ServiceProvider component
     constructor(@Value('KEY') key: string) {}
 }
 ```
 
 ## Disposable
 
-All services exposed to React has to extend the `Disposable` class. This ensures you are considering what cleanup needs to be done when the component tree unmounts.
+All services exposed to React has to extend the `Disposable` class, or it will throw an error. This ensures you are considering what cleanup needs to be done when the component tree unmounts.
 
 ```ts
 import { Service, Disposable } from 'impact-app'
@@ -107,36 +107,20 @@ export const SomeComponent = () => {
 
 ## signal
 
-Creates a value that can be observed by React and consumed by your services as well. Values in signals are considered JSON values and are serializable. That means you can use `JSON.stringify` on them to safely send the value, store it in local storage etc.
+Creates a value that can be observed by React and consumed by your services as well.
 
 ```ts
 import { Service, signal } from 'impact-app'
 
-// Signals can not use interfaces due to its JSON restricted typing
-type Todo = {
-  title: string
-  completed: boolean
-}
-
 @Service()
 export class SomeService {
-    #foo = signal<string>('bar')
-    #todo = signal<Todo>({ title: 'test', completed: false })
+    #foo = signal('bar')
     get foo() {
-        return this.#foo.get()
+        return this.#foo.value
     }
     changeFoo(newValue: string) {
         // Set the new value
-        this.#foo.set(newValue)
-        // Use a function to get access to current value
-        this.#foo.set((foo) => foo + '!')
-    }
-    changeCompletedTodo() {
-        // If the value is an object or array, just use normal mutation API in the callback.
-        // This will not mutate the value, but create a new value
-        this.#todo.set((todo) => {
-            todo.completed = !todo.completed
-        })
+        this.#foo.value = newValue
     }
 }
 ```
@@ -149,8 +133,8 @@ Creates a signal that lazily recomputes whenever any accessed signals within the
 import { compute, signal } from 'signalit'
 
 const count = signal(0)
-const shoutingCount = compute(() => count.get() + '!!!')
-const computedValue = shoutingCount.get()
+const shoutingCount = compute(() => count.value + '!!!')
+const computedValue = shoutingCount.value
 ```
 
 ## observe

@@ -10,12 +10,12 @@ import { ServiceProvider, Service, Disposable, useService, signal, observe } fro
 */
 @Service()
 export class HelloWorld extends Disposable {
-    #message = signal<string>('Hello World')
+    #message = signal('Hello World')
     get message() {
-      return this.#message.get()
+      return this.#message.value
     }
     upperCaseMessage() [
-      this.#message.set((current) => current.toUpperCase())
+      this.#message.value = this.#message.value.toUpperCase()
     ]
 }
 

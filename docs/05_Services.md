@@ -87,7 +87,7 @@ class SomeSubscriber extends Disposable {
 
 ## Injecting values
 
-When adding a ServiceProvider you can preconfigure it with values. This is very useful for instantating external libraries, exposing configuration or provide initial data.
+When adding a `ServiceProvider` component you can preconfigure it with values. This is very useful for instantating external libraries, exposing configuration or provide initial data.
 
 ```tsx
 import { SomeApi } from 'some-api'
@@ -143,58 +143,7 @@ class SomeFeature {
 
 ## Nested service providers
 
-It can be a good idea to use nested service providers. For a typical setup you would high up in your component tree have a service provider which holds all your "global classes". These are classes used regardless of what url/page you are displaying. Typically APIs, configuration etc.
-
-```tsx
-import { ServiceProvider } from 'impact-app'
-import { SomeApi } from 'some-api'
-
-const api = new SomeApi({})
-
-const MainComponent = () => {
-    return (
-        <ServiceProvider values={[[SomeApi, Api]]}>
-            <App />
-        </ServiceProvider>
-    )
-}
-```
-
-And then as you open a specific url/page you do any asynchronous fetching of initial data required by that specific url/page to display:
-
-```tsx
-import { ServiceProvider, useService } from 'impact-app'
-import { Projects, ProjectDTO } from './services/Projects'
-
-const ProjectPage = ({ id }: { id: string }) => {
-    const projects = useService(Projects)
-    const projectData = projects.fetch(id).use()
-    
-    return (
-        <ServiceProvider services={[Project]} values={[['PROJECT_DATA', projectData]]}>
-            <Project />
-        </ServiceProvider>
-    )
-}
-```
-
-This `projectData` could now be used with a `Project` class available to any project components.
-
-```ts
-import { Service, Value, signal } from 'impact-app'
-import type { ProjectDTO } from './services/Projects'
-
-@Service()
-class Project {
-    #data: Signal<ProjectDTO>
-    get title() {
-        return this.#data.title
-    }
-    constructor(@Value('PROJECT_DATA') data: ProjectDTO) {
-        this.#data = signal(data)
-    }
-}
-```
+The `ServiceProvider` components can be nested and resolving services propagates up the component tree. This is useful when you have services tied to specific feature, but they depend on more globally available services like API, configuration etc.
 
 ## Lazy loading services
 
@@ -203,7 +152,6 @@ Since classes are defined and consumed through a ServiceProvider component, you 
 ```tsx
 import { lazy } from 'react'
 import { ServiceProvider, useService } from 'impact-app'
-import { Projects, ProjectDTO } from './services/Projects'
 
 // ProjectPage has a ServiceProvider for related classes
 const ProjectPage = lazy(() => import('./ProjectPage'))

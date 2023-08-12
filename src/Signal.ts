@@ -66,22 +66,14 @@ export class SignalTracker {
   }
 }
 
-export type JSONValue =
-  | null
-  | string
-  | number
-  | boolean
-  | Array<JSONValue>
-  | { [x: string]: JSONValue };
-
-export type Signal<T extends JSONValue> = {
-  get(): T;
-  set(value: T | ((value: T) => T | void)): T;
+export type Signal<T> = {
+  get value(): T;
+  set value(value: T);
   onChange(listener: (newValue: T, prevValue: T) => void): () => void;
   toJSON(): T;
 };
 
-export function signal<T extends JSONValue>(value: T) {
+export function signal<T>(value: T) {
   const signal = new SignalTracker(() => value);
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
@@ -95,7 +87,7 @@ export function signal<T extends JSONValue>(value: T) {
         listeners?.delete(listener);
       };
     },
-    get() {
+    get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerSignal(signal);
         if (process.env.NODE_ENV === "development") {
@@ -105,12 +97,9 @@ export function signal<T extends JSONValue>(value: T) {
 
       return value;
     },
-    set(newValue) {
+    set value(newValue) {
       const prevValue = value;
-      value =
-        typeof newValue === "function"
-          ? produce(prevValue, newValue)
-          : newValue;
+      value = newValue;
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
@@ -119,11 +108,6 @@ export function signal<T extends JSONValue>(value: T) {
       signal.notify();
 
       listeners?.forEach((listener) => listener(value, prevValue));
-
-      return value;
-    },
-    toJSON() {
-      return value;
     },
   } as Signal<T>;
 }
