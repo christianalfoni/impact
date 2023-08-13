@@ -1,7 +1,7 @@
 # Hello World
 
 ```tsx
-import { ServiceProvider, Service, Disposable, useService, signal, observe } from 'impact-app'
+import { ServiceProvider, Service, Disposable, useService, Signal, observe } from 'impact-app'
 
 /*
   The "Service" decorator ties the lifecycle of the class
@@ -10,12 +10,17 @@ import { ServiceProvider, Service, Disposable, useService, signal, observe } fro
 */
 @Service()
 export class HelloWorld extends Disposable {
-    #message = signal('Hello World')
+    /*
+      We define the property as a signal which enables components to observe
+      changes to the signal.
+    */
+    @Signal()
+    private _message = 'Hello World'
     get message() {
-      return this.#message.value
+      return this._message
     }
     upperCaseMessage() [
-      this.#message.value = this.#message.value.toUpperCase()
+      this._message = this._message.toUpperCase()
     ]
 }
 

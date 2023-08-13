@@ -1,12 +1,12 @@
 # API
 
 - [Service](#service)
-- [Value](#value)
+- [Signal](#signal)
+- [Compute](#compute)
 - [Disposable](#disposable)
+- [Value](#value)
 - [ServiceProvider](#serviceprovider)
 - [useService](#useservice)
-- [signal](#signal)
-- [compute](#compute)
 - [SuspensePromise](#suspensepromise)
 - [observe](#observe)
 - [emitter](#emitter)
@@ -26,18 +26,49 @@ export class SomeService {
 }
 ```
 
-## Value
+## Signal
 
-The decorator which enables injection of values from the `ServiceProvider` component where a string has been used as a token.
+Creates a property that can be observed by React and consumed by your services as well. Signals are expected to be treated as immutable values, meaning you always need to assign a new value.
 
 ```ts
-import { Service, Value } from 'impact-app'
-import { SomeOtherService } from './SomeOtherService'
+import { Service, Signal } from 'impact-app'
 
 @Service()
 export class SomeService {
-    // "KEY" is used to inject a string value in the related ServiceProvider component
-    constructor(@Value('KEY') key: string) {}
+    @Signal()
+    private _foo = 'bar'
+    get foo() {
+        return this._foo
+    }
+    changeFoo(newValue: string) {
+        // Set the new value
+        this._foo = newValue
+    }
+}
+```
+
+## Compute
+
+Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
+
+```ts
+import { Service, Signal, Compute } from 'impact-app'
+
+@Service()
+export class SomeService {
+    @Signal()
+    private _foo = 'bar'
+    @Compute()
+    get shoutingFoo() {
+        return this._foo + '!!!'
+    }
+    get foo() {
+        return this._foo
+    }
+    changeFoo(newValue: string) {
+        // Set the new value
+        this._foo = newValue
+    }
 }
 ```
 
@@ -60,6 +91,23 @@ export class SomeService extends Disposable {
     }
 }
 ```
+
+## Value
+
+The decorator which enables injection of values from the `ServiceProvider` component where a string has been used as a token.
+
+```ts
+import { Service, Value } from 'impact-app'
+import { SomeOtherService } from './SomeOtherService'
+
+@Service()
+export class SomeService {
+    // "KEY" is used to inject a string value in the related ServiceProvider component
+    constructor(@Value('KEY') key: string) {}
+}
+```
+
+
 
 ## ServiceProvider
 
@@ -105,38 +153,6 @@ export const SomeComponent = () => {
 }
 ```
 
-## signal
-
-Creates a value that can be observed by React and consumed by your services as well.
-
-```ts
-import { Service, signal } from 'impact-app'
-
-@Service()
-export class SomeService {
-    #foo = signal('bar')
-    get foo() {
-        return this.#foo.value
-    }
-    changeFoo(newValue: string) {
-        // Set the new value
-        this.#foo.value = newValue
-    }
-}
-```
-
-## compute
-
-Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
-
-```ts
-import { compute, signal } from 'signalit'
-
-const count = signal(0)
-const shoutingCount = compute(() => count.value + '!!!')
-const computedValue = shoutingCount.value
-```
-
 ## observe
 
 Observes changes to signals in components.
@@ -166,14 +182,14 @@ import { Api, PostDTO } from './Api'
 
 @Service
 export class Posts {
-  #posts: Record<string, SuspensePromise<PostDTO>> = {}
+  private _posts: Record<string, SuspensePromise<PostDTO>> = {}
   constructor(private api: Api ) {}
   fetchPost(id: string) {
-    if (!this.#posts[id]) { 
-      this.#posts[id] = SuspensePromise.from(this.api.fetchPost(id))
+    if (!this._posts[id]) { 
+      this._posts[id] = SuspensePromise.from(this.api.fetchPost(id))
     }
     
-    return this.#posts[id]
+    return this._posts[id]
   }
 }
 ```
@@ -204,10 +220,10 @@ import { Service, emitter, Disposable } from 'impact-app'
 
 @Service()
 export class SomeService extends Disposable {
-    #fooEmitter = emitter<string>()
-    onFoo = this.#fooEmitter.on
+    private _fooEmitter = emitter<string>()
+    onFoo = this._fooEmitter.on
     constructor() {
-        this.onDispose(this.#fooEmitter.dispose)
+        this.onDispose(this._fooEmitter.dispose)
     }
 }
 ```

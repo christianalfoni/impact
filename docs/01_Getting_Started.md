@@ -17,7 +17,7 @@
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/eb74b1ea-0ff1-4d18-9ba5-97150408ae86" width="25"/> **Babel**
 ```bash
-npm install babel-plugin-transform-typescript-metadata @babel/plugin-proposal-decorators @babel/plugin-proposal-explicit-resource-management --dev
+npm install babel-plugin-transform-typescript-metadata @babel/plugin-proposal-decorators @babel/plugin-proposal-explicit-resource-management @babel/plugin-transform-class-properties --dev
 ```
 
 ```json
@@ -25,6 +25,7 @@ npm install babel-plugin-transform-typescript-metadata @babel/plugin-proposal-de
     "plugins": [
         "babel-plugin-transform-typescript-metadata",
         ["@babel/plugin-proposal-decorators", { legacy: true }],
+        "@babel/plugin-transform-class-properties",
         "@babel/plugin-proposal-explicit-resource-management"
     ]
 }
