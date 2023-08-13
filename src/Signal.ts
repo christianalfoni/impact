@@ -65,13 +65,6 @@ export class SignalTracker {
   }
 }
 
-export type Signal<T> = {
-  get value(): T;
-  set value(value: T);
-  onChange(listener: (newValue: T, prevValue: T) => void): () => void;
-  toJSON(): T;
-};
-
 export function signal<T>(value: T) {
   const signal = new SignalTracker(() => value);
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
@@ -97,6 +90,10 @@ export function signal<T>(value: T) {
       return value;
     },
     set value(newValue) {
+      if (value === newValue) {
+        return;
+      }
+
       const prevValue = value;
       value = newValue;
 
@@ -108,7 +105,24 @@ export function signal<T>(value: T) {
 
       listeners?.forEach((listener) => listener(value, prevValue));
     },
-  } as Signal<T>;
+  };
+}
+
+export function Signal() {
+  return function SignalDecorator(...args: any[]) {
+    const [_, __, descriptor] = args;
+
+    const sig = signal(descriptor.initializer?.());
+
+    return {
+      get() {
+        return sig.value;
+      },
+      set(v: any) {
+        sig.value = v;
+      },
+    } as any;
+  };
 }
 
 export function compute<T>(cb: () => T) {
@@ -128,7 +142,7 @@ export function compute<T>(cb: () => T) {
         listeners?.delete(listener);
       };
     },
-    get() {
+    get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerSignal(signal);
         if (process.env.NODE_ENV === "development") {
@@ -170,6 +184,20 @@ export function compute<T>(cb: () => T) {
 
       return value;
     },
+  };
+}
+
+export function Compute() {
+  return function ComputeDecorator(...args: any[]) {
+    const [target, __, descriptor] = args;
+
+    const sig = compute(descriptor.get.bind(target));
+
+    return {
+      get() {
+        return sig.value;
+      },
+    } as any;
   };
 }
 

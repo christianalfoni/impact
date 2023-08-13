@@ -5,11 +5,12 @@
 An example of this would be:
 
 ```ts
-import { signal, Service, Disposable } from 'impact-app'
+import { Signal, Service, Disposable } from 'impact-app'
 
 @Service()
 export class Counter extends Disposable {
-    count = signal(0)
+    @Signal()
+    count = 0
 }
 ```
 
@@ -26,8 +27,8 @@ export function CounterComponent() {
 
   return (
     <div>
-        <p>{counter.count.value}</p>
-        <button onClick={() => counter.counter.value++}>Increase</button>
+        <p>{counter.count}</p>
+        <button onClick={() => counter.counter++}>Increase</button>
     </div>
   )
 }
@@ -36,16 +37,17 @@ export function CounterComponent() {
 To adhere better to preferred object oriented patterns we could express the same as:
 
 ```ts
-import { signal, Service, Disposable } from 'impact-app'
+import { Signal, Service, Disposable } from 'impact-app'
 
 @Service()
 export class Counter extends Disposable {
-    #count = signal(0)
+    @Signal()
+    private _count = 0
     get count() {
-        return this.#count.value
+        return this._count
     }
     increaseCount() {
-        this.#count.value++
+        this._count++
     }
 }
 ```
