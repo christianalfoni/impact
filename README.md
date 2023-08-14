@@ -46,9 +46,3 @@ This framework is **NOT** built for solutions like [Next JS](https://nextjs.org/
 - [Reactivity](./docs/06_Reactivity.md)
 - [Promises](./docs/07_Promises.md)
 - [Events](./docs/08_Events.md)
-- [Organising Projects](./docs/09_Organising_Projects.md)
-
-## Guides
-
-- [Creating A Feature](./guides/creating_a_feature.md)
-- [Data Fetching](./guides/data_fetching.md)
