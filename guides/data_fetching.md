@@ -1,14 +1,14 @@
 # Data Fetching
 
-In rich single page applications you want low level control of data fetching. When data is fetched, how much and when to consider it that data expired can vary a lot between applications.
+In rich single page applications you want low level control of data fetching. When data is fetched, how much and when to consider the data expired can vary a lot between applications.
 
-In this guide we look at what kinds of services you can build to fetch data, cache it, update it and finally consume it in components.
+In this guide we look at what kinds of classes you can build to fetch data, cache it, update it and finally consume it in components.
 
 ## Data fetching
 
-It is generally a good idea to separate your data fetching into a service that only does the actual fetching. Any caching behaviour is the responsibility of a different service.
+It is generally a good idea to separate your data fetching into a class that only does the actual fetching. Any caching behaviour is the responsibility of a different class.
 
-Now you have a service which knows how to fetch data and type it correctly.
+Now you have a class which knows how to fetch data and type it correctly.
 
 ```ts
 import { Service } from 'impact-app'
@@ -33,7 +33,9 @@ export class Api {
 
 ## Caching
 
-You might consider caching certain data coming from your API. Caching data can be very straight forward:
+You might consider caching certain data coming from your API. Maybe you are using a tool that already does this caching. Maybe you have offline support, maybe you can subscribe. Maybe the experience is collaborative, maybe not. In these example we will just look at different scenarios and how you get full control to determine how the caching behaviour works.
+
+Caching data can be very straight forward:
 
 ```ts
 import { Service } from 'impact-app'
@@ -45,6 +47,7 @@ export class PostsCacheService {
     constructor(private api: Api) {}
     getPost(id: string) {
         let existingCache = this._cache[id]
+
         if (!existingCache) {
             this._cache[id] = existingCache = this.api.getPost(id)
         }
@@ -172,7 +175,9 @@ export class ProjectsCache extends Disposable {
 export const useProjectsCache = () => useService(ProjectsCache)
 ```
 
-This cache will keep its internal state up to date, but also now emit an event whenever a project is updated. Our application wants to provide a service representing the current project. That means we will create a `ProjectService` which is tied to the component lifecycle of a Project component. Since there is nothing to render until we have the initial data for the project we added the `SuspensePromise` to allow the following:
+This cache will keep its internal state up to date, but also now emit an event whenever a project is updated.
+
+Our application wants to provide a service representing the current project. That means we will create a `ProjectService` which is tied to the component lifecycle of a Project component. Since there is nothing to render until we have the initial data for the project we added the `SuspensePromise` to allow the following:
 
 ```tsx
 import { ServiceProvider } from 'impact-app'
@@ -255,5 +260,5 @@ export class Project extends Disposable {
 }
 ```
 
-Now we rather update each signal property of the `Project` service. Signals does not trigger unless the value has actually changed, meaning all primitive values like strings, booleans, numbers etc. will not unncessarily cause a signal to trigger.
+Now we rather update each signal property of the `Project` service.
 

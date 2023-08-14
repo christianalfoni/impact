@@ -1,29 +1,31 @@
 # Reactivity
 
-**Impact** implements signals to enable reactivity. In other words you define state as signals when you want components to be able to consume the state of your classes.
+**Impact** implements signals to enable reactivity. In other words you define state as signals when you want components to be able to consume the state of your services.
 
 An example of this would be:
 
 ```ts
-import { Signal, Service, Disposable } from 'impact-app'
+import { Signal, Service, Disposable, useService } from 'impact-app'
 
 @Service()
 export class Counter extends Disposable {
     @Signal()
     count = 0
 }
+
+export const useCounter = () => useService(Counter)
 ```
 
-Given this service is exposed through a `ServiceProvider` component, a component can now observe any changes by:
+Given this class is exposed through a `ServiceProvider` component, a component can now observe any changes by:
 
 ```tsx
-import { useService, observe } from 'impact-app'
-import { Counter } from '../services/Counter'
+import { observe } from 'impact-app'
+import { useCounter } from '../services/Counter'
 
 export function CounterComponent() {
   using _ = observe()
   
-  const counter = useService(Counter)
+  const counter = useCounter()
 
   return (
     <div>
@@ -37,7 +39,7 @@ export function CounterComponent() {
 To adhere better to preferred object oriented patterns we could express the same as:
 
 ```ts
-import { Signal, Service, Disposable } from 'impact-app'
+import { Signal, Service, Disposable, useService } from 'impact-app'
 
 @Service()
 export class Counter extends Disposable {
@@ -50,18 +52,20 @@ export class Counter extends Disposable {
         this._count++
     }
 }
+
+export const useCounter = () => useService(Counter)
 ```
 
 Now we have properly encapsulated the functionality of the Counter and only expose the possibility to consume and increase the count:
 
 ```tsx
-import { useService, observe } from 'impact-app'
-import { Counter } from '../services/Counter'
+import { observe } from 'impact-app'
+import { useCounter } from '../services/Counter'
 
 export function CounterComponent() {
   using _ = observe()
   
-  const counter = useService(Counter)
+  const counter = useCounter()
 
   // Notice we exposed the signal value as a getter and
   // can just use it directly now

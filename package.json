@@ -1,7 +1,7 @@
 {
   "name": "impact-app",
-  "version": "0.15.0",
-  "description": "Imperative apps for React",
+  "version": "0.16.0",
+  "description": "Object Oriented State Mangement for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",

@@ -6,23 +6,23 @@
 - [Disposable](#disposable)
 - [Value](#value)
 - [ServiceProvider](#serviceprovider)
-- [useService](#useservice)
+- [useService](#useService)
 - [SuspensePromise](#suspensepromise)
 - [observe](#observe)
 - [emitter](#emitter)
 
 ## Service
 
-The decorator which enables injection of other services and sets the lifecycle of the class to be tied to the `ServiceProvider` component.
+The decorator which enables injection of other classes and values. It also sets the lifecycle of the class to be tied to the `ServiceProvider` component where it is registered.
 
 ```ts
 import { Service } from 'impact-app'
-import { SomeOtherService } from './SomeOtherService'
+import { SomeOtherClass } from './SomeOtherClass'
 
 @Service()
-export class SomeService {
+export class SomeClass {
     // Will be resolved when SomeService is resolved
-    constructor(someOtherService: SomeOtherService) {}
+    constructor(someOtherClass: SomeOtherClass) {}
 }
 ```
 
@@ -55,18 +55,20 @@ Creates a signal that lazily recomputes whenever any accessed signals within the
 import { Service, Signal, Compute } from 'impact-app'
 
 @Service()
-export class SomeService {
+export class SomeClass {
     @Signal()
     private _foo = 'bar'
+    get foo() {
+        return this._foo
+    }
+
     @Compute()
     get shoutingFoo() {
         return this._foo + '!!!'
     }
-    get foo() {
-        return this._foo
-    }
+    
     changeFoo(newValue: string) {
-        // Set the new value
+        // The compute is now just flagged dirty and will recompute whenever something accesses it
         this._foo = newValue
     }
 }
@@ -80,7 +82,7 @@ All services exposed to React has to extend the `Disposable` class, or it will t
 import { Service, Disposable } from 'impact-app'
 
 @Service()
-export class SomeService extends Disposable {
+export class SomeClass extends Disposable {
     constructor() {
         this.onDispose(() => {
             /*
@@ -98,16 +100,12 @@ The decorator which enables injection of values from the `ServiceProvider` compo
 
 ```ts
 import { Service, Value } from 'impact-app'
-import { SomeOtherService } from './SomeOtherService'
 
 @Service()
-export class SomeService {
-    // "KEY" is used to inject a string value in the related ServiceProvider component
-    constructor(@Value('KEY') key: string) {}
+export class SomeClass {
+    constructor(@Value('SOME_TOKEN_STRING') key: string) {}
 }
 ```
-
-
 
 ## ServiceProvider
 
@@ -116,7 +114,7 @@ Registers services and values to the lifecycle of the component and exposes them
 ```tsx
 import { ServiceProvider } from 'impact-app'
 import { SomeExternalTool } from 'some-cool-tool-package'
-import { ServiceA, ServiceB } from './services'
+import { ClassA, ClassB } from './services'
 
 const someExternalTool = new SomeExternalTool()
 const config = {}
@@ -125,7 +123,7 @@ export const Main = () => {
     return (
         <ServiceProvider
             // Classes with the Service decorator
-            services={[ServiceA, ServiceB]}
+            services={[ClassA, ClassB]}
             // Other values
             values={[
                 // Use the class as token to reference the instance
@@ -142,14 +140,14 @@ export const Main = () => {
 
 ## useService
 
-Consumes a service in a component. If the service has not been instantiated yet, it will be. If the service has not been registered to a parent ServiceProvider or the service does not extend `Disposable`, it will throw.
+Consumes a class in a component. If the class has not been instantiated yet, it will be. If the class has not been registered to a parent ServiceProvider or the class does not extend `Disposable`, it will throw.
 
 ```tsx
 import { useService } from 'impact-app'
-import { SomeService } from '../services/SomeService'
+import { SomeClass } from '../services/SomeClass'
 
 export const SomeComponent = () => {
-    const someService = useService(SomeService)
+    const someService = useService(SomeClass)
 }
 ```
 
@@ -180,16 +178,18 @@ An enhanced promise which allows React to consume it directly in components. It 
 import { Service, Disposable, SuspensePromise } from 'impact-app'
 import { Api, PostDTO } from './Api'
 
-@Service
-export class Posts {
-  private _posts: Record<string, SuspensePromise<PostDTO>> = {}
+@Service()
+export class PostsCache {
+  private _cache: Record<string, SuspensePromise<PostDTO>> = {}
   constructor(private api: Api ) {}
-  fetchPost(id: string) {
-    if (!this._posts[id]) { 
-      this._posts[id] = SuspensePromise.from(this.api.fetchPost(id))
+  getPost(id: string) {
+    let existingPost = this._cache[id]
+
+    if (!existingPost) { 
+      this._cache[id] = existingPost = SuspensePromise.from(this.api.fetchPost(id))
     }
     
-    return this._posts[id]
+    return existingPost
   }
 }
 ```
@@ -198,12 +198,12 @@ And now in a component you can consume it directly:
 
 ```tsx
 import { useService } from 'impact-app'
-import { Posts } from '../services/Posts'
+import { PostsCache } from '../services/PostsCache'
 
-export const PostComponent = ({ id }: { id: string }) => {
-  const posts = useService(Posts)
+export const Post = ({ id }: { id: string }) => {
+  const posts = useService(PostsCache)
   // When React gets its own "use" hook, you can use that instead
-  const post = posts.fetchPost(id).use()
+  const post = posts.getPost(id).use()
 }
 ```
 

@@ -1,6 +1,6 @@
 # Services
 
-A service is just a class which is enhanced with the ability to be injected into components and other classes. You never instantiate the class directly, the constructor is only used to inject other classes or values, and run initialization logic.
+A service is just a class that can be injected into other services and components. You never instantiate the class directly, the constructor is only used to inject other services or values, and run initialization logic. A service is considered a very broad term. A service can be a simple utility, an API making requests or simply managing UI state.
 
 ```ts
 import { Service } from 'impact-app'
@@ -12,7 +12,7 @@ class SomeFeature {
         Now you can use other services in the
         constructor and they will be injected when
         this class is instantiated by a component
-        or an other service
+        or an other class
     */
     constructor(private api: Api) {}
 }
@@ -22,7 +22,7 @@ class SomeFeature {
 
 ## ServiceProvider
 
-To be able to inject a service you will need to mount a ServiceProvider in your component tree.
+To be able to inject a service into a component you will need to mount a ServiceProvider in your component tree.
 
 ```tsx
 import { ServiceProvider, useService } from 'impact-app'
@@ -55,7 +55,7 @@ const App = () => (
 
 ## Injecting services into services
 
-To inject a service into a service you use the constructor. Unlike the "useService" hook, the class does not need to be exposed on a ServiceProvider.
+To inject a service into a service you use the constructor. Unlike the "useService" hook, the service does not need to be exposed on a ServiceProvider.
 
 ```ts
 import { Service } from 'impact-app'
@@ -72,7 +72,7 @@ class Posts {
 
 ## Disposing services
 
-When a ServiceProvider is unmounted it will be disposed. Any services registered to that ServiceProvider will also be disposed. The `useService` hook will throw if you consume a service without extending `Disposable`
+When a ServiceProvider is unmounted it will be disposed. Any services registered to that ServiceProvider will also be disposed. The `useService` hook will throw if you consume a class that does not extend `Disposable`.
 
 ```ts
 import { Service, Disposable } from 'impact-app'
@@ -80,7 +80,8 @@ import { Service, Disposable } from 'impact-app'
 @Service()
 class SomeSubscriber extends Disposable {
     constructor(private _api: Api) {
-        this.onDispose(this._api.subscribeSomething())
+        const disposeSomethingSubscription = this._api.subscribeSomething()
+        this.onDispose(disposeSomethingSubscription)
     }
 }
 ```
@@ -97,7 +98,7 @@ const api = SomeApi({})
 
 const App = () => {
     return (
-        <ServiceProvider services={[SomeFeature]} values={[SomeApi, api]}>
+        <ServiceProvider services={[SomeClass]} values={[SomeApi, api]}>
             <Content />
         </ServiceProvider>
     )
@@ -147,11 +148,10 @@ The `ServiceProvider` components can be nested and resolving services propagates
 
 ## Lazy loading services
 
-Since classes are defined and consumed through a ServiceProvider component, you can just lazy load the component which has the ServiceProvider and all related classes will also be lazy loaded.
+Since services are defined and consumed through a ServiceProvider component, you can just lazy load the component which has the ServiceProvider and all related services will also be lazy loaded.
 
 ```tsx
 import { lazy } from 'react'
-import { ServiceProvider, useService } from 'impact-app'
 
 // ProjectPage has a ServiceProvider for related classes
 const ProjectPage = lazy(() => import('./ProjectPage'))

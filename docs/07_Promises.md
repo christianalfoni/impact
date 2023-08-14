@@ -6,7 +6,7 @@ With an objected oriented external layer we have an opportunity to take advantag
 The `SuspensePromise` enhances a normal promise and adds the status of the promise so React can access it synchronously, making i compatible with the future **use** hook. It also adds the upcoming `use` hook as a method on the promise until it becomes available in React. That means when we want to expose a promise to React we can use a `SuspensePromise`.
 
 ```ts
-import { SuspensePromise, Service, Disposable } from 'impact-app'
+import { SuspensePromise, Service, Disposable, useService } from 'impact-app'
 import { Api, PostDTO } from './Api'
 
 @Service()
@@ -21,16 +21,17 @@ export class Posts extends Disposable {
         return this._posts[id]
     }
 }
+
+export const usePosts = () => useService(Posts)
 ```
 
 The `SuspensePromise` is just a promise, but enhanced with additional state and a `use` method. When consumed in a component using the `use` method, it will throw to the suspense boundary if pending, to the error boundary if rejected or resolve synchronously if already resolved. In the object oriented context you would just consume the promise as normal.
 
 ```tsx
-import { useService } from 'impact-app'
-import { Posts } from '../services'
+import { usePosts } from '../services'
 
 const Post = ({ id }: { id: string }) => {
-    const posts = useService(Posts)
+    const posts = usePosts()
     const post = posts.fetchPost(id).use()
 }
 ```
@@ -40,7 +41,7 @@ const Post = ({ id }: { id: string }) => {
 Often we think about promises as a way to aquire a value asynchronously, but promises are values themselves. Like the example above we do not store the resolved value in our cache, we store the promise. When state needs to be asynchronously instantiated it can be a good idea to store the promise itself and when the value needs to be updated, you just store a new promise. With `SuspensePromise` you can resolve to a new value.
 
 ```ts
-import { SuspensePromise, Signal, Service, Disposable } from 'impact-app'
+import { SuspensePromise, Service, Signal, Disposable, useService } from 'impact-app'
 import { Api, StatusDTO } from './Api'
 
 @Service()
@@ -50,6 +51,7 @@ export class Status extends Disposable {
     get status() {
         return this._status
     }
+    
     constructor(api: Api) {
         this._status = SuspensePromise.from(api.getStatus())
         
@@ -58,7 +60,9 @@ export class Status extends Disposable {
         }))
     }
 }
+
+export const useStatus = () => useService(Status)
 ```
 
-When the status value is changed it is changed to an already resolved promise which React will synchronously read, meaning when the signal triggers and observers the value is ready to be consumed.
+When the status value is changed it is changed to an already resolved promise which React will synchronously read, meaning when the signal triggers the value is ready to be consumed.
 
