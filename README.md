@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Rich Single Page Application Framework for React</b>
+  <b>Object Oriented State Management for React</b>
 </p>
 
 
@@ -46,6 +46,3 @@ This framework is **NOT** built for solutions like [Next JS](https://nextjs.org/
 - [Reactivity](./docs/06_Reactivity.md)
 - [Promises](./docs/07_Promises.md)
 - [Events](./docs/08_Events.md)
-- [Organising Projects](./docs/09_Organising_Projects.md)
-
-
