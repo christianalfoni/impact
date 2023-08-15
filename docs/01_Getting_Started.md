@@ -33,10 +33,34 @@ yarn add babel-plugin-transform-typescript-metadata @babel/plugin-proposal-decor
 {
     "plugins": [
         "babel-plugin-transform-typescript-metadata",
-        ["@babel/plugin-proposal-decorators", { legacy: true }],
+        ["@babel/plugin-proposal-decorators", { "legacy": true }],
         "@babel/plugin-transform-class-properties",
         "@babel/plugin-proposal-explicit-resource-management"
     ]
 }
 ```
 
+## Debug with VSCode
+
+Make sure your project has a `.vscode/launch.json` file with the following contents:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Dev",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
+```
+
+Make sure you have the [Edge](https://www.microsoft.com/en-us/edge?form=MA13FJ&exp=e00) browser installed (It is Chromium, so works just like Chrome). Now after the dev server is started use the Debug tool in VSCode and start it. 
+
+Edge starts up opening your application and now when you click debug statements from signals they files open in VSCode.
+
+**NOTE!** If it is not working and you are taken to the source tab, refresh the app

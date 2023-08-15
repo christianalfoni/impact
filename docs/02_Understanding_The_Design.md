@@ -26,7 +26,7 @@ For you as a developer this low level dependency is exposed as two decorators on
 
 ## Reactive primitives
 
-**Impact** implements a reactive primitive called signals. This is a very simple reactive primitive which is designed to work just as well in an object oriented world, as in the functional and declarative world of React. That means the API for consuming the value of a signal needs to feel natural in both programming paradigms. Also changing the value should be allowed using mutation, though result in an "immutable" value for React to consume. All these considerations went into the design of the signals API.
+**Impact** implements a reactive primitive called signals. This is a very simple reactive primitive which is designed to work just as well in an object oriented world, as in the functional and declarative world of React. That means the API for consuming the value of a signal needs to feel natural in both programming paradigms. All these considerations went into the design of the signals API.
 
 "Change" is where things go wrong in your application. A user interacts with the application and you have unexpected state changes. The signal debugger gives you exact information about where a state change occurs in your code and also where state changes are being observed in your code. With VSCode you will be able to click debugging information in the browser and go straight to the code location inside VSCode. 
 

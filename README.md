@@ -9,7 +9,11 @@
 
 <br />
 
+<p align="center">
+⚠️ <b>This is still a work in progress</b> ⚠️
+</p>
 
+<br />
 
 🗄️ Write state and logic in an object oriented paradigm using classes
 
@@ -29,6 +33,10 @@ Explore some code or use as a starting point.
 ## Background
 
 At [CodeSandbox](https://codesandbox.io) we write most of our code in an object oriented paradigm. This in combination with creating rich single page applications with a high degree of client side managed state, we wanted to explore a tool where we can more easily move between object oriented codebases and solve some of the challenges of building rich single page applications.
+
+**Watch the video introducing the motivations behind the project:**
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/E3eezTMxMvk/0.jpg)](https://www.youtube.com/watch?v=E3eezTMxMvk)
 
 ## Who is this for?
 
