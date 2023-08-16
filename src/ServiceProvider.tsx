@@ -66,9 +66,7 @@ export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
 
   const className =
-    typeof classReference === "object" &&
-    classReference !== null &&
-    "name" in classReference
+    typeof classReference === "function" && "name" in classReference
       ? classReference.name
       : String(classReference);
 
