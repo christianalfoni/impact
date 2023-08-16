@@ -65,15 +65,22 @@ export class ServiceProvider extends React.Component<
 export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
   const container = useContext(diContext);
 
+  const className =
+    typeof classReference === "object" &&
+    classReference !== null &&
+    "name" in classReference
+      ? classReference.name
+      : String(classReference);
+
   if (!container) {
-    throw new Error("useService used in an invalid context");
+    throw new Error(
+      `Trying to inject "${className}", but there is no ServiceProvider in the component tree`
+    );
   }
 
   if (!container.isRegistered(classReference)) {
     throw new Error(
-      `Trying to inject a service (${String(
-        classReference
-      )}) that has not been registered`
+      `Trying to inject "${className}", but it has not been registered to a ServiceProvider in the component tree`
     );
   }
 
@@ -81,7 +88,7 @@ export function useService<T>(classReference: tsyringe.InjectionToken<T>): T {
 
   if (!(service instanceof Disposable)) {
     throw new Error(
-      `Service (${String(classReference)}) does not extends Disposable`
+      `Trying to inject "${className}", but it does not extend Disposable`
     );
   }
 
