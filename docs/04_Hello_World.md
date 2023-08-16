@@ -1,7 +1,7 @@
 # Hello World
 
-```tsx
-import { ServiceProvider, Service, Disposable, useService, Signal, observe } from 'impact-app'
+```ts
+import { Service, Disposable, useService, Signal } from 'impact-app'
 
 /*
   The "Service" decorator ties the lifecycle of the class
@@ -9,33 +9,51 @@ import { ServiceProvider, Service, Disposable, useService, Signal, observe } fro
   as this class will be disposed when the "App" component unmounts
 */
 @Service()
-export class HelloWorld extends Disposable {
+export class HelloWorldService extends Disposable {
     /*
       We define the property as a signal which enables components to observe
-      changes to the signal.
+      changes to the signal. We use the accessor pattern as components should
+      never change state
     */
     @Signal()
     private _message = 'Hello World'
     get message() {
       return this._message
     }
+
+    /*
+      You always assign a new value to a signal and it should be treated
+      as an immutable value.
+    */
     upperCaseMessage() [
       this._message = this._message.toUpperCase()
     ]
 }
 
+export const useHelloWorld = () => useService(HelloWorldService)
+```
+
+```tsx
+import { ServiceProvider } from 'impact-app'
+import { HelloWorldService } from 'services/HelloWorldService'
+
 /*
-  Use the "ServiceProvider" to provide a class to a 
+  Use the "ServiceProvider" to provide a service to a 
   component tree. When this component unmounts its
-  registered classes will also dispose
+  registered services will also dispose
 */
 export const App = () => (
-    <ServiceProvider services={[HelloWorld]}>
+    <ServiceProvider services={[HelloWorldService]}>
       <HelloWorldComponent />
     </ServiceProvider>
 )
+```
 
-function HelloWorldComponent() {
+```tsx
+import { observe } from 'impact-app'
+import { useHelloWorld } from 'services/HelloWorldService'
+
+function HelloWorld() {
     // Observe any signals consumed
     using _ = observe()
     
@@ -45,7 +63,7 @@ function HelloWorldComponent() {
       not been instantied already. If it has not been
       provided, it will throw an error
     */
-    const helloWorld = useService(HelloWorld)
+    const helloWorld = useHelloWorld()
     
     return <h1 onClick={() => helloWorld.upperCaseMessage()}>{helloWorld.message}</h1>
 }
