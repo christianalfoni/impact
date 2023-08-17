@@ -56,7 +56,7 @@ export class Status extends Disposable {
         this._status = SuspensePromise.from(api.getStatus())
         
         this.onDispose(api.subscribeStatus((status) => {
-            this._status = SuspensePromise.resolve(status)
+            this._status = SuspensePromise.fromValue(status)
         }))
     }
 }
