@@ -1,71 +1,16 @@
-type TPendingSuspensePromise<T> = Promise<T> & {
+type TPendingSuspensePromise<T> = {
   status: "pending";
-  use(): T;
 };
 
-type TFulfilledSuspensePromise<T> = Promise<T> & {
+type TFulfilledSuspensePromise<T> = {
   status: "fulfilled";
   value: T;
-  use(): T;
 };
 
-type TRejectedSuspensePromise = Promise<never> & {
+type TRejectedSuspensePromise = {
   status: "rejected";
   reason: unknown;
-  use(): never;
 };
-
-export type SuspensePromise<T> =
-  | TPendingSuspensePromise<T>
-  | TFulfilledSuspensePromise<T>
-  | TRejectedSuspensePromise;
-
-// There is an official RFC for this hook: https://github.com/reactjs/rfcs/pull/229
-function use<T>(promise: SuspensePromise<T>) {
-  if (isFulfilledSuspensePromise(promise)) {
-    return promise.value as T;
-  }
-
-  if (isRejectedSuspensePromise(promise)) {
-    throw promise.reason;
-  }
-
-  promise
-    .then((value) => {
-      makePromiseFulfilledSuspensePromise(promise, value);
-    })
-    .catch((reason) => {
-      makePromiseRejectedSuspensePromise(promise, reason);
-    });
-
-  throw makePromisePendingSuspensePromise(promise);
-}
-
-function makePromiseFulfilledSuspensePromise<T>(promise: Promise<T>, value: T) {
-  return Object.assign(promise, {
-    status: "fulfilled",
-    value,
-    use: () => use(promise as TFulfilledSuspensePromise<T>),
-  }) as TFulfilledSuspensePromise<T>;
-}
-
-function makePromiseRejectedSuspensePromise(
-  promise: Promise<unknown>,
-  reason: unknown
-) {
-  return Object.assign(promise, {
-    status: "rejected",
-    reason,
-    use: () => use(promise as TRejectedSuspensePromise),
-  }) as TRejectedSuspensePromise;
-}
-
-function makePromisePendingSuspensePromise<T>(promise: Promise<T>) {
-  return Object.assign(promise, {
-    status: "pending",
-    use: () => use(promise as TPendingSuspensePromise<T>),
-  }) as TPendingSuspensePromise<T>;
-}
 
 function isFulfilledSuspensePromise(
   promise: unknown
@@ -89,18 +34,49 @@ function isRejectedSuspensePromise(
   );
 }
 
-export function from<T>(nativePromise: Promise<T>) {
-  nativePromise
-    .then((value) => {
-      makePromiseFulfilledSuspensePromise(nativePromise, value);
-    })
-    .catch((reason) => {
-      makePromiseRejectedSuspensePromise(nativePromise, reason);
-    });
+export class SuspensePromise<T> extends Promise<T> {
+  static from<T>(nativePromise: Promise<T>): SuspensePromise<T> {
+    const promise = new SuspensePromise<T>((resolve, reject) =>
+      nativePromise
+        .then((value) => {
+          promise.status = "fulfilled";
+          promise.value = value;
+          resolve(value);
+        })
+        .catch((reason) => {
+          promise.status = "rejected";
+          promise.reason = reason;
+          reject(reason);
+        })
+    );
 
-  return makePromisePendingSuspensePromise(nativePromise);
-}
+    return promise;
+  }
+  static fromValue<T>(value: T): SuspensePromise<T> {
+    const promise = new SuspensePromise<T>((resolve) => resolve(value));
 
-export function resolve<T>(value: T) {
-  return makePromiseFulfilledSuspensePromise(Promise.resolve(value), value);
+    promise.status = "fulfilled";
+    promise.value = value;
+
+    return promise;
+  }
+  protected status: (
+    | TPendingSuspensePromise<T>
+    | TFulfilledSuspensePromise<T>
+    | TRejectedSuspensePromise
+  )["status"] = "pending";
+  protected value?: T;
+  protected reason?: unknown;
+  // There is an official RFC for this hook: https://github.com/reactjs/rfcs/pull/229
+  use() {
+    if (isFulfilledSuspensePromise(this)) {
+      return this.value as T;
+    }
+
+    if (isRejectedSuspensePromise(this)) {
+      throw this.reason;
+    }
+
+    throw this;
+  }
 }

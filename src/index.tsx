@@ -1,6 +1,6 @@
 import "reflect-metadata";
 
-export * as SuspensePromise from "./SuspensePromise";
+export { SuspensePromise } from "./SuspensePromise";
 
 export * from "./Disposable";
 

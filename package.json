@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.16.2",
+  "version": "0.16.3",
   "description": "Object Oriented State Mangement for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

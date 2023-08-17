@@ -1,14 +1,14 @@
 # API
 
 - [Service](#service)
-- [Signal](#signal)
-- [Compute](#compute)
-- [Disposable](#disposable)
 - [Value](#value)
+- [Disposable](#disposable)
 - [ServiceProvider](#serviceprovider)
 - [useService](#useService)
-- [SuspensePromise](#suspensepromise)
+- [Signal](#signal)
+- [Compute](#compute)
 - [observe](#observe)
+- [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
 
 ## Service
@@ -172,7 +172,7 @@ export const SomeComponent = () => {
 
 ## SuspensePromise
 
-An enhanced promise which allows React to consume it directly in components. It is just a normal `Promise` which has some additional properties.
+An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
 
 ```ts
 import { Service, Disposable, SuspensePromise } from 'impact-app'
@@ -209,7 +209,7 @@ export const Post = ({ id }: { id: string }) => {
 
 This promise throws to the closest Suspense boundary when pending and to the Error boundary when rejected. If the promise is already resolved it will synchronously resolve.
 
-You can also use `SuspensePromise.resolve` to create a resolved SuspensePromise.
+You can also use `SuspensePromise.fromValue` to create a resolved SuspensePromise.
 
 ## emitter
 
