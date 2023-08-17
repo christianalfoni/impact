@@ -11,13 +11,13 @@ import { Api, PostDTO } from './Api'
 
 @Service()
 export class Posts extends Disposable {
-    private posts: Record<string, SuspensePromise<PostDTO>>
-    constructor(private api: Api) {}
+    private _posts: Record<string, SuspensePromise<PostDTO>>
+    constructor(private _api: Api) {}
     fetchPost(id: string) {
-        let post = this.posts[id]
-        
+        let post = this._posts[id]
+
         if (!post) {
-            this.posts[id] = post = SuspensePromise.from(this.api.getPost(id))
+            this._posts[id] = post = SuspensePromise.from(this._api.getPost(id))
         }
 
         return post
@@ -49,13 +49,16 @@ import { Api, StatusDTO } from './Api'
 @Service()
 export class Status extends Disposable {
     @Signal()
-    protected status: SuspensePromise<StatusDTO>
+    private _status: SuspensePromise<StatusDTO>
+    get status() {
+        return this._status
+    }
     
     constructor(api: Api) {
-        this.status = SuspensePromise.from(api.getStatus())
+        this._status = SuspensePromise.from(api.getStatus())
         
         this.onDispose(api.subscribeStatus((status) => {
-            this.status = SuspensePromise.fromValue(status)
+            this._status = SuspensePromise.fromValue(status)
         }))
     }
 }
