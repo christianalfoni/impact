@@ -119,18 +119,29 @@ export function signal<T>(value: T) {
   };
 }
 
+const SignalSymbol = Symbol("Signal");
+
 export function Signal() {
   return function SignalDecorator(...args: any[]) {
-    const [_, __, descriptor] = args;
+    const [_, property, descriptor] = args;
 
-    const sig = signal(descriptor.initializer?.());
+    const withSignal = (target: any) => {
+      if (!target[SignalSymbol]) {
+        target[SignalSymbol] = {};
+      }
+      if (!target[SignalSymbol][property]) {
+        target[SignalSymbol][property] = signal(descriptor.initializer?.());
+      }
+
+      return target[SignalSymbol][property];
+    };
 
     return {
       get() {
-        return sig.value;
+        return withSignal(this).value;
       },
       set(v: any) {
-        sig.value = v;
+        withSignal(this).value = v;
       },
     } as any;
   };
