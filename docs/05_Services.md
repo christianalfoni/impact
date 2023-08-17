@@ -138,7 +138,7 @@ import { Service, Value } from 'impact-app'
 
 @Service()
 class SomeFeature {
-    constructor(@Value('CONFIG'): Record<string, string>) {}
+    constructor(@Value('CONFIG') config: Record<string, string>) {}
 }
 ```
 

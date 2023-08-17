@@ -12,13 +12,15 @@ import { Api, PostDTO } from './Api'
 @Service()
 export class Posts extends Disposable {
     private _posts: Record<string, SuspensePromise<PostDTO>>
-    constructor(private api: Api) {}
+    constructor(private _api: Api) {}
     fetchPost(id: string) {
-        if (!this._posts[id]) {
-            this._posts[id] = SuspensePromise.from(this.api.getPost(id))
+        let post = this._posts[id]
+
+        if (!post) {
+            this._posts[id] = post = SuspensePromise.from(this._api.getPost(id))
         }
 
-        return this._posts[id]
+        return post
     }
 }
 
