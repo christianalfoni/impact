@@ -12,18 +12,21 @@ import { Service, Disposable, useService, Signal } from 'impact-app'
 export class HelloWorldService extends Disposable {
     /*
       We define the property as a signal which enables components to observe
-      changes to the signal. We ensure it can only be changed within the service by
-      using the "protected" keyword
+      changes to the signal. We use the accessor pattern as components should
+      never change state
     */
     @Signal()
-    protected message = 'Hello World'
+    private _message = 'Hello World'
+    get message() {
+      return this._message
+    }
 
     /*
       You always assign a new value to a signal and it should be treated
       as an immutable value.
     */
     upperCaseMessage() [
-      this.message = this.message.toUpperCase()
+      this._message = this._message.toUpperCase()
     ]
 }
 
