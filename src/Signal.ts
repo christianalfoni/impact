@@ -91,6 +91,17 @@ export function signal<T>(value: T) {
     },
     set value(newValue) {
       if (value === newValue) {
+        if (
+          process.env.NODE_ENV === "development" &&
+          typeof newValue === "object" &&
+          newValue !== null
+        ) {
+          console.warn(
+            "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
+            newValue
+          );
+        }
+
         return;
       }
 
