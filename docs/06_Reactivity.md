@@ -44,19 +44,17 @@ import { Signal, Service, Disposable, useService } from 'impact-app'
 @Service()
 export class Counter extends Disposable {
     @Signal()
-    private _count = 0
-    get count() {
-        return this._count
-    }
+    protected count = 0
+
     increaseCount() {
-        this._count++
+        this.count++
     }
 }
 
 export const useCounter = () => useService(Counter)
 ```
 
-Now we have properly encapsulated the functionality of the Counter and only expose the possibility to consume and increase the count:
+Now we have properly encapsulated the functionality of the Counter and only expose the possibility to consume the count and change it only by increasing its value by one:
 
 ```tsx
 import { observe } from 'impact-app'
@@ -67,8 +65,6 @@ export function CounterComponent() {
   
   const counter = useCounter()
 
-  // Notice we exposed the signal value as a getter and
-  // can just use it directly now
   return (
     <div>
         <p>{counter.count}</p>

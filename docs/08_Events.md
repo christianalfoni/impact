@@ -7,14 +7,14 @@ import { emitter, Service, Disposable } from 'impact-app'
 
 @Service()
 export class SomeService extends Disposable {
-    private _eventEmitter = emitter<string>()
-    onEvent = this._eventEmitter.on
+    private onEventEmitter = emitter<string>()
+    onEvent = this.onEventEmitter.on
 
     constructor() {
-        this.onDispose(this._eventEmitter.dispose)
+        this.onDispose(this.onEventEmitter.dispose)
     }
     sayHello() {
-        this._eventEmitter.emit('Hello!')
+        this.onEventEmitter.emit('Hello!')
     }
 }
 ```
