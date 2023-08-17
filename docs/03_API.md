@@ -28,7 +28,7 @@ export class SomeClass {
 
 ## Signal
 
-Creates a property that can be observed by React and consumed by your services as well. Signals are expected to be treated as immutable values, meaning you always need to assign a new value.
+Creates a property that can be observed by React and consumed by your services as well. Signals are expected to be treated as immutable values, meaning you always need to assign a new value. It is recommended to use `protected` on all signals as they should only be changed from within the class.
 
 ```ts
 import { Service, Signal } from 'impact-app'
@@ -36,13 +36,10 @@ import { Service, Signal } from 'impact-app'
 @Service()
 export class SomeService {
     @Signal()
-    private _foo = 'bar'
-    get foo() {
-        return this._foo
-    }
+    protected foo = 'bar'
     changeFoo(newValue: string) {
         // Set the new value
-        this._foo = newValue
+        this.foo = newValue
     }
 }
 ```
@@ -57,19 +54,16 @@ import { Service, Signal, Compute } from 'impact-app'
 @Service()
 export class SomeClass {
     @Signal()
-    private _foo = 'bar'
-    get foo() {
-        return this._foo
-    }
+    protected foo = 'bar'
 
     @Compute()
     get shoutingFoo() {
-        return this._foo + '!!!'
+        return this.foo + '!!!'
     }
     
     changeFoo(newValue: string) {
         // The compute is now just flagged dirty and will recompute whenever something accesses it
-        this._foo = newValue
+        this.foo = newValue
     }
 }
 ```
@@ -180,13 +174,13 @@ import { Api, PostDTO } from './Api'
 
 @Service()
 export class PostsCache {
-  private _cache: Record<string, SuspensePromise<PostDTO>> = {}
+  private cache: Record<string, SuspensePromise<PostDTO>> = {}
   constructor(private api: Api ) {}
   getPost(id: string) {
-    let existingPost = this._cache[id]
+    let existingPost = this.cache[id]
 
     if (!existingPost) { 
-      this._cache[id] = existingPost = SuspensePromise.from(this.api.fetchPost(id))
+      this.cache[id] = existingPost = SuspensePromise.from(this.api.fetchPost(id))
     }
     
     return existingPost
@@ -220,10 +214,10 @@ import { Service, emitter, Disposable } from 'impact-app'
 
 @Service()
 export class SomeService extends Disposable {
-    private _fooEmitter = emitter<string>()
-    onFoo = this._fooEmitter.on
+    private onFooEmitter = emitter<string>()
+    onFoo = this.onFooEmitter.on
     constructor() {
-        this.onDispose(this._fooEmitter.dispose)
+        this.onDispose(this.onFooEmitter.dispose)
     }
 }
 ```

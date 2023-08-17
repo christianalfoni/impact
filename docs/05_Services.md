@@ -63,9 +63,9 @@ import { Api } from './Api'
 
 @Service()
 class Posts {
-    constructor(private _api: Api) {}
+    constructor(private api: Api) {}
     getPost(id: string) {
-        return this._api.fetchPost(id)
+        return this.api.fetchPost(id)
     }
 }
 ```
@@ -79,9 +79,9 @@ import { Service, Disposable } from 'impact-app'
 
 @Service()
 class SomeSubscriber extends Disposable {
-    constructor(private _api: Api) {
-        const disposeSomethingSubscription = this._api.subscribeSomething()
-        this.onDispose(disposeSomethingSubscription)
+    constructor(private api: Api) {
+        const disposeSubscription = this.api.subscribeSomething()
+        this.onDispose(disposeSubscription)
     }
 }
 ```
@@ -113,7 +113,7 @@ import { Service } from 'impact-app'
 
 @Service()
 class SomeFeature {
-    constructor(private _api: SomeApi) {}
+    constructor(private api: SomeApi) {}
 }
 ```
 
@@ -138,7 +138,7 @@ import { Service, Value } from 'impact-app'
 
 @Service()
 class SomeFeature {
-    constructor(@Value('CONFIG'): Record<string, string>) {}
+    constructor(@Value('CONFIG') config: Record<string, string>) {}
 }
 ```
 
