@@ -32,3 +32,10 @@ For you as a developer this low level dependency is exposed as two decorators on
 
 **Impact** also enables promises to be consumed "the React way". That means promises created in classes can be enhanced to be a `SuspensePromise`. This is just a normal promise, but React can now evaluate the state of the promise to use it with suspense.
 
+## Object Oriented Programming
+
+**Impact** highlights an object oriented paradigm to be proficient at managing large amounts of client side state and related logic. This does not mean you can not do it any other way, it is just one way of doing it with its benefits and drawbacks.
+
+What is important to undertand when we state OOP is that we are not talking about inheritance or other "white board" concepts of OOP. We are talking mainly about using classes for encapsulation of related state and logic. A class allows you to co locate and access state and logic in a single concept. It also allows to control what is private and what is public. With decorators and explicit accessor keywords we are able to express public interfaces, reactivity and dependencies where any point of consumption can easily be navigated back to its origin using intellisense.
+
+But most importantly classes give you instantiation and disposal. With for example a module pattern we would not have the same clear mechanism of instantiating classes as they are consumed by components and dispose of them when the component tree unmounts. With dependency injection it feels like you are creating singletons as you do not explicitly instantiate the classes anywhere, but they are actually instantiated under the hood. This prevents managing where and how to instantiate these classes and make them available to each other, but they are as mentioned still properly disposed related to the lifecycle of the components. Also during testing you have full control of the scope of what you want to test and mock any dependency to a class, or classes themselves during testing of components.

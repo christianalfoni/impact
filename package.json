@@ -15,6 +15,7 @@
   },
   "types": "./dist/esm/index.d.ts",
   "scripts": {
+    "dev": "vite",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
@@ -34,7 +35,6 @@
   "dependencies": {
     "react": "*",
     "reflect-metadata": "^0.1.13",
-    "signalit": "*",
     "stackframe": "^1.3.4",
     "stacktrace-gps": "^3.1.2",
     "tsyringe": "^4.8.0"
@@ -47,6 +47,21 @@
     "rimraf": "^2.6.1",
     "ts-jest": "^29.0.5",
     "tslib": "^2.1.0",
-    "typescript": "^5.2.1-rc"
+    "@babel/plugin-proposal-decorators": "^7.22.10",
+    "@babel/plugin-proposal-explicit-resource-management": "^7.22.6",
+    "@babel/plugin-transform-class-properties": "^7.22.5",
+    "@types/react-dom": "^18.2.6",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
+    "@typescript-eslint/parser": "^5.61.0",
+    "@vitejs/plugin-react": "^4.0.4",
+    "babel-plugin-transform-typescript-metadata": "^0.3.2",
+    "eslint": "^8.47.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.1",
+    "typescript": "^5.2.1-rc",
+    "vite": "^4.4.0",
+    "@radix-ui/themes": "^1.0.0",
+    "react-dom": "^18.2.0"
   }
 }
