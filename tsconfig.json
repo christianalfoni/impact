@@ -1,9 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "rootDir": "src",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "jsx": "react",
     "moduleResolution": "node",
     "skipLibCheck": true,
     "importHelpers": true,
@@ -13,9 +11,14 @@
     "inlineSources": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": true
+    "strict": true,
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "isolatedModules": true
   },
-  "include": ["src"],
+  "include": ["src", "examples"],
   "exclude": ["node_modules", "dist", "tests"],
   "references": [
     {

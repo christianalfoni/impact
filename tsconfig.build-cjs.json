@@ -3,6 +3,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "outDir": "./dist/cjs",
-    "lib": ["dom", "esnext.disposable"]
-  }
+    "lib": ["dom", "esnext.disposable"],
+    "rootDir": "src"
+  },
+  "include": ["src"]
 }
