@@ -4,7 +4,9 @@
     "module": "commonjs",
     "outDir": "./dist/cjs",
     "lib": ["dom", "esnext.disposable"],
-    "rootDir": "src"
+    "rootDir": "src",
+    "paths": {},
+    "declaration": true
   },
   "include": ["src"]
 }

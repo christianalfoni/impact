@@ -5,7 +5,6 @@
     "moduleResolution": "node",
     "skipLibCheck": true,
     "importHelpers": true,
-    "declaration": true,
     "pretty": true,
     "sourceMap": true,
     "inlineSources": true,
@@ -16,7 +15,10 @@
     "module": "ESNext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "impact-app": ["src"]
+    }
   },
   "include": ["src", "examples"],
   "exclude": ["node_modules", "dist", "tests"],
