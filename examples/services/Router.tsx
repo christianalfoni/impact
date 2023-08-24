@@ -5,7 +5,7 @@ import { Disposable } from "impact-app";
 import { Link } from "@radix-ui/themes";
 
 const routes = {
-  example: "/examples/:number",
+  caching: "/caching/:example",
 } as const;
 
 export type Routes = TRoutes<typeof routes>;
@@ -27,7 +27,7 @@ export class RouterService extends Disposable {
     this._router = createRouter(routes);
 
     if (!this._router.current) {
-      this._router.replace("example", { number: "1" });
+      this._router.replace("caching", { example: "1" });
     }
 
     // Since we enforce a valid route
@@ -42,32 +42,32 @@ export class RouterService extends Disposable {
     this.onDispose(disposeRouterListener);
   }
 
-  openExample(number: number) {
-    this._router.push("example", { number: String(number) });
+  open(route: Routes) {
+    this._router.push(route.name, route.params);
   }
 
-  getExampleUrl(number: number) {
-    return this._router.url("example", { number: String(number) });
+  getUrl(route: Routes) {
+    return this._router.url(route.name, route.params);
   }
 }
 
 export const useRouter = () => useService(RouterService);
 
 export function ExampleLink({
-  number,
+  name,
+  params,
   children,
-}: {
-  number: number;
+}: Routes & {
   children: string;
 }) {
   const router = useRouter();
 
   return (
     <Link
-      href={router.getExampleUrl(number)}
+      href={router.getUrl({ name, params })}
       onClick={(event) => {
         event.preventDefault();
-        router.openExample(number);
+        router.open({ name, params });
       }}
     >
       {children}

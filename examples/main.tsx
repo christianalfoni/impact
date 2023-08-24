@@ -7,11 +7,12 @@ import { Theme } from "@radix-ui/themes";
 import { App } from "./App";
 import { ServiceProvider } from "impact-app";
 import { RouterService } from "./services/Router";
+import { ApiService } from "./services/Api";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Theme>
-      <ServiceProvider services={[RouterService]}>
+      <ServiceProvider services={[RouterService, ApiService]}>
         <App />
       </ServiceProvider>
     </Theme>

@@ -33,15 +33,15 @@ This framework is **NOT** built for solutions like [Next JS](https://nextjs.org/
 
 ## Concept introduction
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [The background](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- 
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [The background](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://www.youtube.com/watch?v=E3eezTMxMvk) --:--
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Choosing the right tool](https://www.youtube.com/watch?v=E3eezTMxMvk) --:--
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Choosing the right tool](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Navigating code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:--
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Navigating code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Debugging code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:--
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Debugging code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
 ## Documentation
 
@@ -53,3 +53,7 @@ This framework is **NOT** built for solutions like [Next JS](https://nextjs.org/
 - [Reactivity](./docs/06_Reactivity.md)
 - [Promises](./docs/07_Promises.md)
 - [Events](./docs/08_Events.md)
+
+## Examples
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main) and navigate the examples application and the related code
