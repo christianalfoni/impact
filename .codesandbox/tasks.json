@@ -1,0 +1,51 @@
+{
+  // These tasks will run in order when initializing your CodeSandbox project.
+  "setupTasks": [
+    {
+      "name": "Install Dependencies",
+      "command": "yarn install"
+    }
+  ],
+
+  // These tasks can be run from CodeSandbox. Running one will open a log in the app.
+  "tasks": {
+    "build": {
+      "name": "build",
+      "command": "yarn build",
+      "runAtStart": false
+    },
+    "build:cjs": {
+      "name": "build:cjs",
+      "command": "yarn build:cjs",
+      "runAtStart": false
+    },
+    "build:esm": {
+      "name": "build:esm",
+      "command": "yarn build:esm",
+      "runAtStart": false
+    },
+    "clean": {
+      "name": "clean",
+      "command": "yarn clean",
+      "runAtStart": false
+    },
+    "typecheck": {
+      "name": "typecheck",
+      "command": "yarn typecheck",
+      "runAtStart": false
+    },
+    "prepublish": {
+      "name": "prepublish",
+      "command": "yarn prepublish",
+      "runAtStart": false
+    },
+    "yarn dev": {
+      "name": "yarn dev",
+      "command": "yarn dev",
+      "runAtStart": true,
+      "preview": {
+        "port": 5173
+      }
+    }
+  }
+}
