@@ -1,172 +1,91 @@
 # API
 
-- [Service](#service)
-- [Value](#value)
-- [Disposable](#disposable)
-- [ServiceProvider](#serviceprovider)
-- [useService](#useService)
-- [Signal](#signal)
-- [Compute](#compute)
+- [useGlobalReactiveHook](#useglobalreactivehook)
+- [useSignal](#useSignal)
+- [useCompute](#compute)
 - [observe](#observe)
 - [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
+- [ReactiveHooksProvider](#reactivehooksprovider)
+- [useReactiveHook](#usereactivehook)
+- [useDispose](#usedispose)
 
-## Service
+## useGlobalReactiveHook
 
-The decorator which enables injection of other classes and values. It also sets the lifecycle of the class to be tied to the `ServiceProvider` component where it is registered.
-
-```ts
-import { Service } from 'impact-app'
-import { SomeOtherClass } from './SomeOtherClass'
-
-@Service()
-export class SomeClass {
-    // Will be resolved when SomeService is resolved
-    constructor(someOtherClass: SomeOtherClass) {}
-}
-```
-
-## Signal
-
-Creates a property that can be observed by React and consumed by your services as well. Signals are expected to be treated as immutable values, meaning you always need to assign a new value.
+The hook that allows you to consume a reactive hook implementation in any component.
 
 ```ts
-import { Service, Signal } from 'impact-app'
+import { useGlobalReactiveHook } from 'impact-app'
 
-@Service()
-export class SomeService {
-    @Signal()
-    private _foo = 'bar'
-    get foo() {
-        return this._foo
-    }
-    changeFoo(newValue: string) {
-        // Set the new value
-        this._foo = newValue
+export function HelloWorld() {
+    return {
+        message: 'Hello World'
     }
 }
+
+export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
 ```
 
-## Compute
+> Do **NOT** define your reactive hooks inline with this function, as that will change the reference every time it is run
+
+## useSignal
+
+Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
+
+```ts
+import { useGlobalReactiveHook, useSignal } from 'impact-app'
+
+function HelloWorld() {
+    const message = useSignal('Hello World')
+
+    return {
+        get message() {
+            return message.value
+        }
+    }
+}
+
+export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
+```
+
+## useCompute
 
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
 
 ```ts
-import { Service, Signal, Compute } from 'impact-app'
+import { useGlobalReactiveHook, useSignal, useCompute } from 'impact-app'
 
-@Service()
-export class SomeClass {
-    @Signal()
-    private _foo = 'bar'
-    get foo() {
-        return this._foo
-    }
-
-    @Compute()
-    get shoutingFoo() {
-        return this._foo + '!!!'
-    }
+function HelloWorld() {
+    const message = useSignal('Hello World')
+    const shoutingMessage = useCompute(() => message.value + '!!!')
     
-    changeFoo(newValue: string) {
-        // The compute is now just flagged dirty and will recompute whenever something accesses it
-        this._foo = newValue
+    return {
+        get message() {
+            return message.value
+        },
+        get shoutingMessage() {
+            return shoutingMessage.value
+        }
     }
 }
-```
 
-## Disposable
-
-All services exposed to React has to extend the `Disposable` class, or it will throw an error. This ensures you are considering what cleanup needs to be done when the component tree unmounts.
-
-```ts
-import { Service, Disposable } from 'impact-app'
-
-@Service()
-export class SomeClass extends Disposable {
-    constructor() {
-        this.onDispose(() => {
-            /*
-                I run when the component where this class is registered
-                unmounts
-            */
-        })
-    }
-}
-```
-
-## Value
-
-The decorator which enables injection of values from the `ServiceProvider` component where a string has been used as a token.
-
-```ts
-import { Service, Value } from 'impact-app'
-
-@Service()
-export class SomeClass {
-    constructor(@Value('SOME_TOKEN_STRING') key: string) {}
-}
-```
-
-## ServiceProvider
-
-Registers services and values to the lifecycle of the component and exposes them for injection in the component tree.
-
-```tsx
-import { ServiceProvider } from 'impact-app'
-import { SomeExternalTool } from 'some-cool-tool-package'
-import { ClassA, ClassB } from './services'
-
-const someExternalTool = new SomeExternalTool()
-const config = {}
-
-export const Main = () => {
-    return (
-        <ServiceProvider
-            // Classes with the Service decorator
-            services={[ClassA, ClassB]}
-            // Other values
-            values={[
-                // Use the class as token to reference the instance
-                [SomeExternalTool, someExternalTool],
-                // Use a string as token to reference the value
-                ['CONFIG', config]
-            ]}
-        >
-            <App />
-        </ServiceProvider>
-    )
-}
-```
-
-## useService
-
-Consumes a class in a component. If the class has not been instantiated yet, it will be. If the class has not been registered to a parent ServiceProvider or the class does not extend `Disposable`, it will throw.
-
-```tsx
-import { useService } from 'impact-app'
-import { SomeClass } from '../services/SomeClass'
-
-export const SomeComponent = () => {
-    const someService = useService(SomeClass)
-}
+export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
 ```
 
 ## observe
 
-Observes changes to signals in components.
+Observes signals in components and reconciles the component when the signal changes.
 
 ```tsx
-import { observe, useService } from 'impact-app'
-import { SomeService } from '../services/SomeService'
+import { observe } from 'impact-app'
+import { useHelloWorld } from './useHelloWorld'
 
-export const SomeComponent = () => {
+export function HelloWorld() {
     using _ = observe()
 
-    const someService = useService(SomeService)
+    const helloWorld = useHelloWorld()
 
-    return (
-        <div>{someService.someSignalValue}</div>
-    )
+    return <div>{helloWorld.message}</div>
 }
 ```
 
@@ -175,33 +94,36 @@ export const SomeComponent = () => {
 An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
 
 ```ts
-import { Service, Disposable, SuspensePromise } from 'impact-app'
-import { Api, PostDTO } from './Api'
+import { useReactiveHook, SuspensePromise } from 'impact-app'
+import { useApi, PostDTO } from './Api'
 
-@Service()
-export class PostsCache {
-  private _cache: Record<string, SuspensePromise<PostDTO>> = {}
-  constructor(private api: Api ) {}
-  getPost(id: string) {
-    let existingPost = this._cache[id]
+function PostsCache() {
+    const api = useApi()
+    const cache: Record<string, SuspensePromise<PostDTO>> = {}
 
-    if (!existingPost) { 
-      this._cache[id] = existingPost = SuspensePromise.from(this.api.fetchPost(id))
+    return {
+        getPost(id: string) {
+            let existingPost = cache[id]
+
+            if (!existingPost) { 
+                cache[id] = existingPost = SuspensePromise.from(api.fetchPost(id))
+            }
+            
+            return existingPost
+        }
     }
-    
-    return existingPost
-  }
 }
+
+export const usePostsCache = () => useReactiveHook(PostsCache)
 ```
 
 And now in a component you can consume it directly:
 
 ```tsx
-import { useService } from 'impact-app'
-import { PostsCache } from '../services/PostsCache'
+import { usePostsCache } from '../usePostsCache'
 
 export const Post = ({ id }: { id: string }) => {
-  const posts = useService(PostsCache)
+  const posts = usePostsCache()
   // When React gets its own "use" hook, you can use that instead
   const post = posts.getPost(id).use()
 }
@@ -216,15 +138,87 @@ You can also use `SuspensePromise.fromValue` to create a resolved SuspensePromis
 A typed event emitter which enables accessor pattern and disposal.
 
 ```ts
-import { Service, emitter, Disposable } from 'impact-app'
+import { emitter, useReactiveHook } from 'impact-app'
 
-@Service()
-export class SomeService extends Disposable {
-    private _fooEmitter = emitter<string>()
-    onFoo = this._fooEmitter.on
-    constructor() {
-        this.onDispose(this._fooEmitter.dispose)
+function SomeReactiveHook() {
+    const fooEmitter = emitter<string>()
+
+    return {
+        onFoo: fooEmitter.on,
+        trigger() {
+            fooEmitter.emit('WOOP!')
+        }
     }
 }
 ```
 
+## ReactiveHooksProvider
+
+Allows you to specifiy a component tree with its own instances of reactive hooks. These hooks will also dispose of themselves when the provider unmounts. This is also very useful for testing, where any reactive hook can be mocked.
+
+```tsx
+import { ReactiveHooksProvider } from 'impact-app'
+import { SomeExternalTool } from 'some-cool-tool-package'
+import { HookA, HookA, HookC } from './reactive-hooks'
+
+const someExternalTool = new SomeExternalTool()
+const config = {}
+
+export const Main = () => {
+    return (
+        <ReactiveHooksProvider hooks={[
+            // Now any child consuming this hook will get the same instance
+            HookA, 
+            
+            // Use a tuple to create a custom constructor to provide initial state
+            [HookB, () => HookB(123)],
+
+            // Use the same mechanism to mock the result of a hook during testing
+            [HookC, () => ({ message: 'Mip mop' })]
+        ]}>
+            <App />
+        </ReactiveHooksProvider>
+    )
+}
+```
+
+## useReactiveHook
+
+The hook requires the reactive hook to be registered with a parent `ReactiveHooksProvider` to be consumed. It will throw an error if there is not parent provider with this registered hook.
+
+```ts
+import { useReactiveHook } from 'impact-app'
+
+export function HelloWorld() {
+    return {
+        message: 'Hello World'
+    }
+}
+
+export const useHelloWorld = () => useReactiveHook(HelloWorld)
+```
+
+
+## useDispose
+
+When a reactive hook is provided through a `ReactiveHooksProvider` it will run a disposer when the provider unmounts.
+
+```ts
+import { useReactiveHook, useSignal, useDispose } from 'impact-app'
+
+function Counter() {
+    const count = useSignal(0)
+
+    const interval = setInterval(() => count.value++, 1000)
+
+    useDispose(() => clearInterval(interval))
+
+    return {
+        get count() {
+            return count.value
+        }
+    }
+}
+
+export const useCounter = () => useReactiveHook(HelloWorld)
+```

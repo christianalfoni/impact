@@ -7,9 +7,11 @@ import { ApiService, PostDTO } from "../../../services/Api";
 @Service()
 export class PostsCacheService extends Disposable {
   private _cache: { [id: string]: SuspensePromise<PostDTO> } = {};
+
   constructor(private _api: ApiService) {
     super();
   }
+
   getPost(id: string) {
     let post = this._cache[id];
 

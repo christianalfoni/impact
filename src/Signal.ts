@@ -65,7 +65,7 @@ export class SignalTracker {
   }
 }
 
-export function signal<T>(value: T) {
+export function useSignal<T>(value: T) {
   const signal = new SignalTracker(() => value);
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
@@ -147,7 +147,7 @@ export function Signal() {
   };
 }
 
-export function compute<T>(cb: () => T) {
+export function useCompute<T>(cb: () => T) {
   let value: T;
   let disposer: () => void;
   let isDirty = true;

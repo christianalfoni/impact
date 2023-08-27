@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>The productivity app framework for React</b>
+  <b>Reactive hooks for React</b>
 </p>
 
 
@@ -15,25 +15,15 @@
 
 <br />
 
-🗄️ Write state and logic using classes
-
-🔗 Bind classes to the lifecycle of component trees
+🗄️ Separate state and logic from the reconciliation loop of React
 
 ⚛️ Expose reactive state using signals and suspense promises
 
-🏗️ No hardwired structure makes it easy to remove code, lazy load code and create proof of concepts
+🏗️ Composable, disposable and shared by default
 
 🐛 Accessible code navigation and debugging experience
 
-## Who is this for?
-
-Even though you love React for its ability to compose UIs, you feel frustrated when it gets down to business of exposing and consuming application wide state, organising state and related logic into domains and making it all discoverable for new developers.
-
-This framework is **NOT** built for solutions like [Next JS](https://nextjs.org/) or [Remix](https://remix.run/), which are more "e-commerce" types of experiences which are primarily data and route driven applications. This framework is for rich single page applications where you are building "editor" type of experiences on the web using React.
-
 ## Concept introduction
-
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [The background](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 

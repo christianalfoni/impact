@@ -1,4 +1,4 @@
-# Services
+# Reactive Hooks
 
 A service is just a class that can be injected into other services and components. You never instantiate the class directly, the constructor is only used to inject other services or values, and run initialization logic. A service is considered a very broad term. A service can be a simple utility, an API making requests or simply managing UI state.
 

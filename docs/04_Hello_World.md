@@ -1,67 +1,42 @@
 # Hello World
 
 ```ts
-import { Service, Disposable, useService, Signal } from 'impact-app'
+import { useSignal, useReactiveHook } from 'impact-app'
 
 /*
-  The "Service" decorator ties the lifecycle of the class
-  to the component tree where it is exposed. We extend "Disposable"
-  as this class will be disposed when the "App" component unmounts
+  A reactive hook is just a hook that returns something, typically an interface
+  to consume and change state. The hook is only run once.
 */
-@Service()
-export class HelloWorldService extends Disposable {
-    /*
-      We define the property as a signal which enables components to observe
-      changes to the signal. We use the accessor pattern as components should
-      never change state
-    */
-    @Signal()
-    private _message = 'Hello World'
-    get message() {
-      return this._message
-    }
+export function HelloWorld() {
+  const message = useSignal('Hello World')
 
-    /*
-      You always assign a new value to a signal and it should be treated
-      as an immutable value.
-    */
-    upperCaseMessage() [
-      this._message = this._message.toUpperCase()
-    ]
+  return {
+    get message() {
+      return message.value
+    },
+    upperCaseMessage() {
+      message.value = message.value.toUpperCase()
+    }
+  }
 }
 
-export const useHelloWorld = () => useService(HelloWorldService)
-```
-
-```tsx
-import { ServiceProvider } from 'impact-app'
-import { HelloWorldService } from 'services/HelloWorldService'
-
 /*
-  Use the "ServiceProvider" to provide a service to a 
-  component tree. When this component unmounts its
-  registered services will also dispose
+  Expose it as a plain hook to consume in components
 */
-export const App = () => (
-    <ServiceProvider services={[HelloWorldService]}>
-      <HelloWorldComponent />
-    </ServiceProvider>
-)
+export const useHelloWorld = () => useReactiveHook(HelloWorld)
 ```
 
 ```tsx
-import { observe } from 'impact-app'
-import { useHelloWorld } from 'services/HelloWorldService'
+import { observe, useReactiveHook } from 'impact-app'
+import { useHelloWorld } from 'reactive-hooks/HelloWorld'
 
 function HelloWorld() {
     // Observe any signals consumed
     using _ = observe()
     
     /*
-      Use the "useService" hook to inject a class into a
-      component. The class will be instantiated if it has
-      not been instantied already. If it has not been
-      provided, it will throw an error
+      The reactive hook will be called if it has
+      not been called already
     */
     const helloWorld = useHelloWorld()
     

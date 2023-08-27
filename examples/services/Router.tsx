@@ -3,10 +3,7 @@ import { TRoutes, TRouter, createRouter } from "typed-client-router";
 import { Signal } from "impact-app";
 import { Disposable } from "impact-app";
 import { Link } from "@radix-ui/themes";
-
-const routes = {
-  caching: "/caching/:example",
-} as const;
+import { routes } from "./routes";
 
 export type Routes = TRoutes<typeof routes>;
 
