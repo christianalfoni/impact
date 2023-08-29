@@ -5,16 +5,14 @@ import ReactDOM from "react-dom/client";
 
 import { Theme } from "@radix-ui/themes";
 import { App } from "./App";
-import { ServiceProvider } from "impact-app";
-import { RouterService } from "./services/Router";
-import { ApiService } from "./services/Api";
+import { CommonHooksProvider } from "./common-hooks";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Theme>
-      <ServiceProvider services={[RouterService, ApiService]}>
+      <CommonHooksProvider>
         <App />
-      </ServiceProvider>
+      </CommonHooksProvider>
     </Theme>
   </React.StrictMode>
 );

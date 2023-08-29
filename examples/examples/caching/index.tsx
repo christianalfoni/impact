@@ -1,20 +1,17 @@
 import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
-import { useApi } from "../../services/Api";
-import { useState } from "react";
-import { observe } from "impact-app";
 import { Example1 } from "./Example1";
+import { commonHooks } from "../../common-hooks";
 import { Example2 } from "./Example2";
-import { useRouter } from "../../services/Router";
+// import { Example3 } from "./Example3";
 
 const examples = [
   Example1,
-  Example2
+  Example2,
+//   Example3
 ]
 
 export function Caching({ example, onClickExample }: { example: string, onClickExample: (example: string) => void }) {
-  using _ = observe()
-
-  const api = useApi();
+  using api = commonHooks.useApi();
 
   return (
     <Flex direction="column" gap="2">

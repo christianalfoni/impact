@@ -1,14 +1,17 @@
-import { Flex } from "@radix-ui/themes";
-import { ExampleLink, useRouter } from "./services/Router";
-import { observe } from "../src/Signal";
+import { Box, Flex } from "@radix-ui/themes";
+
 import { Caching } from "./examples/caching";
+import { commonHooks } from "./common-hooks";
+import { ExampleLink } from "./ExampleLink";
 
 export function App() {
-  using _ = observe()
-  
-  const router = useRouter();
+  using router = commonHooks.useRouter()
 
   let content
+
+  if (!router.route) {
+    return <Box>Route not found</Box>
+  }
 
   switch (router.route.name) {
     case 'caching': {

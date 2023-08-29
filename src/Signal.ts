@@ -46,7 +46,7 @@ export class ObserverContext {
     };
     this._onUpdate?.();
   }
-  [Symbol.dispose]() {
+  dispose() {
     ObserverContext.stack.pop();
   }
 }
@@ -65,12 +65,17 @@ export class SignalTracker {
   }
 }
 
-export function signal<T>(value: T) {
+export type Signal<T> = {
+  onChange(listener: (newValue: T, prevValue: T) => void): () => void;
+  value: T;
+};
+
+export function useSignal<T>(value: T): Signal<T> {
   const signal = new SignalTracker(() => value);
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
   return {
-    onChange(listener: (newValue: T, prevValue: T) => void) {
+    onChange(listener) {
       listeners = listeners || new Set();
 
       listeners.add(listener);
@@ -119,35 +124,7 @@ export function signal<T>(value: T) {
   };
 }
 
-const SignalSymbol = Symbol("Signal");
-
-export function Signal() {
-  return function SignalDecorator(...args: any[]) {
-    const [_, property, descriptor] = args;
-
-    const withSignal = (target: any) => {
-      if (!target[SignalSymbol]) {
-        target[SignalSymbol] = {};
-      }
-      if (!target[SignalSymbol][property]) {
-        target[SignalSymbol][property] = signal(descriptor.initializer?.());
-      }
-
-      return target[SignalSymbol][property];
-    };
-
-    return {
-      get() {
-        return withSignal(this).value;
-      },
-      set(v: any) {
-        withSignal(this).value = v;
-      },
-    } as any;
-  };
-}
-
-export function compute<T>(cb: () => T) {
+export function useCompute<T>(cb: () => T) {
   let value: T;
   let disposer: () => void;
   let isDirty = true;
@@ -206,20 +183,6 @@ export function compute<T>(cb: () => T) {
 
       return value;
     },
-  };
-}
-
-export function Compute() {
-  return function ComputeDecorator(...args: any[]) {
-    const [target, __, descriptor] = args;
-
-    const sig = compute(descriptor.get.bind(target));
-
-    return {
-      get() {
-        return sig.value;
-      },
-    } as any;
   };
 }
 

@@ -42,12 +42,12 @@ export class PostsCacheService extends Disposable {
   constructor(private _api: ApiService) {
     super();
 
-    const onPostUpdate = (data: PostDTO) => this.updatPost(data);
+    const onPostUpdate = (data: PostDTO) => this._updatePost(data);
 
     this.onDispose(_api.onPostUpdate(onPostUpdate));
   }
 
-  private updatPost(data: PostDTO) {
+  private _updatePost(data: PostDTO) {
     const updateData = (post: Post) => post.updateData(data);
 
     this._cache[data.id].then(updateData);

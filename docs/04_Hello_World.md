@@ -1,70 +1,93 @@
 # Hello World
 
 ```ts
-import { Service, Disposable, useService, Signal } from 'impact-app'
+import { useSignal, createHook } from 'impact-app'
 
 /*
-  The "Service" decorator ties the lifecycle of the class
-  to the component tree where it is exposed. We extend "Disposable"
-  as this class will be disposed when the "App" component unmounts
+  The hook runs once, which makes it an initialiser
 */
-@Service()
-export class HelloWorldService extends Disposable {
-    /*
-      We define the property as a signal which enables components to observe
-      changes to the signal. We use the accessor pattern as components should
-      never change state
-    */
-    @Signal()
-    private _message = 'Hello World'
-    get message() {
-      return this._message
-    }
+function Timer() {
 
-    /*
-      You always assign a new value to a signal and it should be treated
-      as an immutable value.
-    */
-    upperCaseMessage() [
-      this._message = this._message.toUpperCase()
-    ]
+  // Use signals to expose reactive state
+  const count = useSignal(0)
+
+  // Define private variables
+  let interval: number
+  let isRunning = true
+
+  startInterval()
+
+  // The "useDispose" hook runs when the related HooksProvider unmounts
+  useDispose(stopInterval)
+  
+  function startInterval() {
+    interval = setInterval(() => count.value++, 1000)
+    isRunning = true
+  }
+
+  function stopInterval() {
+    clearInterval(interval)
+    isRunning = false
+  }
+
+  // Return an object representing state and methods 
+  return {
+    // Expose signals with getters
+    get count() {
+      return count.value
+    },
+    start() {
+      if (!isRunning) {
+        startInterval()
+      }
+    },
+    stop() {
+      if (isRunning) {
+        stopInterval()
+      }
+    }
+  }
 }
 
-export const useHelloWorld = () => useService(HelloWorldService)
+export const useTimer = createHook(Timer)
 ```
 
-```tsx
-import { ServiceProvider } from 'impact-app'
-import { HelloWorldService } from 'services/HelloWorldService'
+```ts
+import { createHooksProvider } from 'impact-app'
+import { useTimer } from './useTimer'
 
 /*
-  Use the "ServiceProvider" to provide a service to a 
-  component tree. When this component unmounts its
-  registered services will also dispose
+  This provider scopes where the hooks will be instantiated and disposed. You can put it
+  at any level in the component tree and expose any number of hooks
 */
-export const App = () => (
-    <ServiceProvider services={[HelloWorldService]}>
-      <HelloWorldComponent />
-    </ServiceProvider>
-)
+export const HooksProvider = createHooksProvider({ useTimer })
 ```
 
 ```tsx
-import { observe } from 'impact-app'
-import { useHelloWorld } from 'services/HelloWorldService'
+import { HooksProvider } from './hooks'
+import { useTimer } from './hooks/useTimer'
 
-function HelloWorld() {
-    // Observe any signals consumed
-    using _ = observe()
-    
+function Timer() {
     /*
-      Use the "useService" hook to inject a class into a
-      component. The class will be instantiated if it has
-      not been instantied already. If it has not been
-      provided, it will throw an error
+      Use the hook in any component nested in the provider. The "using" keyword
+      is what enables reactivity.
     */
-    const helloWorld = useHelloWorld()
+    using timer = useTimer()
     
-    return <h1 onClick={() => helloWorld.upperCaseMessage()}>{helloWorld.message}</h1>
+    return (
+      <div>
+        <h1>{timer.count}</h1>
+        <button onClick={() => timer.start()}>Start</button>
+        <button onClick={() => timer.stop()}>Stop</button>
+      </div>
+    )
+}
+
+export function App() {
+  return (
+    <HooksProvider>
+      <Timer />
+    </HooksProvider>
+  )
 }
 ```
