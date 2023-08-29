@@ -4,20 +4,22 @@
 import { useSignal, createHook } from 'impact-app'
 
 /*
-  The hook runs once, which makes it an initialiser
+  The hook runs once
 */
 function Timer() {
 
   // Use signals to expose reactive state
   const count = useSignal(0)
 
-  // Define private variables
+  // No need for useRef or useState to initialize variables
   let interval: number
   let isRunning = true
 
+  // The hook is an initialiser, so it is safe to initialise logic in the body
   startInterval()
 
-  // The "useDispose" hook runs when the related HooksProvider unmounts
+  // The "useDispose" hook runs when the related HooksProvider unmounts, no worry
+  // about useEffect
   useDispose(stopInterval)
   
   function startInterval() {
@@ -58,7 +60,8 @@ import { useTimer } from './useTimer'
 
 /*
   This provider scopes where the hooks will be instantiated and disposed. You can put it
-  at any level in the component tree and expose any number of hooks
+  at any level in the component tree and expose any number of hooks, where resolvement
+  of hooks in the components propagates to each HooksProvider
 */
 export const HooksProvider = createHooksProvider({ useTimer })
 ```

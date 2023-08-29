@@ -24,7 +24,7 @@ function Api() {
   let serverPosts: Record<string, PostDTO> = {};
   const version = useSignal(0);
   const postUpdateEmitter = emitter<PostDTO>();
-  const newPostEmitter = emitter<PostDTO>();
+  const newPostEmitter = emitter<string>();
   const updateExistingPostsInterval = setInterval(
     updateExistingPosts,
     UPDATE_POST_INTERVAL
@@ -70,13 +70,13 @@ function Api() {
     addPost() {
       const id = generateId();
 
-      const post = (serverPosts[id] = {
+      serverPosts[id] = {
         id,
         title: "New post",
         updateCount: 0,
-      });
+      };
 
-      newPostEmitter.emit(post);
+      newPostEmitter.emit(id);
     },
     clear() {
       serverPosts = {};

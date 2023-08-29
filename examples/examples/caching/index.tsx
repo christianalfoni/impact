@@ -2,12 +2,12 @@ import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
 import { Example1 } from "./Example1";
 import { commonHooks } from "../../common-hooks";
 import { Example2 } from "./Example2";
-// import { Example3 } from "./Example3";
+ import { Example3 } from "./Example3";
 
 const examples = [
   Example1,
   Example2,
-//   Example3
+   Example3
 ]
 
 export function Caching({ example, onClickExample }: { example: string, onClickExample: (example: string) => void }) {
@@ -15,9 +15,11 @@ export function Caching({ example, onClickExample }: { example: string, onClickE
 
   return (
     <Flex direction="column" gap="2">
-      <Text align="center" size="8">
-        Caching Examples in Impact
-      </Text>
+      <Box p="4">
+        <Text align="center" size="8">
+          Caching Examples in Impact
+        </Text>
+      </Box>
       <Flex align="center" gap="2">
         <Text weight="bold">API:</Text>
         <Button

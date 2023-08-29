@@ -29,9 +29,9 @@ type Post = ReturnType<typeof createPost>;
 function PostsCache() {
   const api = commonHooks.useApi();
   const cache: Record<string, SuspensePromise<Post>> = {};
-  const disposeNewPostListener = api.onPostUpdate(onPostUpdate);
+  const disposePostUpdateListener = api.onPostUpdate(onPostUpdate);
 
-  useDispose(disposeNewPostListener);
+  useDispose(disposePostUpdateListener);
 
   async function onPostUpdate(data: PostDTO) {
     const cacheItem = await cache[data.id];
