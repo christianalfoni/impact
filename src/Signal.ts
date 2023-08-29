@@ -65,12 +65,17 @@ export class SignalTracker {
   }
 }
 
-export function useSignal<T>(value: T) {
+export type Signal<T> = {
+  onChange(listener: (newValue: T, prevValue: T) => void): () => void;
+  value: T;
+};
+
+export function useSignal<T>(value: T): Signal<T> {
   const signal = new SignalTracker(() => value);
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
   return {
-    onChange(listener: (newValue: T, prevValue: T) => void) {
+    onChange(listener) {
       listeners = listeners || new Set();
 
       listeners.add(listener);
