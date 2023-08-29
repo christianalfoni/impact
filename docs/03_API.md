@@ -1,39 +1,71 @@
 # API
 
-- [useGlobalReactiveHook](#useglobalreactivehook)
+- [createHook](#createhook)
+- [createHooksProvider](#createhooksprovider)
 - [useSignal](#useSignal)
 - [useCompute](#compute)
+- [useDispose](#usedispose)
 - [observe](#observe)
 - [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
-- [ReactiveHooksProvider](#reactivehooksprovider)
-- [useReactiveHook](#usereactivehook)
-- [useDispose](#usedispose)
 
-## useGlobalReactiveHook
+## createHook
 
-The hook that allows you to consume a reactive hook implementation in any component.
+Create your hook using the hook constructor.
 
 ```ts
-import { useGlobalReactiveHook } from 'impact-app'
+import { createHook } from 'impact-app'
 
-export function HelloWorld() {
+function HelloWorld() {
     return {
         message: 'Hello World'
     }
 }
 
-export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
+export const useHelloWorld = createHook(HelloWorld)
 ```
 
-> Do **NOT** define your reactive hooks inline with this function, as that will change the reference every time it is run
+## createHooksProvider
+
+Register the hooks you want to provide to the component tree.
+
+```tsx
+import { createHooksProvider } from 'impact-app'
+import { useHookA } from './useHookA'
+import { useHookB } from './useHookB'
+import { useHookC } from './useHookC'
+
+export const MyHooksProvider = createHooksProvider({
+    useHookA,
+    useHookB,
+    useHookC
+})
+```
+
+```tsx
+import { MyHooksProvider } from './hooks'
+
+function SomeComponent() {
+    return (
+        /*
+            If a hook takes an argument, you will pass it here. Typed so that you will not miss it.
+            The value is only used when resolving the hook, which means if you expect to "remount"
+            the hook with a new initial value you will have to remount the provider
+        */
+        <MyHooksProvider useHookB={100}>
+            <SomeComponent />
+            <SomeOtherComponent />
+        </MyHooksProvider>
+    )
+}
+```
 
 ## useSignal
 
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { useGlobalReactiveHook, useSignal } from 'impact-app'
+import { createHook, useSignal } from 'impact-app'
 
 function HelloWorld() {
     const message = useSignal('Hello World')
@@ -45,7 +77,19 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
+export const useHelloWorld = createHook(HelloWorld)
+```
+
+To observe signal the hook is used in a component using the `using` keyword:
+
+```tsx
+import { useHelloWorld } from '../hooks/useHelloWorld'
+
+function HelloWorld() {
+    using helloWorld = useHelloWorld()
+
+    return <div>{helloWorld.message}</div>
+}
 ```
 
 ## useCompute
@@ -53,7 +97,7 @@ export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
 
 ```ts
-import { useGlobalReactiveHook, useSignal, useCompute } from 'impact-app'
+import { createHook, useSignal, useCompute } from 'impact-app'
 
 function HelloWorld() {
     const message = useSignal('Hello World')
@@ -69,24 +113,31 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = () => useGlobalReactiveHook(HelloWorld)
+export const useHelloWorld = createHook(HelloWorld)
 ```
 
-## observe
+## useDispose
 
-Observes signals in components and reconciles the component when the signal changes.
+It will run the disposers when the `HooksProvider` unmounts.
 
-```tsx
-import { observe } from 'impact-app'
-import { useHelloWorld } from './useHelloWorld'
+```ts
+import { createHook, useSignal, useDispose } from 'impact-app'
 
-export function HelloWorld() {
-    using _ = observe()
+function Counter() {
+    const count = useSignal(0)
 
-    const helloWorld = useHelloWorld()
+    const interval = setInterval(() => count.value++, 1000)
 
-    return <div>{helloWorld.message}</div>
+    useDispose(() => clearInterval(interval))
+
+    return {
+        get count() {
+            return count.value
+        }
+    }
 }
+
+export const useCounter = createHook(HelloWorld)
 ```
 
 ## SuspensePromise
@@ -94,7 +145,7 @@ export function HelloWorld() {
 An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
 
 ```ts
-import { useReactiveHook, SuspensePromise } from 'impact-app'
+import { createHook, SuspensePromise } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function PostsCache() {
@@ -114,7 +165,7 @@ function PostsCache() {
     }
 }
 
-export const usePostsCache = () => useReactiveHook(PostsCache)
+export const usePostsCache = createHook(PostsCache)
 ```
 
 And now in a component you can consume it directly:
@@ -123,7 +174,7 @@ And now in a component you can consume it directly:
 import { usePostsCache } from '../usePostsCache'
 
 export const Post = ({ id }: { id: string }) => {
-  const posts = usePostsCache()
+  using posts = usePostsCache()
   // When React gets its own "use" hook, you can use that instead
   const post = posts.getPost(id).use()
 }
@@ -152,73 +203,5 @@ function SomeReactiveHook() {
 }
 ```
 
-## ReactiveHooksProvider
-
-Allows you to specifiy a component tree with its own instances of reactive hooks. These hooks will also dispose of themselves when the provider unmounts. This is also very useful for testing, where any reactive hook can be mocked.
-
-```tsx
-import { ReactiveHooksProvider } from 'impact-app'
-import { SomeExternalTool } from 'some-cool-tool-package'
-import { HookA, HookA, HookC } from './reactive-hooks'
-
-const someExternalTool = new SomeExternalTool()
-const config = {}
-
-export const Main = () => {
-    return (
-        <ReactiveHooksProvider hooks={[
-            // Now any child consuming this hook will get the same instance
-            HookA, 
-            
-            // Use a tuple to create a custom constructor to provide initial state
-            [HookB, () => HookB(123)],
-
-            // Use the same mechanism to mock the result of a hook during testing
-            [HookC, () => ({ message: 'Mip mop' })]
-        ]}>
-            <App />
-        </ReactiveHooksProvider>
-    )
-}
-```
-
-## useReactiveHook
-
-The hook requires the reactive hook to be registered with a parent `ReactiveHooksProvider` to be consumed. It will throw an error if there is not parent provider with this registered hook.
-
-```ts
-import { useReactiveHook } from 'impact-app'
-
-export function HelloWorld() {
-    return {
-        message: 'Hello World'
-    }
-}
-
-export const useHelloWorld = () => useReactiveHook(HelloWorld)
-```
 
 
-## useDispose
-
-When a reactive hook is provided through a `ReactiveHooksProvider` it will run a disposer when the provider unmounts.
-
-```ts
-import { useReactiveHook, useSignal, useDispose } from 'impact-app'
-
-function Counter() {
-    const count = useSignal(0)
-
-    const interval = setInterval(() => count.value++, 1000)
-
-    useDispose(() => clearInterval(interval))
-
-    return {
-        get count() {
-            return count.value
-        }
-    }
-}
-
-export const useCounter = () => useReactiveHook(HelloWorld)
-```

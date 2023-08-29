@@ -15,11 +15,11 @@
 
 <br />
 
-🗄️ Separate state and logic from the reconciliation loop of React
+🗄️ Write hooks without the reconciliation overhead of React
 
 ⚛️ Expose reactive state using signals and suspense promises
 
-🏗️ Composable, disposable and shared by default
+🏗️ Composable, disposable and shared by component trees
 
 🐛 Accessible code navigation and debugging experience
 
@@ -32,6 +32,16 @@
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Navigating code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Debugging code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
+
+## Who is this for?
+
+If you love React for its ecosystem and UI model, but get frustrated by:
+
+- Sharing state and logic across components
+- Performance issues sharing state and logic across components
+- Writing state and logic within the reconciliation loop, wrecking your brain with references, dependency arrays, dealing with multiple scopes within the same function and looking at all these
+values being initialised again and again just to be thrown away
+- Local component scope is too local and global state management is too global
 
 ## Documentation
 

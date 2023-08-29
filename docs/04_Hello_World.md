@@ -1,45 +1,93 @@
 # Hello World
 
 ```ts
-import { useSignal, useReactiveHook } from 'impact-app'
+import { useSignal, createHook } from 'impact-app'
 
 /*
-  A reactive hook is just a hook that returns something, typically an interface
-  to consume and change state. The hook is only run once.
+  The hook runs once, which makes it an initialiser
 */
-export function HelloWorld() {
-  const message = useSignal('Hello World')
+function Timer() {
 
+  // Use signals to expose reactive state
+  const count = useSignal(0)
+
+  // Define private variables
+  let interval: number
+  let isRunning = true
+
+  startInterval()
+
+  // The "useDispose" hook runs when the related HooksProvider unmounts
+  useDispose(stopInterval)
+  
+  function startInterval() {
+    interval = setInterval(() => count.value++, 1000)
+    isRunning = true
+  }
+
+  function stopInterval() {
+    clearInterval(interval)
+    isRunning = false
+  }
+
+  // Return an object representing state and methods 
   return {
-    get message() {
-      return message.value
+    // Expose signals with getters
+    get count() {
+      return count.value
     },
-    upperCaseMessage() {
-      message.value = message.value.toUpperCase()
+    start() {
+      if (!isRunning) {
+        startInterval()
+      }
+    },
+    stop() {
+      if (isRunning) {
+        stopInterval()
+      }
     }
   }
 }
 
+export const useTimer = createHook(Timer)
+```
+
+```ts
+import { createHooksProvider } from 'impact-app'
+import { useTimer } from './useTimer'
+
 /*
-  Expose it as a plain hook to consume in components
+  This provider scopes where the hooks will be instantiated and disposed. You can put it
+  at any level in the component tree and expose any number of hooks
 */
-export const useHelloWorld = () => useReactiveHook(HelloWorld)
+export const HooksProvider = createHooksProvider({ useTimer })
 ```
 
 ```tsx
-import { observe, useReactiveHook } from 'impact-app'
-import { useHelloWorld } from 'reactive-hooks/HelloWorld'
+import { HooksProvider } from './hooks'
+import { useTimer } from './hooks/useTimer'
 
-function HelloWorld() {
-    // Observe any signals consumed
-    using _ = observe()
-    
+function Timer() {
     /*
-      The reactive hook will be called if it has
-      not been called already
+      Use the hook in any component nested in the provider. The "using" keyword
+      is what enables reactivity.
     */
-    const helloWorld = useHelloWorld()
+    using timer = useTimer()
     
-    return <h1 onClick={() => helloWorld.upperCaseMessage()}>{helloWorld.message}</h1>
+    return (
+      <div>
+        <h1>{timer.count}</h1>
+        <button onClick={() => timer.start()}>Start</button>
+        <button onClick={() => timer.stop()}>Stop</button>
+      </div>
+    )
+}
+
+export function App() {
+  return (
+    <HooksProvider>
+      <Timer />
+    </HooksProvider>
+  )
 }
 ```

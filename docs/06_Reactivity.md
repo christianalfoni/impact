@@ -5,67 +5,32 @@
 An example of this would be:
 
 ```ts
-import { Signal, Service, Disposable, useService } from 'impact-app'
+import { createHook, useSignal } from 'impact-app'
 
-@Service()
-export class Counter extends Disposable {
-    @Signal()
-    count = 0
-}
+function Counter() {
+  const count = useSignal(0)
 
-export const useCounter = () => useService(Counter)
-```
-
-Given this class is exposed through a `ServiceProvider` component, a component can now observe any changes by:
-
-```tsx
-import { observe } from 'impact-app'
-import { useCounter } from '../services/Counter'
-
-export function CounterComponent() {
-  using _ = observe()
-  
-  const counter = useCounter()
-
-  return (
-    <div>
-        <p>{counter.count}</p>
-        <button onClick={() => counter.counter++}>Increase</button>
-    </div>
-  )
-}
-```
-
-To adhere better to preferred object oriented patterns we could express the same as:
-
-```ts
-import { Signal, Service, Disposable, useService } from 'impact-app'
-
-@Service()
-export class Counter extends Disposable {
-    @Signal()
-    private _count = 0
+  return {
     get count() {
-        return this._count
-    }
+      return count.value
+    },
     increaseCount() {
-        this._count++
+      count.value++
     }
+  }
 }
 
-export const useCounter = () => useService(Counter)
+export const useCounter = createHook(Counter)
 ```
 
-Now we have properly encapsulated the functionality of the Counter and only expose the possibility to consume and increase the count:
+A component can now observe any changes by:
 
 ```tsx
 import { observe } from 'impact-app'
-import { useCounter } from '../services/Counter'
+import { useCounter } from '../hooks/useCounter'
 
 export function CounterComponent() {
-  using _ = observe()
-  
-  const counter = useCounter()
+  using counter = useCounter()
 
   // Notice we exposed the signal value as a getter and
   // can just use it directly now
