@@ -33,15 +33,6 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Debugging code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-## Who is this for?
-
-If you love React for its ecosystem and UI model, but get frustrated by:
-
-- Performance and code navigation issues sharing state and logic across components
-- Your head exploding by reconciliation, references, dependency arrays, dealing with multiple scopes within the same function and looking at all these
-values being initialised again and again just to be thrown away
-- Local component scope is too local and global state management is too global
-
 ## Documentation
 
 - [Getting Started](./docs/01_Getting_Started.md)

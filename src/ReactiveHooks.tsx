@@ -144,7 +144,7 @@ export function createHooksProvider<
   };
 }
 
-export function useDispose(cleaner: () => void) {
+export function cleanup(cleaner: () => void) {
   const activeHooksContainer =
     currentHooksContainer[currentHooksContainer.length - 1];
 
@@ -185,6 +185,7 @@ export function createHook<T extends Record<string, unknown>, A extends any[]>(
           },
         }) as any;
       }
+
       const observerContext = observe();
 
       if (process.env.NODE_ENV === "development") {

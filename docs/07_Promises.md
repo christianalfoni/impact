@@ -44,15 +44,15 @@ const Post = ({ id }: { id: string }) => {
 Often we think about promises as a way to aquire a value asynchronously, but promises are values themselves. Like the example above we do not store the resolved value in our cache, we store the promise. When state needs to be asynchronously instantiated it can be a good idea to store the promise itself and when the value needs to be updated, you just store a new promise. With `SuspensePromise` you can resolve to a new value.
 
 ```ts
-import { useSignal, createHook, SuspensePromise, useDispose, useSignal } from 'impact-app'
+import { signal, createHook, SuspensePromise, cleanup, useSignal } from 'impact-app'
 import { useApi, StatusDTO } from './useApi'
 
 function Status() {
     const api = useApi()
-    const status = useSignal(SuspensePromise.from(api.getStatus()))
+    const status = signal(SuspensePromise.from(api.getStatus()))
     const disposeStatusListener = api.subscribeStatus(onStatusUpdate)
 
-    useDispose(disposeStatusListener)
+    cleanup(disposeStatusListener)
 
     function onStatusUpdate(updatedStatus: StatusDTO) {
         status.value = SuspensePromise.from(updatedStatus)

@@ -5,10 +5,10 @@
 An example of this would be:
 
 ```ts
-import { createHook, useSignal } from 'impact-app'
+import { createHook, signal } from 'impact-app'
 
 function Counter() {
-  const count = useSignal(0)
+  const count = signal(0)
 
   return {
     get count() {
@@ -23,10 +23,9 @@ function Counter() {
 export const useCounter = createHook(Counter)
 ```
 
-A component can now observe any changes by:
+A component can now observe any changes by simply using the `using` keyword:
 
 ```tsx
-import { observe } from 'impact-app'
 import { useCounter } from '../hooks/useCounter'
 
 export function CounterComponent() {

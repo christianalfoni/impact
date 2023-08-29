@@ -1,6 +1,4 @@
-import { createHook, useDispose } from "../../src/ReactiveHooks";
-import { useSignal } from "../../src/Signal";
-import { emitter } from "../../src/emitter";
+import { cleanup, createHook, emitter, signal } from "impact-app";
 
 export function generateId() {
   return (
@@ -22,7 +20,7 @@ const UPDATE_POST_INTERVAL = 1500;
 
 function Api() {
   let serverPosts: Record<string, PostDTO> = {};
-  const version = useSignal(0);
+  const version = signal(0);
   const postUpdateEmitter = emitter<PostDTO>();
   const newPostEmitter = emitter<string>();
   const updateExistingPostsInterval = setInterval(
@@ -30,7 +28,7 @@ function Api() {
     UPDATE_POST_INTERVAL
   );
 
-  useDispose(() => clearInterval(updateExistingPostsInterval));
+  cleanup(() => clearInterval(updateExistingPostsInterval));
 
   function updateExistingPosts() {
     for (const postId in serverPosts) {
@@ -47,11 +45,9 @@ function Api() {
   return {
     onPostUpdate: postUpdateEmitter.on,
     onNewPost: newPostEmitter.on,
-
     get version() {
       return version.value;
     },
-
     async getPost(id: string) {
       await sleep(2000);
 

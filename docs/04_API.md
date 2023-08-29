@@ -2,10 +2,9 @@
 
 - [createHook](#createhook)
 - [createHooksProvider](#createhooksprovider)
-- [useSignal](#useSignal)
-- [useCompute](#compute)
-- [useDispose](#usedispose)
-- [observe](#observe)
+- [useSignal](#signal)
+- [compute](#compute)
+- [cleanup](#cleanup)
 - [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
 
@@ -60,15 +59,15 @@ function SomeComponent() {
 }
 ```
 
-## useSignal
+## signal
 
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { createHook, useSignal } from 'impact-app'
+import { createHook, signal } from 'impact-app'
 
 function HelloWorld() {
-    const message = useSignal('Hello World')
+    const message = signal('Hello World')
 
     return {
         get message() {
@@ -80,7 +79,7 @@ function HelloWorld() {
 export const useHelloWorld = createHook(HelloWorld)
 ```
 
-To observe signal the hook is used in a component using the `using` keyword:
+To observe signals the hook needs to use the `using` keyword in a component:
 
 ```tsx
 import { useHelloWorld } from '../hooks/useHelloWorld'
@@ -92,16 +91,16 @@ function HelloWorld() {
 }
 ```
 
-## useCompute
+## compute
 
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
 
 ```ts
-import { createHook, useSignal, useCompute } from 'impact-app'
+import { createHook, signal, compute } from 'impact-app'
 
 function HelloWorld() {
-    const message = useSignal('Hello World')
-    const shoutingMessage = useCompute(() => message.value + '!!!')
+    const message = signal('Hello World')
+    const shoutingMessage = compute(() => message.value + '!!!')
     
     return {
         get message() {
@@ -116,19 +115,19 @@ function HelloWorld() {
 export const useHelloWorld = createHook(HelloWorld)
 ```
 
-## useDispose
+## cleanup
 
 It will run the disposers when the `HooksProvider` unmounts.
 
 ```ts
-import { createHook, useSignal, useDispose } from 'impact-app'
+import { createHook, signal, cleanup } from 'impact-app'
 
 function Counter() {
-    const count = useSignal(0)
+    const count = signal(0)
 
     const interval = setInterval(() => count.value++, 1000)
 
-    useDispose(() => clearInterval(interval))
+    cleanup(() => clearInterval(interval))
 
     return {
         get count() {
@@ -189,9 +188,9 @@ You can also use `SuspensePromise.fromValue` to create a resolved SuspensePromis
 A typed event emitter which enables accessor pattern and disposal.
 
 ```ts
-import { emitter, useReactiveHook } from 'impact-app'
+import { emitter, createHook } from 'impact-app'
 
-function SomeReactiveHook() {
+function SomeHook() {
     const fooEmitter = emitter<string>()
 
     return {
@@ -201,6 +200,8 @@ function SomeReactiveHook() {
         }
     }
 }
+
+export const useSomeHook = createHook(SomeHook)
 ```
 
 

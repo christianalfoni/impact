@@ -1,6 +1,6 @@
 # Hooks
 
-An **Impact** hook is expressed like any other hook, though they only run once and use reactive mechanisms to notify components when they need to update. This removes the overhead of Reacts reconciliation loop for your state management and related logic.
+An **Impact** hook is expressed like any other hook, though they only run once and use reactive mechanisms to notify components when they need to update.
 
 ## Creating a hook
 
@@ -80,10 +80,10 @@ export const useSomeHook = createHook(SomeHook)
 
 ## Disposing
 
-When a `HooksProvider` is unmounted it will be disposed. Any hooks resolved will also be disposed. The `useDispose` hook is used to act on these disposals.
+When a `HooksProvider` is unmounted it will be disposed. Any hooks resolved will also be disposed. The `cleanup` function is used to act on these disposals.
 
 ```ts
-import { createHook, useDispose } from 'impact-app'
+import { createHook, cleanup } from 'impact-app'
 import { useApi } from './useApi'
 
 function SomeSubscriber() {
@@ -92,7 +92,7 @@ function SomeSubscriber() {
         // Update a signal or whatever    
     })
 
-    useDispose(disposeSubscription)
+    cleanup(disposeSubscription)
 
     return {}
 }
@@ -118,6 +118,7 @@ const HooksProvider = createHooksProvider({ useSomeHook })
 
 const App = ({ id }: { id: string }) => {
     return (
+        // HooksProvider is now typed to ensure you pass the argument
         <HooksProvider useSomeHook={100}>
             <Content />
         </HooksProvider>
@@ -187,7 +188,7 @@ export const projectHooks = {
 export const ProjectHooksProvider = createHooksProvider(projectHooks)
 ```
 
-The `index.tsx` file would be responsible for exposing the related reactive hooks and composing your components.
+The `index.tsx` file would be responsible for exposing the related  hooks and composing your components.
 
 ```tsx
 import { commonHooks } from '../common-hooks'
@@ -197,7 +198,7 @@ import { Layout } from './components/Layout'
 import { ProjectOverview } from './components/ProjectOverview'
 import { ConfigureProject } from './components/ConfigureProject'
 
-export function ProjectFeature({ id }: { id: string }) {
+export function Project({ id }: { id: string }) {
     using projects = commonHooks.useProjects()
 
     const projectData = projects.getProject(id).use()

@@ -1,4 +1,4 @@
-import { SuspensePromise, createHook, useDispose } from "impact-app";
+import { SuspensePromise, createHook, cleanup } from "impact-app";
 import { PostDTO } from "../../../common-hooks/useApi";
 import { commonHooks } from "../../../common-hooks";
 
@@ -7,7 +7,7 @@ function PostsCache() {
   const cache: Record<string, SuspensePromise<PostDTO>> = {};
   const disposeNewPostListener = api.onNewPost(onNewPost);
 
-  useDispose(disposeNewPostListener);
+  cleanup(disposeNewPostListener);
 
   function onNewPost(id: string) {
     cache[id] = SuspensePromise.from(api.getPost(id));
