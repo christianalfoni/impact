@@ -151,6 +151,11 @@ const Layout = () => {
 You would organise hooks the same you organise your normal hooks. It can be a good idea to structure your application as a set of features as that enables more controlled lazy loading. So for example:
 
 ```bash
+/hooks
+  useApi.ts
+  useVisibility.ts
+  useTime.ts
+  index.ts
 /features
   /project
     /hooks
@@ -161,7 +166,9 @@ You would organise hooks the same you organise your normal hooks. It can be a go
     index.tsx
 ```
 
-The `hooks/index.tsx` file would be where you define the `HooksProvider`:
+The `/hooks` at the root represents hooks across the entire project, which will be available to any component. Where `/features/project/hooks` are hooks available to the project feature.
+
+The `hooks/index.tsx` file would be where you define the `HooksProvider`, here showing `features/project/hooks/index.ts`
 
 ```ts
 import { createHooksProvider } from 'impact-app'

@@ -37,9 +37,8 @@
 
 If you love React for its ecosystem and UI model, but get frustrated by:
 
-- Sharing state and logic across components
-- Performance issues sharing state and logic across components
-- Writing state and logic within the reconciliation loop, wrecking your brain with references, dependency arrays, dealing with multiple scopes within the same function and looking at all these
+- Performance and code navigation issues sharing state and logic across components
+- Your head exploding by reconciliation, references, dependency arrays, dealing with multiple scopes within the same function and looking at all these
 values being initialised again and again just to be thrown away
 - Local component scope is too local and global state management is too global
 
@@ -47,12 +46,13 @@ values being initialised again and again just to be thrown away
 
 - [Getting Started](./docs/01_Getting_Started.md)
 - [Understanding The Design](./docs/02_Understanding_The_Design.md)
-- [API](./docs/03_API.md)
-- [Hello World](./docs/04_Hello_World.md)
-- [Services](./docs/05_Services.md)
+- [Hello World](./docs/03_Hello_World.md)
+- [API](./docs/04_API.md)
+- [Hooks](./docs/05_Hooks.md)
 - [Reactivity](./docs/06_Reactivity.md)
 - [Promises](./docs/07_Promises.md)
 - [Events](./docs/08_Events.md)
+- [Debugging](./docs/09_Debugging.md)
 
 ## Examples
 

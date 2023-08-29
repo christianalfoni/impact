@@ -1,57 +1,51 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
-import { Suspense, useState } from "react";
-import { usePostsCache } from "./PostsCacheService";
-import { observe } from "impact-app";
-import { generateId } from "../../../services/Api";
+import { Suspense, useEffect, useState } from "react";
+import { usePostsCache } from "./usePostsCache";
 
 function Post({ id }: { id: string }) {
-  using _ = observe()
-
-  const postsCache = usePostsCache();
+  using postsCache = usePostsCache();
   const post = postsCache.getPost(id).use();
 
   return (
     <Text size="4">
-      {id} - {post.title} - {post.updateCount}
+      {id} - {post.title}
     </Text>
   );
 }
 
-const firstPostId = generateId();
-const secondPostId = generateId();
-
 export function PostsCache() {
-  const [postId, setPostId] = useState(firstPostId);
+  using postsCache = usePostsCache();
+  const [postId, setPostId] = useState<string | null>(null);
+  const [availablePosts, setAvailablePosts] = useState<string[]>([])
+
+  useEffect(() => postsCache.onNewPost((id) => {
+    setAvailablePosts((current) => [...current, id])
+  }), [])
 
   return (
     <Flex direction="column" gap="2">
       <Text>
-        In this example we subscribe to updates on posts loaded and we keep them up to date, even
-        though you are not looking at the post
+        In this example the server notifies when a new post is added. The cache immediately fetches the post.
+        When you open a post quickly it is still loading or if you wait a bit it is already loaded.
       </Text>
       <Flex gap="2">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setPostId(firstPostId);
-          }}
-        >
-          Load first post
-        </Button>
-        <Button
-          onClick={() => {
-            setPostId(secondPostId);
-          }}
-          variant="outline"
-        >
-          Load second post
-        </Button>
+        {availablePosts.map((postId) => (
+          <Button
+            variant="outline"
+            onClick={() => {
+              setPostId(postId);
+            }}
+          >
+            Load {postId}
+          </Button>
+        ))}
       </Flex>
-      <Box m="4">
+      {postId ? <Box m="4">
         <Suspense fallback={<Text size="2">Loading post {postId}...</Text>}>
           <Post id={postId} />
         </Suspense>
-      </Box>
+      </Box> : null}
+      
     </Flex>
   );
 }
