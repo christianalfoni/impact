@@ -1,5 +1,5 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
-import { useSignal, createHook, useDispose } from "impact-app";
+import { cleanup, createHook, signal } from "impact-app";
 
 export const routes = {
   main: "/",
@@ -18,10 +18,10 @@ function Router() {
     router.replace("caching", { example: "1" });
   }
 
-  const currentRoute = useSignal(router.current);
+  const currentRoute = signal(router.current);
   const disposeRouterListener = router.listen(onRoute);
 
-  useDispose(disposeRouterListener);
+  cleanup(disposeRouterListener);
 
   function onRoute(route?: Routes) {
     if (route) {

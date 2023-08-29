@@ -1,11 +1,11 @@
-import { SuspensePromise, createHook, useDispose, useSignal } from "impact-app";
+import { SuspensePromise, createHook, cleanup, signal } from "impact-app";
 import { PostDTO } from "../../../common-hooks/useApi";
 import { commonHooks } from "../../../common-hooks";
 
 const UPDATE_POST = Symbol("UPDATE_POST");
 
 function createPost(initialData: PostDTO) {
-  const data = useSignal(initialData);
+  const data = signal(initialData);
 
   return {
     // Only the cache can update the data
@@ -31,7 +31,7 @@ function PostsCache() {
   const cache: Record<string, SuspensePromise<Post>> = {};
   const disposePostUpdateListener = api.onPostUpdate(onPostUpdate);
 
-  useDispose(disposePostUpdateListener);
+  cleanup(disposePostUpdateListener);
 
   async function onPostUpdate(data: PostDTO) {
     const cacheItem = await cache[data.id];
