@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
+import { produce } from "immer";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -67,7 +68,8 @@ export class SignalTracker {
 
 export type Signal<T> = {
   onChange(listener: (newValue: T, prevValue: T) => void): () => void;
-  value: T;
+  get value(): T;
+  set value(newValue: T | ((draft: T) => T | void));
 };
 
 export function signal<T>(value: T): Signal<T> {
@@ -110,7 +112,10 @@ export function signal<T>(value: T): Signal<T> {
         return;
       }
 
-      const prevValue = value;
+      const prevValue =
+        typeof newValue === "function"
+          ? produce(value, newValue as (draft: T) => T | void)
+          : value;
       value = newValue;
 
       if (process.env.NODE_ENV === "development") {
