@@ -2,7 +2,7 @@
 
 - [createHook](#createhook)
 - [createHooksProvider](#createhooksprovider)
-- [useSignal](#signal)
+- [signal](#signal)
 - [compute](#compute)
 - [cleanup](#cleanup)
 - [SuspensePromise](#suspensepromise)

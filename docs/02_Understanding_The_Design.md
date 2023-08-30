@@ -1,8 +1,8 @@
 # Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for managing state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state. A common misconception about React is that their primitives can be used to manage state and related logic, but they are more about synchronisation than management.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share that state. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state with the UI.
 
-Working on productivity types of applications with a alot of client state management it very quickly becomes cumbersome to use Reacts primitives to share state and logic in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
+It can become cumbersome to use Reacts primitives to manage and share state and logic in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
 
 **The first principle** of **Impact** is to scope state and logic to component trees, as opposed to local component scope or a global scope.
 
