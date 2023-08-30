@@ -15,7 +15,7 @@
 
 <br />
 
-🗄️ Write hooks without the reconciliation overhead of React
+🗄️ Manage state and related logic without the reconciliation overhead of React
 
 ⚛️ Expose reactive state using signals and suspense promises
 
