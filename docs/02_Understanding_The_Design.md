@@ -1,12 +1,12 @@
 # Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share that state. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state. It can become cumbersome to use Reacts primitives to manage and share state and logic across components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share that state. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic across components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
 
 **The first principle** of **Impact** is to scope state and logic to component trees, as opposed to local component scope or a global scope.
 
 **The second principle** of **Impact** is to allow developers to write state and logic without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
 
-**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single click away from finding the origin of state and logic.
+**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single intellisense click away from finding the origin of state and logic.
 
 ## The fundamental building block
 
@@ -26,7 +26,7 @@ function MyComponent() {
 
 This hook would extract the current value and subscribe to any updates.
 
-A different way to think about this is a state tree. That state tree can be explicitly defined or composed together by for example reducers. The point is that your application state can be represented as one big object.
+A different way to think about this is a global state tree. The state tree can be explicitly defined or composed together by for example reducers. The point is that your application state can be represented as one big object.
 
 ```ts
 const state = createStateTree({
@@ -110,7 +110,7 @@ const store = createStore({
     page: { name: 'home' }
 }, (state) => ({
     updateProjectTitle(newTitle) {
-        // Now our state is scoped, but logic is global, we need to check still :(
+        // Now our state is scoped, but logic is global, we need to check :(
         if (state.page.name === 'project') {
             state.page.project.title = newTitle
         }
@@ -118,7 +118,7 @@ const store = createStore({
 }))
 ```
 
-At this point we concluded that we want to encapsulate state and related logic. We could try just splitting up the store:
+To solve this we could try just splitting up the store:
 
 ```ts
 const globalStore = createStore({ foo: 'bar' })
@@ -205,15 +205,15 @@ class Store {
 }
 ```
 
-In this concept we are indeed able to deal with both private related state and disposal, but how to do lazy loading is not apparent. No matter, classes are quite verbose and is a completely different paradigm then Reacts functional nature.
+In this concept we are indeed able to deal with both private related state and disposal, but how to do lazy loading is not apparent. No matter, classes are quite verbose and is a completely different paradigm than Reacts functional nature.
 
 On that note, what if we could just use functions? That is certainly closer to the paradigm of React. We could express the same state and related logic with:
 
 ```ts
 function homeSlice() {
-   return {
-    dispose() {}
-   }
+    return {
+        dispose() {}
+    }
 }
 
 function projectSlice(project) {
@@ -257,7 +257,7 @@ Now, this certainly feels closer to React and we have solved the issue of privac
 - We can not lazy load the slices without a lot of wiring and managing the state of the promise
 - We are manually disposing
 
-To solve these things we could look even closer at React and take advantage of a pattern:
+To solve these things we could look even closer at React and take advantage of very well known concept... **hooks**:
 
 ```ts
 function useHome() {
@@ -277,7 +277,7 @@ function useProject(projectData) {
             return project
         },
         updateTitle(newTitle) {
-            project.title = newTitle
+            project.value = { title: newTitle }
         }
     }
 }
