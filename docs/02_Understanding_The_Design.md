@@ -1,6 +1,6 @@
 # Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share that state. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic across components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state and related logic are scoped to individual components and you rely on mechanisms like props passing and context providers to share it between components. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic betweens components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
 
 **The first principle** of **Impact** is to scope state and logic to component trees, as opposed to local component scope or a global scope.
 
@@ -10,7 +10,7 @@ Reacts responsibility is to compose dynamic user interfaces and doing so across 
 
 ## The fundamental building block
 
-When moving away from the local component scope to manage state there are different types of implementations. Some implementations gives you a reactive primitive:
+When moving away from the local component scope to manage state and related logic there are different types of implementations. Some implementations gives you a reactive primitive:
 
 ```ts
 const myReactiveValue = reactive(0)
@@ -82,7 +82,7 @@ type state = {
 }
 ```
 
-Now you have gobal state, but also scoped to specific page state. To consume a specific page state you would create a hook like this:
+Now you have global state, but also scoped to specific page state. To consume a specific page state you would create a hook like this:
 
 ```ts
 function useProjectState() {
@@ -162,7 +162,7 @@ const createProjectSlice = (project: Project) => createSlice({
     }
 }))
 
-const gobalStore = createStore<Store>({
+const globalStore = createStore<Store>({
     foo: 'bar',
     page: createHomeSlice()
 }, (state) => ({
@@ -274,7 +274,7 @@ function useProject(projectData) {
 
     return {
         get project() {
-            return project
+            return project.value
         },
         updateTitle(newTitle) {
             project.value = { title: newTitle }
@@ -302,7 +302,7 @@ function usePages() {
 
 The hooks pattern is a really great pattern to solve every single thing we want. The only problem with Reacts hooks is that they are bound to the reconciliation loop and requires Reacts primitives. Those work great for local component state, but not for complex state management across components.
 
-What **Impact** does is take this fundamental building block of a composable hook, enables reactivity and binds it to the lifecycle of a component tree. It is difficult to infer how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes more obvious.
+What **Impact** does is take this fundamental building block of a composable hook, enables reactivity and binds it to the lifecycle of a component tree. It can be difficult to infer how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes more obvious.
 
 ## Reactive primitives
 
@@ -311,8 +311,6 @@ What **Impact** does is take this fundamental building block of a composable hoo
 "Change" is where things go wrong in your application. A user interacts with the application and you have unexpected state changes. The signal debugger gives you exact information about where a state change occurs in your code and also where state changes are being observed in your code. With VSCode you will be able to click debugging information in the browser and go straight to the code location inside VSCode. 
 
 **Impact** also enables promises to be consumed "the React way". That means promises created in reactive hooks can be enhanced to be a `SuspensePromise`. This is just a normal promise, but React can now evaluate the state of the promise to use it with suspense.
-
-
 
 ## Concurrent mode
 
