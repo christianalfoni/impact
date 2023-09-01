@@ -41,7 +41,9 @@ export function Caching({ example, onClickExample }: { example: string, onClickE
         onClickExample(value)
       }}>
         <Tabs.List size="1">
-          {examples.map((_, index) => <Tabs.Trigger key={index} value={String(index + 1)}>Example {index + 1}</Tabs.Trigger>)}
+          {examples.map((_, index) => <Tabs.Trigger key={index} value={String(index + 1)}>
+            <Text size="4">Example {index + 1}</Text>
+          </Tabs.Trigger>)}
         </Tabs.List>
 
         <Box px="2" pt="2" pb="2">

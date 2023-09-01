@@ -10,7 +10,7 @@ import { CommonHooksProvider } from "./common-hooks";
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Theme>
-      <CommonHooksProvider isRootProvider>
+      <CommonHooksProvider stopPropagation>
         <App />
       </CommonHooksProvider>
     </Theme>

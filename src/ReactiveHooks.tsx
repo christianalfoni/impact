@@ -104,11 +104,15 @@ class HooksContainer {
 
     return existingHook.value;
   }
-  dispose() {
+  clear() {
     this._disposers.forEach((cleaner) => {
       cleaner();
     });
 
+    this._hooks = new Map();
+  }
+  dispose() {
+    this.clear();
     this._isDisposed = true;
   }
 }
@@ -123,7 +127,7 @@ type HooksProviderProps<
   T extends Array<Hook<any, any[]> | [Hook<any, any>, () => any]>
 > = {
   hooks: T;
-  isRootProvider?: boolean;
+  stopPropagation?: boolean;
   children: React.ReactNode;
 };
 
@@ -139,7 +143,7 @@ export class HooksProvider<
     super(props);
     this.state = new HooksContainer(
       props.hooks,
-      props.isRootProvider
+      props.stopPropagation
         ? {
             type: "root",
             parent: context || globalHooksContainer,
@@ -170,7 +174,7 @@ export function createHooksProvider<
   return function ScopedHooksProvider(
     props: {
       [U in keyof T as T[U] extends () => any ? never : U]: Parameters<T[U]>[0];
-    } & { children: React.ReactNode; isRootProvider?: boolean }
+    } & { children: React.ReactNode; stopPropagation?: boolean }
   ) {
     return (
       <HooksProvider
@@ -184,7 +188,7 @@ export function createHooksProvider<
 
           return hooks[hookKey][HOOK_REFERENCE];
         })}
-        isRootProvider={props.isRootProvider}
+        stopPropagation={props.stopPropagation}
       >
         {props.children}
       </HooksProvider>
@@ -213,13 +217,7 @@ export function createHook<T extends Record<string, unknown>, A extends any[]>(
       currentHooksContainer[currentHooksContainer.length - 1];
 
     if (!activeHooksContainer) {
-      const hooksContext = useContext(context);
-
-      if (!hooksContext) {
-        throw new Error(
-          `The reactive hook "${hook.name}" has no ReactiveHooksProvider to register to`
-        );
-      }
+      const hooksContext = useContext(context) || globalHooksContainer;
 
       const result = hooksContext.resolve<T, A>(hook);
 
