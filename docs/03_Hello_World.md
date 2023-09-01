@@ -13,14 +13,8 @@ function Timer() {
 
   // No need for useRef or useState to initialize variables
   let interval: number
-  let isRunning = true
+  let isRunning = false
 
-  // The hook is an initialiser, so it is safe to initialise logic in the body
-  startInterval()
-
-  // The "cleanup" functions runs when the related HooksProvider unmounts
-  cleanup(stopInterval)
-  
   function startInterval() {
     interval = setInterval(() => count.value++, 1000)
     isRunning = true
@@ -51,18 +45,6 @@ function Timer() {
 }
 
 export const useTimer = createHook(Timer)
-```
-
-```ts
-import { createHooksProvider } from 'impact-app'
-import { useTimer } from './useTimer'
-
-/*
-  This provider scopes where the hooks will be instantiated and disposed. You can put it
-  at any level in the component tree and expose any number of hooks, where resolvement
-  of hooks propagates up the component tree
-*/
-export const HooksProvider = createHooksProvider({ useTimer })
 ```
 
 ```tsx

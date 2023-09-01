@@ -17,7 +17,7 @@
     "experimentalDecorators": true,
     "isolatedModules": true,
     "paths": {
-      "impact-app": ["src"]
+      "impact-app": ["./src"]
     }
   },
   "include": ["src", "examples"],
