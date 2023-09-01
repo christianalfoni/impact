@@ -3,6 +3,8 @@ import { Box, Flex } from "@radix-ui/themes";
 import { Caching } from "./examples/caching";
 import { commonHooks } from "./common-hooks";
 import { ExampleLink } from "./ExampleLink";
+import { createHook } from "impact-app";
+
 
 export function App() {
   using router = commonHooks.useRouter()
