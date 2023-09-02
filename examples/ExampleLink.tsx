@@ -1,4 +1,4 @@
-import { Routes, useRouter } from "./common-hooks/useRouter";
+import { Routes, useRouter } from "./global-hooks/useRouter";
 import { Link } from "@radix-ui/themes";
 
 export function ExampleLink({

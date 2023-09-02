@@ -2,9 +2,9 @@ import { createHooksProvider } from "../../src/ReactiveHooks";
 import { useApi } from "./useApi";
 import { useRouter } from "./useRouter";
 
-export const commonHooks = {
+export const globalHooks = {
   useApi,
   useRouter,
 };
 
-export const CommonHooksProvider = createHooksProvider(commonHooks);
+export const GlobalHooksProvider = createHooksProvider(globalHooks);

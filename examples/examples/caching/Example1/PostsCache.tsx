@@ -1,7 +1,7 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useState } from "react";
 import { usePostsCache } from "./usePostsCache";
-import { generateId } from "../../../common-hooks/useApi";
+import { generateId } from "../../../global-hooks/useApi";
 import { createHooksProvider } from "../../../../src/ReactiveHooks";
 
 

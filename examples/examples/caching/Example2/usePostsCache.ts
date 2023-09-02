@@ -1,6 +1,6 @@
 import { SuspensePromise, createHook, cleanup, signal } from "impact-app";
-import { PostDTO } from "../../../common-hooks/useApi";
-import { commonHooks } from "../../../common-hooks";
+import { PostDTO } from "../../../global-hooks/useApi";
+import { globalHooks } from "../../../global-hooks";
 
 const UPDATE_POST = Symbol("UPDATE_POST");
 
@@ -27,7 +27,7 @@ function createPost(initialData: PostDTO) {
 type Post = ReturnType<typeof createPost>;
 
 function PostsCache() {
-  const api = commonHooks.useApi();
+  const api = globalHooks.useApi();
   const cache: Record<string, SuspensePromise<Post>> = {};
   const disposePostUpdateListener = api.onPostUpdate(onPostUpdate);
 
