@@ -27,7 +27,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Choosing the right tool](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Finding the right primitives](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Navigating code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 

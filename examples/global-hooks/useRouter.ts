@@ -1,10 +1,6 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
 import { cleanup, createHook, signal } from "impact-app";
-
-export const routes = {
-  main: "/",
-  caching: "/caching/:example",
-} as const;
+import { routes } from "../routes";
 
 export type Routes = TRoutes<typeof routes>;
 
@@ -37,7 +33,7 @@ function Router() {
       router.push(route.name, route.params);
     },
     getUrl(route: Routes) {
-      router.url(route.name, route.params);
+      return router.url(route.name, route.params);
     },
   };
 }

@@ -1,10 +1,10 @@
 import { SuspensePromise, createHook } from "impact-app";
 
-import { commonHooks } from "../../../common-hooks";
-import { PostDTO } from "../../../common-hooks/useApi";
+import { globalHooks } from "../../../global-hooks";
+import { PostDTO } from "../../../global-hooks/useApi";
 
 function PostsCache() {
-  const api = commonHooks.useApi();
+  const api = globalHooks.useApi();
   const cache: Record<string, SuspensePromise<PostDTO>> = {};
 
   return {

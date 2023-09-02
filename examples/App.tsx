@@ -1,13 +1,12 @@
 import { Box, Flex } from "@radix-ui/themes";
 
 import { Caching } from "./examples/caching";
-import { commonHooks } from "./common-hooks";
+import { globalHooks } from "./global-hooks";
 import { ExampleLink } from "./ExampleLink";
-import { createHook } from "impact-app";
-
+import { VisibilityExample } from "./examples/visibility";
 
 export function App() {
-  using router = commonHooks.useRouter()
+  using router = globalHooks.useRouter()
 
   let content
 
@@ -23,6 +22,10 @@ export function App() {
           params: { example }
         })
       }} />
+      break
+    }
+    case 'visibility': {
+      content = <VisibilityExample />
     }
   }
 
@@ -31,6 +34,9 @@ export function App() {
       <Flex p="4" direction="column">
       <ExampleLink name="caching" params={{ example: "1" }}>
         Caching
+      </ExampleLink>
+      <ExampleLink name="visibility" params={{ example: "1" }}>
+        Visibility
       </ExampleLink>
       </Flex>
       {content}

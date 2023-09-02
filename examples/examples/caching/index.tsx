@@ -1,17 +1,17 @@
 import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
 import { Example1 } from "./Example1";
-import { commonHooks } from "../../common-hooks";
+import { globalHooks } from "../../global-hooks";
 import { Example2 } from "./Example2";
  import { Example3 } from "./Example3";
 
 const examples = [
   Example1,
   Example2,
-   Example3
+  Example3
 ]
 
 export function Caching({ example, onClickExample }: { example: string, onClickExample: (example: string) => void }) {
-  using api = commonHooks.useApi();
+  using api = globalHooks.useApi();
 
   return (
     <Flex direction="column" gap="2">
