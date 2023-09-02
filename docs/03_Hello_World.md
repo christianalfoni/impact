@@ -55,7 +55,7 @@ import { useTimer } from './hooks/useTimer'
 
 function Timer() {
     /*
-      Use the hook in any component nested in the provider. The "using" keyword is what enables reactivity.
+      By default all hooks are global and can be used in any component. The "using" keyword is what enables reactivity.
     */
     using timer = useTimer()
     
