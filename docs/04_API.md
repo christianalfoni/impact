@@ -10,7 +10,7 @@
 
 ## createHook
 
-Create your hook using the hook constructor. By default you hooks automatically register globally when used.
+Create your hook using the hook constructor. By default you hooks are automatically registered globally and is shared by all components.
 
 ```ts
 import { createHook } from 'impact-app'
@@ -26,7 +26,7 @@ export const useHelloWorld = createHook(HelloWorld)
 
 ## createHooksProvider
 
-Scopes hooks to a component tree. The optional `stopPropagation` prop prevents hook resolvement to propagate. This is typically used for your outer most hooks provider to prevent automatically registering as a global hook.
+Creating a `HooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hook resolvement and control what hooks are global and what are scoped.
 
 ```tsx
 import { createHooksProvider } from 'impact-app'

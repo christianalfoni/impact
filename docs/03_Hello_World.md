@@ -11,9 +11,12 @@ function Timer() {
   // Use signals to expose reactive state
   const count = signal(0)
 
-  // No need for useRef or useState to initialize variables
+  // The hook runs once, so you can initialize variables
   let interval: number
   let isRunning = false
+
+  // You can also safely start side effects
+  startInterval()
 
   function startInterval() {
     interval = setInterval(() => count.value++, 1000)
@@ -48,13 +51,11 @@ export const useTimer = createHook(Timer)
 ```
 
 ```tsx
-import { HooksProvider } from './hooks'
 import { useTimer } from './hooks/useTimer'
 
 function Timer() {
     /*
-      Use the hook in any component nested in the provider. The "using" keyword
-      is what enables reactivity.
+      Use the hook in any component nested in the provider. The "using" keyword is what enables reactivity.
     */
     using timer = useTimer()
     
