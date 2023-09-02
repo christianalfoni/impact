@@ -29,10 +29,6 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Finding the right primitives](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Navigating code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
-
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Debugging code](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
-
 ## Documentation
 
 - [Getting Started](./docs/01_Getting_Started.md)
