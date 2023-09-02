@@ -17,19 +17,6 @@ export type HookState =
       constr: () => any;
     };
 
-type HooksContainerType =
-  | {
-      type: "global";
-    }
-  | {
-      type: "root";
-      parent: HooksContainer;
-    }
-  | {
-      type: "default";
-      parent: HooksContainer;
-    };
-
 class HooksContainer {
   private _hooks = new Map<Hook<any, any[]>, HookState>();
   private _disposers = new Set<() => void>();
@@ -41,7 +28,8 @@ class HooksContainer {
 
   constructor(
     hooks: Array<Hook<any, any[]> | [Hook<any, any[]>, () => any]>,
-    private _type: HooksContainerType
+    private _parent: HooksContainer | null,
+    private _isGlobal: boolean = false
   ) {
     hooks.forEach((hook) => {
       if (Array.isArray(hook)) {
@@ -71,7 +59,7 @@ class HooksContainer {
 
     if (!existingHook) {
       // If we are at the global container, we register the hook automatically
-      if (this._type.type === "global") {
+      if (this._isGlobal) {
         // @ts-ignore
         this.register(reactiveHook, () => reactiveHook());
 
@@ -79,14 +67,14 @@ class HooksContainer {
       }
 
       // If we are at a root container we stop resolving and rather throw an error
-      if (this._type.type === "root") {
+      if (!this._parent) {
         throw new Error(
           `The hook "${reactiveHook.name}" is not registered to a HooksProvider`
         );
       }
 
       // We resolve up the tree when we have a parent and not hook registered
-      return this._type.parent.resolve(reactiveHook);
+      return this._parent.resolve(reactiveHook);
     }
 
     // If we are at the top we register it if not already registered
@@ -117,9 +105,7 @@ class HooksContainer {
   }
 }
 
-export const globalHooksContainer = new HooksContainer([], {
-  type: "global",
-});
+export const globalHooksContainer = new HooksContainer([], null, true);
 
 const context = createContext<HooksContainer | null>(null);
 
@@ -127,7 +113,6 @@ type HooksProviderProps<
   T extends Array<Hook<any, any[]> | [Hook<any, any>, () => any]>
 > = {
   hooks: T;
-  stopPropagation?: boolean;
   children: React.ReactNode;
 };
 
@@ -141,18 +126,7 @@ export class HooksProvider<
     context: React.ContextType<React.Context<HooksContainer | null>>
   ) {
     super(props);
-    this.state = new HooksContainer(
-      props.hooks,
-      props.stopPropagation
-        ? {
-            type: "root",
-            parent: context || globalHooksContainer,
-          }
-        : {
-            type: "default",
-            parent: context || globalHooksContainer,
-          }
-    );
+    this.state = new HooksContainer(props.hooks, context);
   }
   componentWillUnmount(): void {
     this.state.dispose();
@@ -174,7 +148,7 @@ export function createHooksProvider<
   return function ScopedHooksProvider(
     props: {
       [U in keyof T as T[U] extends () => any ? never : U]: Parameters<T[U]>[0];
-    } & { children: React.ReactNode; stopPropagation?: boolean }
+    } & { children: React.ReactNode }
   ) {
     return (
       <HooksProvider
@@ -188,7 +162,6 @@ export function createHooksProvider<
 
           return hooks[hookKey][HOOK_REFERENCE];
         })}
-        stopPropagation={props.stopPropagation}
       >
         {props.children}
       </HooksProvider>
