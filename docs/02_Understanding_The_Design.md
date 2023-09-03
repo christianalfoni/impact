@@ -1,6 +1,6 @@
 # Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state and related logic are scoped to individual components and you rely on mechanisms like props passing and context providers to share it between components. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic betweens components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state and related logic are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic between components. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state to the component. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic between components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
 
 **The first principle** of **Impact** is to scope state and logic to component trees, as opposed to local component scope or a global scope.
 
@@ -26,15 +26,15 @@ function MyComponent() {
 
 This hook would extract the current value and subscribe to any updates.
 
-A different way to think about this is a global state tree. The state tree can be explicitly defined or composed together by for example reducers. The point is that your application state can be represented as one big object.
+A different way to think about this is a global state store. The store can be explicitly defined or composed together by for example reducers. The point is that your application state can be represented as one big object.
 
 ```ts
-const state = createStateTree({
+const state = createStore({
   value: 0
 })
 ```
 
-How the state in this tree changes differs from implementation to implementation. It could be a general dispatcher where you send actions or a common pattern is to introduce methods with access to the state:
+How the state in this store can be changed differs from implementation to implementation. It could be a general dispatcher where you send actions or a common pattern is to introduce methods with access to the state:
 
 ```ts
 const store = createStore({
@@ -46,11 +46,11 @@ const store = createStore({
 }))
 ```
 
-Some trees uses proxies to wrap the native mutation API of JavaScript, some use dispatching and others has their own setter methods.
+Some stores uses proxies to wrap the native mutation API of JavaScript, some use dispatching and others has their own setter methods.
 
 At this point we have really reached the scope of what most state management libraries offer. This is a lot of value, but there are some challenges with state represented in a global scope.
 
-If we go back to our single state tree you will define the initial state of your whole application. That means if that application can for example show a `project`, you would initialise with an empty project and type it as such:
+With a single global state store you will have to define the initial state of your whole application. That means if the application can for example show a `project`, you would initialise with an empty project and type it as such:
 
 ```ts
 type state = {
@@ -177,12 +177,12 @@ const globalStore = createStore<Store>({
 
 Now we have been able to scope state and logic together without causing issues with typing. It might look appealing, but with this kind of concept we are missing some important features of managing state:
 
-- How would you use your root global state inside the nested slice without having to do a lot of writing?
-- What about state that is not part of the tree, but is considered "private state"?
-- What if opening the project page triggers a side effect, like a subscription, you need to dispose of when moving away from that page?
+- How would you use your root global state inside the nested slice without having to do manual wiring?
+- What about state that is not part of the tree, but is considered "private state", where would you put that?
+- What if opening the project page triggers a side effect, like a subscription that is not tied to a specific component and you need to dispose of when moving away from that page?
 - What if we want to lazy load a slice?
 
-So a `createStore`, with its state definition and related methods is not the construct we are looking for. We need a primitive that can deal with the missing parts. Maybe a class primitive could help us?
+So a `createStore`, with its state definition and related methods is not the primitive we are looking for. We need a primitive that can deal with the missing parts. Maybe a class primitive could help us?
 
 ```ts
 class Store {
@@ -205,7 +205,7 @@ class Store {
 }
 ```
 
-In this concept we are indeed able to deal with both private related state and disposal, but how to do lazy loading is not apparent. No matter, classes are quite verbose and is a completely different paradigm than Reacts functional nature.
+In this concept we are indeed able to deal with both private related state and disposal, but we still need to wirte it manually together and approaching lazy loading is not apparent. No matter, classes are quite verbose and is a completely different paradigm than Reacts functional nature.
 
 On that note, what if we could just use functions? That is certainly closer to the paradigm of React. We could express the same state and related logic with:
 
@@ -253,8 +253,8 @@ function globalStore() {
 
 Now, this certainly feels closer to React and we have solved the issue of privacy. But there are still issues to solve here:
 
-- The slices can not access the parent store/slices without a lot of wiring
-- We can not lazy load the slices without a lot of wiring and managing the state of the promise
+- The slices can not access the parent store/slices without manual wiring
+- We can not lazy load the slices without managing the state of the promise
 - We are manually disposing
 
 To solve these things we could look even closer at React and take advantage of very well known concept... **hooks**:
@@ -302,7 +302,7 @@ function usePages() {
 
 The hooks pattern is a really great pattern to solve every single thing we want. The only problem with Reacts hooks is that they are bound to the reconciliation loop and requires Reacts primitives. Those work great for local component state, but not for complex state management across components.
 
-What **Impact** does is take this fundamental building block of a composable hook, enables reactivity and binds it to the lifecycle of a component tree. It can be difficult to infer how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes more obvious.
+What **Impact** does is take this fundamental building block of a composable hook, enables reactivity and binds it to the lifecycle of a component tree. It is not obvious how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes clear.
 
 ## Reactive primitives
 

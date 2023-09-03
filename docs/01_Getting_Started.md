@@ -10,6 +10,8 @@ yarn add impact-app
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/5c4a8b43-27a2-4553-a710-146d94fbc612" width="25"/> **TypeScript 5.2**
 
+Note that [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/) also needs to be updated to latest versions to support this version of TypeScript.
+
 <br />
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/eb74b1ea-0ff1-4d18-9ba5-97150408ae86" width="25"/> **Babel**
