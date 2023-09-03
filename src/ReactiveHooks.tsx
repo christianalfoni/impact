@@ -158,6 +158,7 @@ export function createHooksProvider<
           if (hookKey in props) {
             return [
               hooks[hookKey][HOOK_REFERENCE],
+              // @ts-ignore
               () => hooks[hookKey][HOOK_REFERENCE](props[hookKey as keyof T]),
             ];
           }
