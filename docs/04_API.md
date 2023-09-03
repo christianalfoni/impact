@@ -26,7 +26,7 @@ export const useHelloWorld = createHook(HelloWorld)
 
 ## createHooksProvider
 
-Creating a `HooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hook resolvement and control what hooks are global and what are scoped.
+Creating a `HooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hook resolvement and control what hooks are considered global to the application and what are scoped to specific pages/features.
 
 ```tsx
 import { createHooksProvider } from 'impact-app'
@@ -117,7 +117,7 @@ export const useHelloWorld = createHook(HelloWorld)
 
 ## cleanup
 
-It will run the disposers when the `HooksProvider` unmounts.
+It used in combination with hook providers. When the `HooksProvider` unmounts it will call this function for any resolved hooks.
 
 ```ts
 import { createHook, signal, cleanup } from 'impact-app'
