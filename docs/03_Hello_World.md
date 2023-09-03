@@ -3,9 +3,6 @@
 ```ts
 import { signal, cleanup, createHook } from 'impact-app'
 
-/*
-  The hook runs once
-*/
 function Timer() {
 
   // Use signals to expose reactive state
@@ -53,9 +50,10 @@ export const useTimer = createHook(Timer)
 ```tsx
 import { useTimer } from './hooks/useTimer'
 
-function Timer() {
+export function App() {
     /*
-      By default all hooks are global and can be used in any component. The "using" keyword is what enables reactivity.
+      By default all hooks are global and can be used in any component.
+      The "using" keyword is what enables reactivity.
     */
     using timer = useTimer()
     
@@ -66,13 +64,5 @@ function Timer() {
         <button onClick={() => timer.stop()}>Stop</button>
       </div>
     )
-}
-
-export function App() {
-  return (
-    <HooksProvider>
-      <Timer />
-    </HooksProvider>
-  )
 }
 ```
