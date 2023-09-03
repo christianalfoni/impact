@@ -15,7 +15,7 @@
 
 <br />
 
-🗄️ Manage state and related logic without the reconciliation overhead of React
+🗄️ Global and scoped state management with hooks
 
 ⚛️ Expose reactive state using signals and suspense promises
 
