@@ -15,11 +15,11 @@
 
 <br />
 
-🗄️ Global and scoped state management with hooks
+🗄️ Global and scoped state management using hooks
 
 ⚛️ Expose reactive state using signals and suspense promises
 
-🏗️ Composable, disposable and shared by component trees
+🏗️ Composable, disposable and shared by components
 
 🐛 Accessible code navigation and debugging experience
 
