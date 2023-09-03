@@ -147,7 +147,9 @@ export function createHooksProvider<
 >(hooks: T) {
   return function ScopedHooksProvider(
     props: {
-      [U in keyof T as T[U] extends () => any ? never : U]: Parameters<T[U]>[0];
+      [U in keyof T as T[U][typeof HOOK_REFERENCE] extends () => any
+        ? never
+        : U]: Parameters<T[U][typeof HOOK_REFERENCE]>[0];
     } & { children: React.ReactNode }
   ) {
     return (
