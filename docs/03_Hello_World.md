@@ -1,10 +1,9 @@
 # Hello World
 
 ```ts
-import { signal, cleanup, createHook } from 'impact-app'
+import { signal, createHook } from 'impact-app'
 
 function Timer() {
-
   // Use signals to expose reactive state
   const count = signal(0)
 
