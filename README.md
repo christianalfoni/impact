@@ -27,7 +27,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://youtu.be/6HoiA7W65k4) 06:34
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Finding the right primitives](https://www.youtube.com/watch?v=E3eezTMxMvk) --:-- (WIP)
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Finding the right primitive](https://youtu.be/mtoWoJ9s2ao) 16:24
 
 ## Documentation
 
