@@ -3,9 +3,7 @@ import { ObserverContext, observe } from "./Signal";
 
 const currentHooksContainer: HooksContainer[] = [];
 
-export type Hook<T extends Record<string, unknown>, A extends any[]> = (
-  ...args: A
-) => T;
+export type Hook<T, A extends any[]> = (...args: A) => T;
 
 export type HookState =
   | {
@@ -52,9 +50,7 @@ class HooksContainer {
   registerCleanup(cleaner: () => void) {
     this._disposers.add(cleaner);
   }
-  resolve<T extends Record<string, unknown>, A extends any[]>(
-    reactiveHook: Hook<T, A>
-  ): T {
+  resolve<T, A extends any[]>(reactiveHook: Hook<T, A>): T {
     let existingHook = this._hooks.get(reactiveHook);
 
     if (!existingHook) {
@@ -185,9 +181,7 @@ export function cleanup(cleaner: () => void) {
 
 const HOOK_REFERENCE = Symbol("HOOK_REFERENCE");
 
-export function createHook<T extends Record<string, unknown>, A extends any[]>(
-  hook: Hook<T, A>
-) {
+export function createHook<T, A extends any[]>(hook: Hook<T, A>) {
   const hookRef = () => {
     const activeHooksContainer =
       currentHooksContainer[currentHooksContainer.length - 1];
@@ -195,43 +189,7 @@ export function createHook<T extends Record<string, unknown>, A extends any[]>(
     if (!activeHooksContainer) {
       const hooksContext = useContext(context) || globalHooksContainer;
 
-      const result = hooksContext.resolve<T, A>(hook);
-
-      const existingContext =
-        ObserverContext.stack[ObserverContext.stack.length - 1];
-
-      if (existingContext) {
-        return Object.assign(result, {
-          [Symbol.dispose]() {
-            // We still use a resource, but do not dispose of anything as we already have a context
-          },
-        }) as any;
-      }
-
-      const observerContext = observe();
-
-      if (process.env.NODE_ENV === "development") {
-        let isDisposed = false;
-        setTimeout(() => {
-          if (!isDisposed) {
-            console.warn(
-              "Impact: You have a component that is not disposing the observer, did you forget to use the `using` keyword?"
-            );
-          }
-        });
-        return Object.assign(result, {
-          [Symbol.dispose]() {
-            isDisposed = true;
-            observerContext.dispose();
-          },
-        }) as any;
-      }
-
-      return Object.assign(result, {
-        [Symbol.dispose]() {
-          observerContext.dispose();
-        },
-      }) as any;
+      return hooksContext.resolve<T, A>(hook);
     }
 
     return activeHooksContainer.resolve(hook);
@@ -239,7 +197,7 @@ export function createHook<T extends Record<string, unknown>, A extends any[]>(
 
   hookRef[HOOK_REFERENCE] = hook;
 
-  return hookRef as (() => T & { [Symbol.dispose](): void }) & {
+  return hookRef as (() => T) & {
     [HOOK_REFERENCE]: Hook<T, A>;
   };
 }

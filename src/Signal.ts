@@ -47,7 +47,7 @@ export class ObserverContext {
     };
     this._onUpdate?.();
   }
-  dispose() {
+  [Symbol.dispose]() {
     ObserverContext.stack.pop();
   }
 }

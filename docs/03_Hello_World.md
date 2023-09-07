@@ -47,14 +47,20 @@ export const useTimer = createHook(Timer)
 ```
 
 ```tsx
+import { observe } from 'impact-app'
 import { useTimer } from './hooks/useTimer'
 
 export function App() {
     /*
-      By default all hooks are global and can be used in any component.
-      The "using" keyword is what enables reactivity.
+      Observe signals accessed in this component so that it wil re-render
+      when they are changed
     */
-    using timer = useTimer()
+    using _ = observe()
+    
+    /*
+      By default all hooks are global and can be used in any component
+    */
+    const timer = useTimer()
     
     return (
       <div>

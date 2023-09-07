@@ -2,10 +2,12 @@ import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useState } from "react";
 import { usePostsCache } from "./usePostsCache";
 import { generateId } from "../../../global-hooks/useApi";
-
+import { observe } from "impact-app";
 
 function Post({ id }: { id: string }) {
-  using postsCache = usePostsCache();
+  using _ = observe();
+
+  const postsCache = usePostsCache();
   const post = postsCache.getPost(id).use();
 
   return (
@@ -24,8 +26,8 @@ export function PostsCache() {
   return (
     <Flex direction="column" gap="2">
       <Text>
-        In this example we subscribe to updates on posts loaded and we keep them up to date, even
-        though you are not looking at the post
+        In this example we subscribe to updates on posts loaded and we keep them
+        up to date, even though you are not looking at the post
       </Text>
       <Flex gap="2">
         <Button
