@@ -23,13 +23,16 @@ function Counter() {
 export const useCounter = createHook(Counter)
 ```
 
-A component can now observe any changes by simply using the `using` keyword:
+A component can now observe any changes by using `observe`:
 
 ```tsx
+import { observe } from 'impact-app'
 import { useCounter } from '../hooks/useCounter'
 
 export function CounterComponent() {
-  using counter = useCounter()
+  using _ = observe()
+
+  const counter = useCounter()
 
   // Notice we exposed the signal value as a getter and
   // can just use it directly now

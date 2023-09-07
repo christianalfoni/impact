@@ -2,11 +2,14 @@ import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useState } from "react";
 import { usePostsCache } from "./usePostsCache";
 import { generateId } from "../../../global-hooks/useApi";
-import { createHooksProvider } from "../../../../src/ReactiveHooks";
+
+import { observe } from "impact-app";
 
 
 function Post({ id }: { id: string }) {
-  using postsCache = usePostsCache();
+  using _ = observe()
+
+  const postsCache = usePostsCache();
   const post = postsCache.getPost(id).use();
 
   return (

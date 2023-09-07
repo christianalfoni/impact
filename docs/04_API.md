@@ -4,6 +4,7 @@
 - [createHooksProvider](#createhooksprovider)
 - [signal](#signal)
 - [compute](#compute)
+- [observe](#observe)
 - [cleanup](#cleanup)
 - [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
@@ -79,18 +80,6 @@ function HelloWorld() {
 export const useHelloWorld = createHook(HelloWorld)
 ```
 
-To observe signals the hook needs to use the `using` keyword in a component:
-
-```tsx
-import { useHelloWorld } from '../hooks/useHelloWorld'
-
-function HelloWorld() {
-    using helloWorld = useHelloWorld()
-
-    return <div>{helloWorld.message}</div>
-}
-```
-
 ## compute
 
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
@@ -113,6 +102,23 @@ function HelloWorld() {
 }
 
 export const useHelloWorld = createHook(HelloWorld)
+```
+
+## observe
+
+To observe signals the components needs to use the `using` keyword with an `ObserverContext`. This creates no overhead in the component tree and can be used both when accessing hooks and passing values with signals as props to children components.
+
+```tsx
+import { observe } from 'impact-app'
+import { useHelloWorld } from '../hooks/useHelloWorld'
+
+function HelloWorld() {
+    using _ = observe()
+
+    const helloWorld = useHelloWorld()
+
+    return <div>{helloWorld.message}</div>
+}
 ```
 
 ## cleanup
