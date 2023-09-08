@@ -5,7 +5,7 @@
 An example of this would be:
 
 ```ts
-import { createHook, signal } from 'impact-app'
+import { createStore, signal } from 'impact-app'
 
 function Counter() {
   const count = signal(0)
@@ -20,18 +20,16 @@ function Counter() {
   }
 }
 
-export const useCounter = createHook(Counter)
+export const useCounter = createStore(Counter)
 ```
 
 A component can now observe any changes by using `observe`:
 
 ```tsx
 import { observe } from 'impact-app'
-import { useCounter } from '../hooks/useCounter'
+import { useCounter } from '../stores/useCounter'
 
-export function CounterComponent() {
-  using _ = observe()
-
+function CounterComponent() {
   const counter = useCounter()
 
   // Notice we exposed the signal value as a getter and
@@ -43,6 +41,8 @@ export function CounterComponent() {
     </div>
   )
 }
+
+export default observe(CounterComponent)
 ```
 
 ## Complex values

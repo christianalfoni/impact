@@ -1,5 +1,5 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
-import { cleanup, createHook, signal } from "impact-app";
+import { cleanup, createStore, signal } from "impact-app";
 import { routes } from "../routes";
 
 export type Routes = TRoutes<typeof routes>;
@@ -38,4 +38,4 @@ function Router() {
   };
 }
 
-export const useRouter = createHook(Router);
+export const useRouter = createStore(Router);

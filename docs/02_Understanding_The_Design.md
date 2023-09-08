@@ -26,7 +26,7 @@ function MyComponent() {
 
 This hook would extract the current value and subscribe to any updates.
 
-A different way to think about this is a global state store. The store can be explicitly defined or composed together by for example reducers. The point is that your application state can be represented as one big object.
+A different way to think about this is a global state store. The store can be explicitly defined or composed together by for example reducers, objects or classes. The point is that your application state can be represented as one big object.
 
 ```ts
 const state = createStore({
@@ -205,7 +205,7 @@ class Store {
 }
 ```
 
-In this concept we are indeed able to deal with both private related state and disposal, but we still need to wirte it manually together and approaching lazy loading is not apparent. No matter, classes are quite verbose and is a completely different paradigm than Reacts functional nature.
+In this concept we are indeed able to deal with both private related state and disposal, but we still need to wirte it manually together and approaching lazy loading is not obvious. No matter, classes are quite verbose and is a completely different paradigm than Reacts functional nature.
 
 On that note, what if we could just use functions? That is certainly closer to the paradigm of React. We could express the same state and related logic with:
 
@@ -257,7 +257,7 @@ Now, this certainly feels closer to React and we have solved the issue of privac
 - We can not lazy load the slices without managing the state of the promise
 - We are manually disposing
 
-To solve these things we could look even closer at React and take advantage of very well known concept... **hooks**:
+To solve these things we could look even closer at React and take advantage of very well known concept... **hooks**. What if we could make our stores compose just like hooks?
 
 ```ts
 function useHome() {
@@ -300,9 +300,9 @@ function usePages() {
 }
 ```
 
-The hooks pattern is a really great pattern to solve every single thing we want. The only problem with Reacts hooks is that they are bound to the reconciliation loop and requires Reacts primitives. Those work great for local component state, but not for complex state management across components.
+The hooks pattern is a really great pattern to solve composition. The only problem with Reacts hooks is that they are bound to the reconciliation loop and requires Reacts primitives. Those work great for local component state, but not for complex state management across components.
 
-What **Impact** does is take this fundamental building block of a composable hook, enables reactivity and binds it to the lifecycle of a component tree. It is not obvious how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes clear.
+What **Impact** does is take this fundamental building block of a composable store, enables reactivity and binds it to the lifecycle of a component tree. It is not obvious how this low level concept solves all the issues adressed above, but as you explore this concept it hopefully becomes clear.
 
 ## Reactive primitives
 
@@ -310,13 +310,13 @@ What **Impact** does is take this fundamental building block of a composable hoo
 
 "Change" is where things go wrong in your application. A user interacts with the application and you have unexpected state changes. The signal debugger gives you exact information about where a state change occurs in your code and also where state changes are being observed in your code. With VSCode you will be able to click debugging information in the browser and go straight to the code location inside VSCode. 
 
-**Impact** also enables promises to be consumed "the React way". That means promises created in reactive hooks can be enhanced to be a `SuspensePromise`. This is just a normal promise, but React can now evaluate the state of the promise to use it with suspense.
+**Impact** also enables promises to be consumed "the React way". That means promises created in stores can be enhanced to be a `SuspensePromise`. This is just a normal promise, but React can now evaluate the state of the promise to use it with suspense.
 
 ## Concurrent mode
 
 With React 18 and concurrent mode React fully embraces the fact that components needs to be pure. That means you can not use `useRef` or `useState` to instantiate something with side effects, as you can not reliably dispose of them. The reason is that the concurrent mode could run the component body several times without running `useEffect` to clean things up.
 
-For **Impact** to work the `HooksProvider` creates a `HooksContainer` which needs to be disposed on unmount. This is exactly what is not possible to achieve with React 18. The great thing though is that a `HooksContainer` by itself is not a side effect, there is nothing in there, just references to what "can be there". It is only when the provider is mounted and children components starts consuming hooks that the hooks are actually resolved and "instantiated".
+For **Impact** to work the `StoresProvider` creates a `StoreContainer` which needs to be disposed on unmount. This is exactly what is not possible to achieve with React 18. The great thing though is that a `StoreContainer` by itself is not a side effect, there is nothing in there, just references to what "can be there". It is only when the provider is mounted and children components starts consuming stores that the stores are actually resolved and "instantiated".
 
-That does not solve disposal completely though, cause a `useEffect` might also run multiple times. That is why the `HooksProvider` uses a component class with `componentDidUmount` to trigger disposal. This lifecycle hook only runs when the component actually unmounts.
+That does not solve disposal completely though, cause a `useEffect` might also run multiple times. That is why the `StoresProvider` uses a component class with `componentDidUmount` to trigger disposal. This lifecycle method only runs when the component actually unmounts.
 

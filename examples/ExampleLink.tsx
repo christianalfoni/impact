@@ -1,5 +1,5 @@
 import { observe } from "../src/Signal";
-import { Routes, useRouter } from "./global-hooks/useRouter";
+import { Routes, useRouter } from "./global-stores/useRouter";
 import { Link } from "@radix-ui/themes";
 
 export function ExampleLink({
@@ -9,8 +9,8 @@ export function ExampleLink({
 }: Routes & {
   children: string;
 }) {
-  using _ = observe()
-  
+  using _ = observe();
+
   const router = useRouter();
 
   return (

@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "description": "Reactive Hooks for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

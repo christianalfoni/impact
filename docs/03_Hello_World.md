@@ -1,15 +1,15 @@
 # Hello World
 
 ```ts
-import { signal, createHook } from 'impact-app'
+import { signal, createStore } from 'impact-app'
 
 function Timer() {
-  // Use signals to expose reactive state
-  const count = signal(0)
-
-  // The hook runs once, so you can initialize variables
+  // This function runs once, so you can initialize variables
   let interval: number
   let isRunning = false
+
+  // Use signals to expose reactive state
+  const count = signal(0)
 
   // You can also safely start side effects
   startInterval()
@@ -24,9 +24,7 @@ function Timer() {
     isRunning = false
   }
 
-  // Return an object representing state and methods 
   return {
-    // Expose signals with getters
     get count() {
       return count.value
     },
@@ -43,22 +41,16 @@ function Timer() {
   }
 }
 
-export const useTimer = createHook(Timer)
+export const useTimer = createStore(Timer)
 ```
 
 ```tsx
 import { observe } from 'impact-app'
-import { useTimer } from './hooks/useTimer'
+import { useTimer } from './stores/useTimer'
 
-export function App() {
+function App() {
     /*
-      Observe signals accessed in this component so that it wil re-render
-      when they are changed
-    */
-    using _ = observe()
-    
-    /*
-      By default all hooks are global and can be used in any component
+      By default all stores are global and can be used in any component
     */
     const timer = useTimer()
     
@@ -70,4 +62,11 @@ export function App() {
       </div>
     )
 }
+
+/*
+  To enable reactivity the component needs to be observed.
+  NOTE! You can alternatively use "observe" with the "using"
+  keyword to avoid wrapping components this way
+*/
+export default observe(App)
 ```

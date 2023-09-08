@@ -1,6 +1,6 @@
 import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
 import { Example1 } from "./Example1";
-import { globalHooks } from "../../global-hooks";
+import { globalStores } from "../../global-stores";
 import { Example2 } from "./Example2";
 import { Example3 } from "./Example3";
 import { observe } from "../../../src/Signal";
@@ -16,7 +16,7 @@ export function Caching({
 }) {
   using _ = observe();
 
-  const api = globalHooks.useApi();
+  const api = globalStores.useApi();
 
   return (
     <Flex direction="column" gap="2">
