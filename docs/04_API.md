@@ -1,7 +1,7 @@
 # API
 
-- [createHook](#createhook)
-- [createHooksProvider](#createhooksprovider)
+- [createStore](#createStore)
+- [createStoresProvider](#createStoresProvider)
 - [signal](#signal)
 - [compute](#compute)
 - [observe](#observe)
@@ -9,12 +9,12 @@
 - [SuspensePromise](#suspensepromise)
 - [emitter](#emitter)
 
-## createHook
+## createStore
 
-Create your hook using the hook constructor. By default you hooks are automatically registered globally and is shared by all components.
+Create your store. By default you stores are automatically registered globally and is shared by all components.
 
 ```ts
-import { createHook } from 'impact-app'
+import { createStore } from 'impact-app'
 
 function HelloWorld() {
     return {
@@ -22,40 +22,40 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
-## createHooksProvider
+## createStoresProvider
 
-Creating a `HooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hook resolvement and control what hooks are considered global to the application and what are scoped to specific pages/features.
+Creating a `StoresProvider` allows you to define what stores are shared by what components. Typically you create one provider at the root of your component tree to capture all store resolvement and control what stores are considered global to the application and what are scoped to specific pages/features.
 
 ```tsx
-import { createHooksProvider } from 'impact-app'
-import { useHookA } from './useHookA'
-import { useHookB } from './useHookB'
-import { useHookC } from './useHookC'
+import { createStoresProvider } from 'impact-app'
+import { useStoreA } from './useStoreA'
+import { useStoreB } from './useStoreB'
+import { useStoreC } from './useStoreC'
 
-export const MyHooksProvider = createHooksProvider({
-    useHookA,
-    useHookB,
-    useHookC
+export const MyStoresProvider = createStoresProvider({
+    useStoreA,
+    useStoreB,
+    useStoreC
 })
 ```
 
 ```tsx
-import { MyHooksProvider } from './hooks'
+import { MyStoresProvider } from './stores'
 
 function SomeComponent() {
     return (
         /*
-            If a hook takes an argument, you will pass it here. Typed so that you will not miss it.
-            The value is only used when resolving the hook, which means if you expect to "remount"
-            the hook with a new initial value you will have to remount the provider
+            If a store takes an argument, you will pass it here. Typed so that you will not miss it.
+            The value is only used when resolving the store, which means if you expect to "remount"
+            the store with a new initial value you will have to remount the provider
         */
-        <MyHooksProvider useHookB={100}>
+        <MyStoresProvider useStoreB={100}>
             <SomeComponent />
             <SomeOtherComponent />
-        </MyHooksProvider>
+        </MyStoresProvider>
     )
 }
 ```
@@ -65,7 +65,7 @@ function SomeComponent() {
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { createHook, signal } from 'impact-app'
+import { createStore, signal } from 'impact-app'
 
 function HelloWorld() {
     const message = signal('Hello World')
@@ -77,7 +77,7 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ## compute
@@ -85,7 +85,7 @@ export const useHelloWorld = createHook(HelloWorld)
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
 
 ```ts
-import { createHook, signal, compute } from 'impact-app'
+import { createStore, signal, compute } from 'impact-app'
 
 function HelloWorld() {
     const message = signal('Hello World')
@@ -101,18 +101,33 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ## observe
 
-To observe signals the components needs to use the `using` keyword with an `ObserverContext`. This creates no overhead in the component tree and can be used both when accessing hooks and passing values with signals as props to children components.
+To observe signals and "rerender" the components needs to use an `ObserverContext`. There are two ways you can achieve this. The default way is to use a traditional `observer` higher order component. 
 
 ```tsx
 import { observe } from 'impact-app'
-import { useHelloWorld } from '../hooks/useHelloWorld'
+import { useHelloWorld } from '../stores/useHelloWorld'
 
 function HelloWorld() {
+    const helloWorld = useHelloWorld()
+
+    return <div>{helloWorld.message}</div>
+}
+
+export default observe(HelloWorld)
+```
+
+But with some configuration you can also:
+
+```tsx
+import { observe } from 'impact-app'
+import { useHelloWorld } from '../stores/useHelloWorld'
+
+export function HelloWorld() {
     using _ = observe()
 
     const helloWorld = useHelloWorld()
@@ -121,12 +136,36 @@ function HelloWorld() {
 }
 ```
 
+The benefit is that you avoid anonymous component names and no interference with how you want to define and export your components from the file.
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/5c4a8b43-27a2-4553-a710-146d94fbc612" width="25"/> **TypeScript 5.2**
+
+Note that [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/) also needs to be updated to latest versions to support this version of TypeScript.
+
+<br />
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/eb74b1ea-0ff1-4d18-9ba5-97150408ae86" width="25"/> **Babel**
+
+```bash
+yarn add @babel/plugin-proposal-explicit-resource-management -D
+```
+
+```json
+{
+    "plugins": [
+        "@babel/plugin-proposal-explicit-resource-management"
+    ]
+}
+```
+
+This is a **Stage 3** proposal and is coming to JavaScript.
+
 ## cleanup
 
-It used in combination with hook providers. When the `HooksProvider` unmounts it will call this function for any resolved hooks.
+It used in combination with store providers. When the `StoresProvider` unmounts it will call this function for any resolved stores.
 
 ```ts
-import { createHook, signal, cleanup } from 'impact-app'
+import { createStore, signal, cleanup } from 'impact-app'
 
 function Counter() {
     const count = signal(0)
@@ -142,7 +181,7 @@ function Counter() {
     }
 }
 
-export const useCounter = createHook(HelloWorld)
+export const useCounter = createStore(HelloWorld)
 ```
 
 ## SuspensePromise
@@ -150,7 +189,7 @@ export const useCounter = createHook(HelloWorld)
 An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
 
 ```ts
-import { createHook, SuspensePromise } from 'impact-app'
+import { createStore, SuspensePromise } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function PostsCache() {
@@ -170,7 +209,7 @@ function PostsCache() {
     }
 }
 
-export const usePostsCache = createHook(PostsCache)
+export const usePostsCache = createStore(PostsCache)
 ```
 
 And now in a component you can consume it directly:
@@ -179,7 +218,7 @@ And now in a component you can consume it directly:
 import { usePostsCache } from '../usePostsCache'
 
 export const Post = ({ id }: { id: string }) => {
-  using posts = usePostsCache()
+  const posts = usePostsCache()
   // When React gets its own "use" hook, you can use that instead
   const post = posts.getPost(id).use()
 }
@@ -194,9 +233,9 @@ You can also use `SuspensePromise.fromValue` to create a resolved SuspensePromis
 A typed event emitter which enables accessor pattern and disposal.
 
 ```ts
-import { emitter, createHook } from 'impact-app'
+import { emitter, createStore } from 'impact-app'
 
-function SomeHook() {
+function SomeStore() {
     const fooEmitter = emitter<string>()
 
     return {
@@ -207,7 +246,7 @@ function SomeHook() {
     }
 }
 
-export const useSomeHook = createHook(SomeHook)
+export const useSomeStore = createStore(SomeStore)
 ```
 
 

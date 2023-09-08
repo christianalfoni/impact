@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Reactive Hooks for React</b>
+  <b>Reactive and Composable State Stores for React</b>
 </p>
 
 
@@ -15,7 +15,7 @@
 
 <br />
 
-🗄️ Global and scoped state management using hooks
+🗄️ Global and scoped state management
 
 ⚛️ Expose reactive state using signals and suspense promises
 
@@ -35,7 +35,7 @@
 - [Understanding The Design](./docs/02_Understanding_The_Design.md)
 - [Hello World](./docs/03_Hello_World.md)
 - [API](./docs/04_API.md)
-- [Hooks](./docs/05_Hooks.md)
+- [Stores](./docs/05_Stores.md)
 - [Reactivity](./docs/06_Reactivity.md)
 - [Promises](./docs/07_Promises.md)
 - [Events](./docs/08_Events.md)

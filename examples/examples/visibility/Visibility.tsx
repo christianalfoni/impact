@@ -1,18 +1,23 @@
 import { Box, Text } from "@radix-ui/themes";
 import { useVisbility } from "./useVisibility";
 import { useEffect } from "react";
+import { observe } from "impact-app";
 
 export function Visibility() {
-    using visibility = useVisbility();
+  using _ = observe();
 
-    useEffect(() => visibility.onChange(console.log), []);
+  const visibility = useVisbility();
+
+  useEffect(() => visibility.onChange(console.log), []);
 
   return (
     <Box p="6">
-        <Text size="4">Are we visible? {visibility.isVisible ? 'YEAH' : 'NO'}</Text>
-        <Box>
-            <Text>Check the console to see the event</Text>
-        </Box>
+      <Text size="4">
+        Are we visible? {visibility.isVisible ? "YEAH" : "NO"}
+      </Text>
+      <Box>
+        <Text>Check the console to see the event</Text>
+      </Box>
     </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { cleanup, createHook, emitter, signal } from "impact-app";
+import { cleanup, createStore, emitter, signal } from "impact-app";
 
 export function generateId() {
   return (
@@ -25,7 +25,7 @@ function Api() {
   const newPostEmitter = emitter<string>();
   const updateExistingPostsInterval = setInterval(
     updateExistingPosts,
-    UPDATE_POST_INTERVAL
+    UPDATE_POST_INTERVAL,
   );
 
   cleanup(() => clearInterval(updateExistingPostsInterval));
@@ -81,4 +81,4 @@ function Api() {
   };
 }
 
-export const useApi = createHook(Api);
+export const useApi = createStore(Api);

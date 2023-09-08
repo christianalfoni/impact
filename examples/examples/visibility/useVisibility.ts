@@ -1,4 +1,4 @@
-import { cleanup, createHook, emitter, signal } from "impact-app";
+import { cleanup, createStore, emitter, signal } from "impact-app";
 
 function Visibility() {
   const isVisible = signal(document.visibilityState === "visible");
@@ -22,4 +22,4 @@ function Visibility() {
   };
 }
 
-export const useVisbility = createHook(Visibility);
+export const useVisbility = createStore(Visibility);

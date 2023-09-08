@@ -105,7 +105,7 @@ export function signal<T>(value: T): Signal<T> {
         ) {
           console.warn(
             "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
-            newValue
+            newValue,
           );
         }
 
@@ -191,12 +191,31 @@ export function compute<T>(cb: () => T) {
   };
 }
 
-export function observe() {
+export function observe(): ObserverContext;
+export function observe<T extends (...args: any[]) => any>(cb: T): T;
+export function observe(cb?: any) {
+  if (cb) {
+    return (...args: any[]) => {
+      const context = new ObserverContext();
+
+      useSyncExternalStore(
+        (update) => context.subscribe(update),
+        () => context.snapshot,
+      );
+
+      const result = cb(...args);
+
+      context[Symbol.dispose]();
+
+      return result;
+    };
+  }
+
   const context = new ObserverContext();
 
   useSyncExternalStore(
     (update) => context.subscribe(update),
-    () => context.snapshot
+    () => context.snapshot,
   );
 
   return context;

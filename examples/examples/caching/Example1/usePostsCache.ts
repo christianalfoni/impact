@@ -1,10 +1,10 @@
-import { SuspensePromise, createHook } from "impact-app";
+import { SuspensePromise, createStore } from "impact-app";
 
-import { globalHooks } from "../../../global-hooks";
-import { PostDTO } from "../../../global-hooks/useApi";
+import { globalStores } from "../../../global-stores";
+import { PostDTO } from "../../../global-stores/useApi";
 
 function PostsCache() {
-  const api = globalHooks.useApi();
+  const api = globalStores.useApi();
   const cache: Record<string, SuspensePromise<PostDTO>> = {};
 
   return {
@@ -20,4 +20,4 @@ function PostsCache() {
   };
 }
 
-export const usePostsCache = createHook(PostsCache);
+export const usePostsCache = createStore(PostsCache);
