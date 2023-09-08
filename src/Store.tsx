@@ -153,8 +153,8 @@ export function createStoresProvider<
           if (storeKey in props) {
             return [
               stores[storeKey][STORE_REFERENCE],
-              // @ts-ignore
               () =>
+              // @ts-ignore
                 stores[storeKey][STORE_REFERENCE](props[storeKey as keyof T]),
             ];
           }
