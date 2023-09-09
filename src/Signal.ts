@@ -201,13 +201,19 @@ export function observe(cb?: any) {
       useSyncExternalStore(
         (update) => context.subscribe(update),
         () => context.snapshot,
+        () => context.snapshot,
       );
 
-      const result = cb(...args);
+      try {
+        const result = cb(...args);
+        context[Symbol.dispose]();
 
-      context[Symbol.dispose]();
+        return result;
+      } catch (error) {
+        context[Symbol.dispose]();
 
-      return result;
+        throw error;
+      }
     };
   }
 
@@ -215,6 +221,7 @@ export function observe(cb?: any) {
 
   useSyncExternalStore(
     (update) => context.subscribe(update),
+    () => context.snapshot,
     () => context.snapshot,
   );
 
