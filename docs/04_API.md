@@ -106,7 +106,7 @@ export const useHelloWorld = createStore(HelloWorld)
 
 ## observe
 
-To observe signals and "rerender" the components needs to use an `ObserverContext`. There are two ways you can achieve this. The default way is to use a traditional `observer` higher order component. 
+To observe signals, and "rerender" the components, they need to bind to an `ObserverContext`. There are two ways you can achieve this. The default way is to use a traditional `observe` higher order component. 
 
 ```tsx
 import { observe } from 'impact-app'
@@ -121,7 +121,7 @@ function HelloWorld() {
 export default observe(HelloWorld)
 ```
 
-But with some configuration you can also:
+But the approach above can result in anonymous component names and dictates to some extent how you want to define and export components. Another approach, given you do a little bit of configuration is:
 
 ```tsx
 import { observe } from 'impact-app'
@@ -136,11 +136,7 @@ export function HelloWorld() {
 }
 ```
 
-The benefit is that you avoid anonymous component names and no interference with how you want to define and export your components from the file.
-
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/5c4a8b43-27a2-4553-a710-146d94fbc612" width="25"/> **TypeScript 5.2**
-
-Note that [ESLint](https://eslint.org/) and [Prettier](https://prettier.io/) also needs to be updated to latest versions to support this version of TypeScript.
 
 <br />
 
