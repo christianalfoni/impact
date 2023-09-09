@@ -1,7 +1,7 @@
 {
   "name": "impact-app",
   "version": "0.24.0",
-  "description": "Reactive Hooks for React",
+  "description": "State Management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
