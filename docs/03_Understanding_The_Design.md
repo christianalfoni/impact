@@ -10,13 +10,13 @@ Reacts responsibility is to compose dynamic user interfaces and doing so across 
 
 ## The fundamental building block
 
-State Mangement is not only about what kind of state primitive you use to hold state, it is how you organise and interact with that state in your code. Traditionally you have to implement either local component state or global state. But this is not really how applications work. You might initialize your application with global state, but a lot of your state and related logic is only related to certain pages or features.
+State Mangement is not only about what kind of state primitive you use to hold state, it is how you organise and interact with that state in your code. Traditionally when you manage state outside of React you do so in a global context, but that is not ideal. You might initialize your application with global state, but a lot of your state and related logic is only related to certain pages or features.
 
-Impact is not really about its state primitives, it is about how you organise and interact with any state primitives. You can actually choose completely different state primitives than what Impact offers and still get a lot of value from its management of that state.
+Impact is not really about its state primitives, it is about how you organise and interact with state primitives. You can actually choose completely different state primitives than what Impact offers and still get a lot of value from its management of that state.
 
 **So what is this fundamental "management building block"?**
 
-We call it a **store** for familiarity, but a **store** in Impact is just a container for encapsulating reactive state and related logic. What makes these stores unique is that you can scope them to component trees and compose them together using the familiar hooks pattern from React.
+We call it a **store** for familiarity, but a **store** in Impact is just a container for encapsulating state and related logic. What makes these stores unique is that you can scope them to component trees and compose them together using the familiar hooks pattern from React.
 
 ## Concurrent mode
 
