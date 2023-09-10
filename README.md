@@ -6,7 +6,6 @@
   <b>Reactive State Management for React</b>
 </p>
 
-
 <br />
 
 <p align="center">
@@ -17,11 +16,9 @@
 
 🗄️ Global and scoped state management
 
-⚛️ Expose reactive state using signals and suspense promises
+🏗️ Compose reactive stores using hooks pattern
 
-🏗️ Composable, disposable and shared by components
-
-🐛 Accessible code navigation and debugging experience
+⚛️ Use built-in state primitives or existing state primitives from the eco system
 
 ## Concept introduction
 
@@ -34,14 +31,14 @@
 ## Documentation
 
 - [Getting Started](./docs/01_Getting_Started.md)
-- [Understanding The Design](./docs/02_Understanding_The_Design.md)
-- [Hello World](./docs/03_Hello_World.md)
-- [API](./docs/04_API.md)
-- [Stores](./docs/05_Stores.md)
-- [Reactivity](./docs/06_Reactivity.md)
-- [Promises](./docs/07_Promises.md)
-- [Events](./docs/08_Events.md)
-- [Debugging](./docs/09_Debugging.md)
+- [The primitives](./docs/02_The_Primitives.md)
+- [Understanding The Design](./docs/03_Understanding_The_Design.md)
+- [Hello World](./docs/04_Hello_World.md)
+- [API](./docs/05_API.md)
+- [Stores](./docs/06_Stores.md)
+- [Reactivity](./docs/07_Reactivity.md)
+- [Promises](./docs/08_Promises.md)
+- [Events](./docs/09_Events.md)
 
 ## Examples
 
