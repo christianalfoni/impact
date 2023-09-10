@@ -2,7 +2,7 @@
 
 ## Creating a store
 
-A store is just a function that returns state and/or behaviour. A store is not necessarily reactive, its reactive behaviour is determined by the usage of signals. That means a store can represent any kind of state management, it being reactive or not.
+A store is just a function that returns state and/or logic. A store is not necessarily reactive, its reactive behaviour is determined by the usage of reactive state primitives, like the signals from **Impact**. That means a store can represent any kind of state management, it being reactive or not.
 
 ```ts
 import { createStore } from 'impact-app'

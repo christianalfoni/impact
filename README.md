@@ -14,11 +14,11 @@
 
 <br />
 
-🗄️ Global and scoped state management
+🗄️ Global and scoped reactive state management
 
 🏗️ Compose reactive stores using hooks pattern
 
-⚛️ Use built-in state primitives or existing state primitives from the eco system
+⚛️ Use built-in reactive state primitives or existing primitives from the eco system
 
 ## Concept introduction
 

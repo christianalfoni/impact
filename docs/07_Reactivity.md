@@ -1,28 +1,8 @@
 # Reactivity
 
-By default it can be a good idea to use the reactive state primitives shipped with **Impact**. This is a very straight forward to define state and and consume them optimally in React and other stores. That said, these stores can expose any reactive state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
+By default it can be a good idea to use the reactive state primitives shipped with **Impact**. This is a very straight forward to define state and and consume them optimally in React and other stores. That said, these stores can expose any state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
 
-For example you could choose to use `observables` from [Mobx](https://mobx.js.org/README.html).
-
-```ts
-import { observable } from 'mobx'
-import { createStore } from 'impact-app'
-
-function HelloWorld() {
-    const messages = observable<string[]>([])
-
-    return {
-        messages,
-        addMessage(message: string) {
-            messages.push(message)
-        }
-    }
-}
-
-export const useHelloWorld = createStore(HelloWorld)
-```
-
-Or you could use a state machine from [XState](https://xstate.js.org/):
+You could use a state machine from [XState](https://xstate.js.org/):
 
 ```ts
 import { createStore, signal } from 'impact-app'
@@ -74,3 +54,22 @@ function Counter() {
 export const useCounter = createStore(Counter)
 ```
 
+Or you could even replace signals with `observables` from [Mobx](https://mobx.js.org/README.html):
+
+```ts
+import { observable } from 'mobx'
+import { createStore } from 'impact-app'
+
+function HelloWorld() {
+    const messages = observable<string[]>([])
+
+    return {
+        messages,
+        addMessage(message: string) {
+            messages.push(message)
+        }
+    }
+}
+
+export const useHelloWorld = createStore(HelloWorld)
+```
