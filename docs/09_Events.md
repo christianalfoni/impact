@@ -6,12 +6,12 @@ Signals makes state in stores observable, but we also need to emit events. **Imp
 import { emitter, createStore } from 'impact-app'
 
 function SomeStore() {
-    const eventEmitter = emitter<string>()
+    const helloEmitter = emitter<string>()
 
     return {
-        onEvent: eventEmitter.on,
+        onHello: helloEmitter.on,
         sayHello() {
-            eventEmitter.emit('Hello!')
+            helloEmitter.emit('Hello!')
         }
     }
 }

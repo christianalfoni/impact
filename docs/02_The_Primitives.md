@@ -8,7 +8,7 @@ It does not really matter what reactive primitive you use, it is the fact that t
 
 ### Store
 
-You can think about the store as a context provider. It does not configure any state or logic, it is just a container to provide something to React in a "reactive way". In other words it is a context provider that is not part of the reconciliation loop of React, but is still bound to the component tree where it is registered.
+You can think about the store as a context provider. It does not configure any state or logic, it is just a container to provide something to React in a "reactive way". In other words it is a context provider that is not part of the reconciliation loop of React, but is still bound to the component tree.
 
 ### StoresProvider
 
@@ -16,7 +16,7 @@ To bind stores to the lifecycle of a component tree you use a `StoresProvider`. 
 
 ## 2. Reactive state primitives
 
-Impact ships with its own reactive state primitives, but you can choose to add other reactive primitives like [RxJS](https://rxjs.dev/guide/overview) and [XState](https://xstate.js.org/) where they make sense. There are many types of state challenges and there are different tools to deal with these different challenges. Impact does not tell you to define your state in a specific way, it just gives you a way to manage it.
+Impact ships with its own reactive state primitives, but you can choose to add other reactive primitives like [RxJS](https://rxjs.dev/guide/overview) and [XState](https://xstate.js.org/) where they make sense. There are many types of state challenges and there are different tools to deal with these different challenges. Impact does not tell you to define your state in a specific way, it primarily gives you a way to manage it.
 
 ### Signal
 

@@ -80,7 +80,7 @@ function HelloWorld() {
 export const useHelloWorld = createStore(HelloWorld)
 ```
 
-Under the hood signals uses [Immer](https://immerjs.github.io/immer/) which allows you to update the value by using a function. This function gives you the current value and you can use the normal mutation APIs and still it returns an immutable value:
+Under the hood signals uses [Immer](https://immerjs.github.io/immer/) which allows you to update the value by using a function. This function gives you the current value and you can use the normal mutation APIs and Immer returns an immutable value:
 
 ```ts
 import { createStore, signal } from 'impact-app'

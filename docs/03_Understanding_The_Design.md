@@ -1,18 +1,18 @@
 # Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state and related logic are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic between components. A common misconception about React is that their primitives can be used to manage state and related logic, but they are really more to synchronise state with the component. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic between components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state and related logic are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and logic between components. A common misconception about React is that their primitives are designed to manage state and related logic, but they are really more to synchronise state with the component. It quite quickly becomes cumbersome to use Reacts primitives to manage and share state and logic between components in a performant way. Also expressing logic with the mental overhead of the reconciliation loop creates friction.
 
-**The first principle** of **Impact** is to scope state and logic to component trees, as opposed to using only a global scope
+**The first principle** of **Impact** is to scope state and logic to component trees, as opposed to using only a global scope.
 
-**The second principle** of **Impact** is to allow developers to write state and logic without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees
+**The second principle** of **Impact** is to allow developers to write state and logic without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
 
-**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single intellisense click away from finding the origin of state and logic
+**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single intellisense click away from finding the origin of state and logic.
 
 ## The fundamental building block
 
 State Mangement is not only about what kind of state primitive you use to hold state, it is how you organise and interact with that state in your code. Traditionally you have to implement either local component state or global state. But this is not really how applications work. You might initialize your application with global state, but a lot of your state and related logic is only related to certain pages or features.
 
-Impact is not really about its state primitives, it is about how you organise and interact with any state primitives. You can actually choose completely different reactive primitives than what Impact offers and still get a lot of value from its management of that state.
+Impact is not really about its state primitives, it is about how you organise and interact with any state primitives. You can actually choose completely different state primitives than what Impact offers and still get a lot of value from its management of that state.
 
 **So what is this fundamental "management building block"?**
 
