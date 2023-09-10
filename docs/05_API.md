@@ -80,6 +80,57 @@ function HelloWorld() {
 export const useHelloWorld = createStore(HelloWorld)
 ```
 
+Under the hood signals uses [Immer](https://immerjs.github.io/immer/) which allows you to update the value by using a function. This function gives you the current value and you can use the normal mutation APIs and Immer returns an immutable value:
+
+```ts
+import { createStore, signal } from 'impact-app'
+
+function HelloWorld() {
+    const messages = signal<string[]>([])
+
+    return {
+        get messages() {
+            return messages.value
+        },
+        addMessage(message: string) {
+            messages.value = (draft) => {
+                draft.push(message)
+            }
+        }
+    }
+}
+
+export const useHelloWorld = createStore(HelloWorld)
+```
+
+### Debugging
+
+You can configure VSCode to open the file and position of signal changes and observations by clicking debug statements in the browser.
+
+Make sure your project has a `.vscode/launch.json` file with the following contents:
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Dev",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}
+```
+
+-  Make sure you have the [Edge](https://www.microsoft.com/en-us/edge?form=MA13FJ&exp=e00) browser installed (It is Chromium, so works just like Chrome)
+- Start your dev server
+- Use the Debug tool in VSCode and start it, this opens up Edge
+- The first time Edge will ask you to set the the workspace folder. Navigate to the project folder on your computer and select it
+
+**NOTE!** If it is not working and you are taken to the source tab, refresh the app
+
 ## compute
 
 Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
