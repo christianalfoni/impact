@@ -4,7 +4,7 @@ You can think about Impact as two sets of primitives.
 
 ## 1. Management primitives
 
-It does not really matter what state primitive you use, it is the fact that these primitives can be defined and consumed in an organised matter that is the "management" of "state management".
+It does not really matter what state primitive you use, it is the fact that these primitives can be encapsulated and interacted with in a predictable and organised manner that is the "management" of "state management".
 
 ### Store
 
