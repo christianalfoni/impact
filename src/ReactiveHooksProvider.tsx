@@ -1,6 +1,6 @@
 import { Component, ReactNode, createContext, useContext } from "react";
 
-const currentHooksContainer: HooksContainer[] = [];
+const currentHooksContainer: ReactiveHooksContainer[] = [];
 
 export type ReactiveHook<T, A extends any[]> = (...args: A) => T;
 
@@ -14,7 +14,7 @@ export type ReactiveHookState =
       constr: () => any;
     };
 
-class HooksContainer {
+class ReactiveHooksContainer {
   private _hooks = new Map<ReactiveHook<any, any[]>, ReactiveHookState>();
   private _disposers = new Set<() => void>();
   private _isDisposed = false;
@@ -25,7 +25,7 @@ class HooksContainer {
 
   constructor(
     hooks: Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any[]>, () => any]>,
-    private _parent: HooksContainer | null,
+    private _parent: ReactiveHooksContainer | null,
     private _isGlobal: boolean = false,
   ) {
     hooks.forEach((hook) => {
@@ -100,9 +100,9 @@ class HooksContainer {
   }
 }
 
-export const globalHooksContainer = new HooksContainer([], null, true);
+export const globalHooksContainer = new ReactiveHooksContainer([], null, true);
 
-const context = createContext<HooksContainer | null>(null);
+const context = createContext<ReactiveHooksContainer | null>(null);
 
 type HooksProviderProps<
   T extends Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]>,
@@ -111,17 +111,17 @@ type HooksProviderProps<
   children: React.ReactNode;
 };
 
-export class HooksProvider<
+export class ReactiveHooksProvider<
   T extends Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]>,
 > extends Component<HooksProviderProps<T>> {
   static contextType = context;
-  state: HooksContainer;
+  state: ReactiveHooksContainer;
   constructor(
     props: HooksProviderProps<T>,
-    context: React.ContextType<React.Context<HooksContainer | null>>,
+    context: React.ContextType<React.Context<ReactiveHooksContainer | null>>,
   ) {
     super(props);
-    this.state = new HooksContainer(props.hooks, context);
+    this.state = new ReactiveHooksContainer(props.hooks, context);
   }
   componentWillUnmount(): void {
     this.state.dispose();
@@ -140,7 +140,7 @@ export function createHooksProvider<
     [name: string]: (() => any) & { [STORE_REFERENCE]: ReactiveHook<any, any> };
   },
 >(hooks: T) {
-  return function ScopedHooksProvider(
+  return function ScopedReactiveHooksProvider(
     props: {
       [U in keyof T as T[U][typeof STORE_REFERENCE] extends () => any
         ? never
@@ -148,7 +148,7 @@ export function createHooksProvider<
     } & { children: React.ReactNode },
   ) {
     return (
-      <HooksProvider
+      <ReactiveHooksProvider
         hooks={Object.keys(hooks).map((hookKey) => {
           if (hookKey in props) {
             return [
@@ -163,7 +163,7 @@ export function createHooksProvider<
         })}
       >
         {props.children}
-      </HooksProvider>
+      </ReactiveHooksProvider>
     );
   };
 }

@@ -27,7 +27,7 @@ export const useHelloWorld = createHook(HelloWorld)
 
 ## createHooksProvider
 
-Creating a `HooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hooks resolvement and control which hooks are considered global to the application and which are scoped to specific pages/features.
+Creating a `ReactiveHooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hooks resolvement and control which hooks are considered global to the application and which are scoped to specific pages/features.
 
 ```tsx
 import { createHooksProvider } from 'impact-app'
@@ -43,7 +43,7 @@ export const MyHooksProvider = createHooksProvider({
 ```
 
 ```tsx
-import { MyHooksProvider } from './reactive-hooks'
+import { MyHooksProvider } from './hooks'
 
 function SomeComponent() {
     return (
@@ -161,7 +161,7 @@ To observe signals, and "rerender" the components, they need to bound to an `Obs
 
 ```tsx
 import { observe } from 'impact-app'
-import { useHelloWorld } from '../stores/useHelloWorld'
+import { useHelloWorld } from '../hooks/useHelloWorld'
 
 function HelloWorld() {
     const helloWorld = useHelloWorld()
@@ -176,7 +176,7 @@ But the approach above can result in anonymous component names and dictates to s
 
 ```tsx
 import { observe } from 'impact-app'
-import { useHelloWorld } from '../stores/useHelloWorld'
+import { useHelloWorld } from '../hooks/useHelloWorld'
 
 export function HelloWorld() {
     using _ = observe()
@@ -236,7 +236,7 @@ export const useCounter = createHook(Counter)
 An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
 
 ```ts
-import { createReactiveHook, SuspensePromise } from 'impact-app'
+import { createHook, SuspensePromise } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function PostsCache() {
@@ -256,7 +256,7 @@ function PostsCache() {
     }
 }
 
-export const usePostsCache = createReactiveHook(PostsCache)
+export const usePostsCache = createHook(PostsCache)
 ```
 
 And now in a component you can consume it directly:

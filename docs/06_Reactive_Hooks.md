@@ -14,9 +14,9 @@ export function SomeHook() {
 export const useSomeHook = createHook(SomeHook)
 ```
 
-## HooksProvider
+## Providing hooks
 
-The `HooksProvider` allows you to scope your hooks to a component tree. The components in the component tree consuming the hooks from a `HooksProvider` will all consume the same hooks. When the `HooksProvider` unmounts any `useCleanup` hook callbacks will be called on the resolved hooks.
+The `ReactiveHooksProvider` allows you to scope your hooks to a component tree. The components in the component tree consuming the hooks from a `ReactiveHooksProvider` will all consume the same hooks. When the `ReactiveHooksProvider` unmounts any `useCleanup` hook callbacks will be called on the resolved hooks.
 
 ```tsx
 import { createHooksProvider, createHook, useCleanup } from 'impact-app'
@@ -81,7 +81,7 @@ export const useSomeHook = createHook(SomeHook)
 
 ## Disposing
 
-When a `HooksProvider` is unmounted it will be disposed. Any hooks resolved will also be disposed. The `useCleanup` hooks registers a function that will be called when this disposal occurs.
+When a `ReactiveHooksProvider` is unmounted it will be disposed. Any hooks resolved will also be disposed. The `useCleanup` hook registers a callback that will be called when this disposal occurs.
 
 ```ts
 import { createHook, useCleanup } from 'impact-app'
@@ -103,7 +103,7 @@ export const useSomeSubscriber = createHook(SomeSubscriber)
 
 ## Passing initial state to hooks
 
-By default your reactive hooks are not provided explicitly to React so there is no way to give them values from "the outside" when they resolve. But with the use of a `HooksProvider` you will be able to resolve them with initial values coming from React.
+By default your reactive hooks are not provided explicitly to React so there is no way to give them values from "the outside" when they resolve. But with the use of a `ReactiveHooksProvider` you will be able to resolve them with initial values coming from React.
 
 ```tsx
 import { createHooksProvider, createHook } from 'impact-app'
@@ -128,11 +128,11 @@ const App = ({ id }: { id: string }) => {
 
 ## Nested hook providers
 
-The `HooksProvider` components can be nested and resolving hooks propagates up the component tree. This is a useful mechanism as you are likely to have certain hooks that are considered global, others per page and maybe some per feature.
+The `ReactiveHooksProvider` components can be nested and resolving hooks propagates up the component tree. This is a useful mechanism as you are likely to have certain hooks that are considered global, others per page and maybe some per feature.
 
 ## Lazy loading hooks
 
-Since reactive hooks are defined and consumed through a `HooksProvider` component, you can just lazy load the component which has the `HooksProvider` and all related hooks will also be lazy loaded, just like traditional hooks.
+Since reactive hooks are defined and consumed through a `ReactiveHooksProvider` component, you can just lazy load the component which has the `ReactiveHooksProvider` and all related hooks will also be lazy loaded, just like traditional hooks.
 
 ```tsx
 import { lazy } from 'react'
@@ -167,9 +167,9 @@ It can be a good idea to structure your application as a set of pages and/or fea
     index.tsx
 ```
 
-The `/global-hooks` at the root represents reactive hooks across the entire project, which will be available to any component. Where `/features/project/hooks` are reactive hooks available to the project feature.
+The `/global-hooks` at the root represents reactive hooks across the entire project, which will be available to any component and other hooks. Where `/features/project/hooks` are reactive hooks available to the project feature and any components and other hooks within it.
 
-The `global-hooks/index.tsx` file would be where you define the `HooksProvider`, here showing `features/project/hooks/index.ts`
+The `global-hooks/index.tsx` file would be where you define the `ReactiveHooksProvider`, here showing `features/project/hooks/index.ts`
 
 ```ts
 import { createHooksProvider } from 'impact-app'
