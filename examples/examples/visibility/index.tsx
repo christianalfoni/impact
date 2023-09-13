@@ -1,15 +1,15 @@
-import { createStoresProvider } from "impact-app";
+import { createHooksProvider } from "impact-app";
 import { useVisbility } from "./useVisibility";
 import { Visibility } from "./Visibility";
 
-const StoresProvider = createStoresProvider({
+const HooksProvider = createHooksProvider({
   useVisbility,
 });
 
 export function VisibilityExample() {
   return (
-    <StoresProvider>
+    <HooksProvider>
       <Visibility />
-    </StoresProvider>
+    </HooksProvider>
   );
 }

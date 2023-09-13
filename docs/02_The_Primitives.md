@@ -4,15 +4,15 @@ You can think about Impact as two sets of primitives.
 
 ## 1. Management primitives
 
-It does not really matter what state primitive you use, it is the fact that these primitives can be encapsulated and interacted with in a predictable and organised manner that is the "management" of "state management".
+It does not really matter what state primitives you use, it is the fact that these primitives can be encapsulated and interacted with in a predictable and organised manner that is the "management" of "state management".
 
-### Store
+### ReactiveHook
 
-You can think about the store as a context provider. It does not require any state or logic defined, it is just a container to provide something to React in a "reactive way". In other words it is a context provider that is not part of the reconciliation loop of React, but is still bound to the component tree.
+You can think about reactive hooks as normal hooks, though they rather use reactive state primitives and runs outside the reconciliation loop of React. That means you get the awesome composition model of React hooks without the performance and mental overhead of Reacts reconciliation model.
 
-### StoresProvider
+### ReactiveHooksProvider
 
-To bind stores to the lifecycle of a component tree you use a `StoresProvider`. This allows you to pass values to instantiate the stores and it makes sure all components, and also other stores, consumes the same instance of a store.
+By default you do not need to explicitly provide reactive hooks to React as they are all globally registered. To explicitly expose reactive hooks to React and scope them to specific component trees you use a `ReactiveHooksProvider`. This allows you to pass values to instantiate the hooks and it makes sure all components, and also other hooks, consumes the same instance.
 
 ## 2. Reactive state primitives
 
@@ -20,7 +20,7 @@ Impact ships with its own reactive state primitives, but you can use other state
 
 ### Signal
 
-A signal is just a way to store a state value components can track when they change. You will use `observe` with components to register any signal access from any store to the component as it renders. This avoids having to manually select and optimise state in components. Consume any stores and the component reconciles based on what you access from those stores.
+A signal is just a way to store a state value components can track when they change. You will use `observe` with components to register any signal access from any store to the component as it renders. This avoids having to manually select and optimise state in components. Consume any hooks and the component reconciles based on what you access from those hooks.
 
 ### SuspensePromise
 

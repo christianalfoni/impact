@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Reactive State Management for React</b>
+  <b>Reactive Hooks for React</b>
 </p>
 
 <br />
@@ -14,9 +14,9 @@
 
 <br />
 
-🗄️ Global and scoped state management
+🗄️ Global and scoped state management using reactive hooks
 
-🏗️ Compose stores using hooks pattern
+🏗️ The Hooks composition you know and love, without the overhead of reconciliation
 
 ⚛️ Use built-in reactive state primitives or existing primitives from the eco system
 
@@ -31,12 +31,12 @@
 ## Documentation
 
 - [Getting Started](./docs/01_Getting_Started.md)
-- [The primitives](./docs/02_The_Primitives.md)
+- [The Primitives](./docs/02_The_Primitives.md)
 - [Understanding The Design](./docs/03_Understanding_The_Design.md)
 - [Hello World](./docs/04_Hello_World.md)
 - [API](./docs/05_API.md)
-- [Stores](./docs/06_Stores.md)
-- [Reactivity](./docs/07_Reactivity.md)
+- [Reactive Hooks](./docs/06_Reactive_Hooks.md)
+- [Reactive State](./docs/07_Reactive_State.md)
 - [Promises](./docs/08_Promises.md)
 - [Events](./docs/09_Events.md)
 

@@ -1,4 +1,4 @@
-import { cleanup, createStore, emitter, signal } from "impact-app";
+import { useCleanup, createHook, emitter, signal } from "impact-app";
 
 function Visibility() {
   const isVisible = signal(document.visibilityState === "visible");
@@ -10,7 +10,7 @@ function Visibility() {
 
   document.addEventListener("visibilitychange", visibilityListener);
 
-  cleanup(() => {
+  useCleanup(() => {
     document.removeEventListener("visibilitychange", visibilityListener);
   });
 
@@ -22,4 +22,4 @@ function Visibility() {
   };
 }
 
-export const useVisbility = createStore(Visibility);
+export const useVisbility = createHook(Visibility);
