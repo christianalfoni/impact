@@ -1,6 +1,6 @@
-import { SuspensePromise, createStore, cleanup, signal } from "impact-app";
-import { PostDTO } from "../../../global-stores/useApi";
-import { globalStores } from "../../../global-stores";
+import { SuspensePromise, createHook, useCleanup, signal } from "impact-app";
+import { globalHooks } from "../../../global-hooks";
+import { PostDTO } from "../../../global-hooks/useApi";
 
 const UPDATE_POST = Symbol("UPDATE_POST");
 
@@ -27,11 +27,11 @@ function createPost(initialData: PostDTO) {
 type Post = ReturnType<typeof createPost>;
 
 function PostsCache() {
-  const api = globalStores.useApi();
+  const api = globalHooks.useApi();
   const cache: Record<string, SuspensePromise<Post>> = {};
   const disposePostUpdateListener = api.onPostUpdate(onPostUpdate);
 
-  cleanup(disposePostUpdateListener);
+  useCleanup(disposePostUpdateListener);
 
   async function onPostUpdate(data: PostDTO) {
     const cacheItem = await cache[data.id];
@@ -54,4 +54,4 @@ function PostsCache() {
   };
 }
 
-export const usePostsCache = createStore(PostsCache);
+export const usePostsCache = createHook(PostsCache);

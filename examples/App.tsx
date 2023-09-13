@@ -1,7 +1,7 @@
 import { Box, Flex } from "@radix-ui/themes";
 
 import { Caching } from "./examples/caching";
-import { globalStores } from "./global-stores";
+import { globalHooks } from "./global-hooks";
 import { ExampleLink } from "./ExampleLink";
 import { VisibilityExample } from "./examples/visibility";
 import { observe } from "../src/Signal";
@@ -9,7 +9,7 @@ import { observe } from "../src/Signal";
 export function App() {
   using _ = observe();
 
-  const router = globalStores.useRouter();
+  const router = globalHooks.useRouter();
 
   let content;
 

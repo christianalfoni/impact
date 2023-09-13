@@ -1,13 +1,13 @@
-import { SuspensePromise, createStore, cleanup } from "impact-app";
-import { PostDTO } from "../../../global-stores/useApi";
-import { globalStores } from "../../../global-stores";
+import { SuspensePromise, createHook, useCleanup } from "impact-app";
+import { globalHooks } from "../../../global-hooks";
+import { PostDTO } from "../../../global-hooks/useApi";
 
 function PostsCache() {
-  const api = globalStores.useApi();
+  const api = globalHooks.useApi();
   const cache: Record<string, SuspensePromise<PostDTO>> = {};
   const disposeNewPostListener = api.onNewPost(onNewPost);
 
-  cleanup(disposeNewPostListener);
+  useCleanup(disposeNewPostListener);
 
   function onNewPost(id: string) {
     cache[id] = SuspensePromise.from(api.getPost(id));
@@ -27,4 +27,4 @@ function PostsCache() {
   };
 }
 
-export const usePostsCache = createStore(PostsCache);
+export const usePostsCache = createHook(PostsCache);

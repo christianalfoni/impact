@@ -5,14 +5,14 @@ import ReactDOM from "react-dom/client";
 
 import { Theme } from "@radix-ui/themes";
 import { App } from "./App";
-import { GlobalStoresProvider } from "./global-stores";
+import { GlobalHooksProvider } from "./global-hooks";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <Theme>
-      <GlobalStoresProvider>
+      <GlobalHooksProvider>
         <App />
-      </GlobalStoresProvider>
+      </GlobalHooksProvider>
     </Theme>
   </React.StrictMode>,
 );

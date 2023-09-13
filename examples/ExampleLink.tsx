@@ -1,5 +1,5 @@
 import { observe } from "../src/Signal";
-import { Routes, useRouter } from "./global-stores/useRouter";
+import { Routes, useRouter } from "./global-hooks/useRouter";
 import { Link } from "@radix-ui/themes";
 
 export function ExampleLink({

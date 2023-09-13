@@ -1,7 +1,7 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useState } from "react";
 import { usePostsCache } from "./usePostsCache";
-import { generateId } from "../../../global-stores/useApi";
+import { generateId } from "../../../global-hooks/useApi";
 import { observe } from "impact-app";
 
 function Post({ id }: { id: string }) {
