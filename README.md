@@ -14,9 +14,9 @@
 
 <br />
 
-🗄️ Global and scoped state management using reactive hooks
+🗄️ Global and scoped state management using hooks
 
-🏗️ The Hooks composition you know and love, without the overhead of reconciliation
+🏗️ The hooks composition you know and love, without the overhead of reconciliation
 
 ⚛️ Use built-in reactive state primitives or existing primitives from the eco system
 

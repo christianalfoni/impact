@@ -8,7 +8,7 @@ It does not really matter what state primitives you use, it is the fact that the
 
 ### ReactiveHook
 
-You can think about reactive hooks as normal hooks, though they rather use reactive state primitives and runs outside the reconciliation loop of React. That means you get the awesome composition model of React hooks without the performance and mental overhead of Reacts reconciliation model.
+You can think about reactive hooks as normal hooks, though they rather use reactive state primitives and runs outside the reconciliation loop of React. That means you get the awesome composition of React hooks without the performance and mental overhead of Reacts reconciliation.
 
 ### ReactiveHooksProvider
 

@@ -1,6 +1,6 @@
 # Reactivity
 
-By default it can be a good idea to use the reactive state primitives shipped with **Impact**. This is a very straight forward to define state and and consume them optimally in React and other reactive hooks. That said, these reactive hooks can expose any state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
+By default it can be a good idea to use the reactive state primitives shipped with **Impact**. This is a very straight wayforward way to define state and and consume them optimally in React and other reactive hooks. That said, these reactive hooks can expose any state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
 
 You could use a state machine from [XState](https://xstate.js.org/):
 
