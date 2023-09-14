@@ -24,7 +24,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://youtu.be/6HoiA7W65k4) 06:34
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Managing state across components](https://youtu.be/wyy-In5SLCE) 11:44
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Managing state across components](https://youtu.be/wyy-In5SLCE) 10:51
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> Global stores and typing --:-- (WIP)
 
