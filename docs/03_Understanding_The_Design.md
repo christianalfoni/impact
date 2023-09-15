@@ -26,3 +26,5 @@ For **Impact** to work the `HooksProvider` creates a `HooksContainer` which need
 
 That does not solve disposal completely though, cause a `useEffect` might also run multiple times. That is why the `HooksProvider` uses a component class with `componentDidUmount` to trigger disposal. This lifecycle method only runs when the component actually unmounts.
 
+But that actually does not completely solve the challenge. React might call `componentDidUnmount`, but still keep reference to the component and mount it again. This happens for example during suspense. Impact solves this by making the `ReactiveHooksProvider` creates the `HooksContainer` during its render. If there is not existing `HooksContainer`, or it has been disposed, it will create a new one. The final event on this component is regardless a `componentDidUnmount`. This creates the exact behaviour we want.
+

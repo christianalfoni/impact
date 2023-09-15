@@ -24,7 +24,9 @@ class ReactiveHooksContainer {
   }
 
   constructor(
-    hooks: Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any[]>, () => any]>,
+    hooks: Array<
+      ReactiveHook<any, any[]> | [ReactiveHook<any, any[]>, () => any]
+    >,
     private _parent: ReactiveHooksContainer | null,
     private _isGlobal: boolean = false,
   ) {
@@ -105,30 +107,41 @@ export const globalHooksContainer = new ReactiveHooksContainer([], null, true);
 const context = createContext<ReactiveHooksContainer | null>(null);
 
 type HooksProviderProps<
-  T extends Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]>,
+  T extends Array<
+    ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]
+  >,
 > = {
   hooks: T;
   children: React.ReactNode;
 };
 
 export class ReactiveHooksProvider<
-  T extends Array<ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]>,
+  T extends Array<
+    ReactiveHook<any, any[]> | [ReactiveHook<any, any>, () => any]
+  >,
 > extends Component<HooksProviderProps<T>> {
   static contextType = context;
-  state: ReactiveHooksContainer;
-  constructor(
-    props: HooksProviderProps<T>,
-    context: React.ContextType<React.Context<ReactiveHooksContainer | null>>,
-  ) {
-    super(props);
-    this.state = new ReactiveHooksContainer(props.hooks, context);
-  }
+  container!: ReactiveHooksContainer;
+
   componentWillUnmount(): void {
-    this.state.dispose();
+    console.log("DIPOOOOOSE");
+    this.container.dispose();
   }
   render(): ReactNode {
+    // React can keep the component reference and mount/unmount it multiple times. Because of that
+    // we need to ensure to always have a hooks container instantiated when rendering, as it could
+    // have been disposed due to an unmount
+    if (!this.container || this.container.isDisposed) {
+      this.container = new ReactiveHooksContainer(
+        this.props.hooks,
+        // eslint-disable-next-line
+        // @ts-ignore
+        this.context,
+      );
+    }
+
     return (
-      <context.Provider value={this.state}>
+      <context.Provider value={this.container}>
         {this.props.children}
       </context.Provider>
     );
@@ -154,7 +167,7 @@ export function createHooksProvider<
             return [
               hooks[hookKey][STORE_REFERENCE],
               () =>
-              // @ts-ignore
+                // @ts-ignore
                 hooks[hookKey][STORE_REFERENCE](props[hookKey as keyof T]),
             ];
           }
