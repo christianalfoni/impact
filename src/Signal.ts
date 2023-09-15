@@ -112,11 +112,12 @@ export function signal<T>(value: T): Signal<T> {
         return;
       }
 
-      const prevValue =
+      const prevValue = value;
+
+      value =
         typeof newValue === "function"
           ? produce(value, newValue as (draft: T) => T | void)
           : value;
-      value = newValue;
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
