@@ -64,7 +64,7 @@ class ReactiveHooksContainer {
       // If we are at a root container we stop resolving and rather throw an error
       if (!this._parent) {
         throw new Error(
-          `The store "${hook.name}" is not registered to a StoreProvider`,
+          `The hook "${hook.name}" is not registered to a ReactiveHooksProvider`,
         );
       }
 
