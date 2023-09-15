@@ -117,7 +117,7 @@ export function signal<T>(value: T): Signal<T> {
       value =
         typeof newValue === "function"
           ? produce(value, newValue as (draft: T) => T | void)
-          : value;
+          : newValue;
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
