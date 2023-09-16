@@ -14,7 +14,7 @@
 
 <br />
 
-🗄️ Global and scoped state management using hooks
+🗄️ Balancing global and scoped state management using hooks
 
 🏗️ The hooks composition you know and love, without the overhead of reconciliation
 
@@ -26,7 +26,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Managing state across components](https://youtu.be/wyy-In5SLCE) 10:51
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> Global stores and typing --:-- (WIP)
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Global stores and typing](https://youtu.be/7yGfwx2m0qk) 25:20
 
 ## Documentation
 
