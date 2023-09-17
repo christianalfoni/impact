@@ -6,6 +6,7 @@ import { ExampleLink } from "./ExampleLink";
 import { VisibilityExample } from "./examples/visibility";
 import { observe } from "../src/Signal";
 import { RoutingExample } from "./examples/routing";
+import { XStateExample } from "./examples/xstate";
 
 export function App() {
   using _ = observe();
@@ -39,6 +40,11 @@ export function App() {
     }
     case "routing": {
       content = <RoutingExample />;
+      break;
+    }
+    case "xstate": {
+      content = <XStateExample />;
+      break;
     }
   }
 
@@ -53,6 +59,9 @@ export function App() {
         </ExampleLink>
         <ExampleLink name="routing" params={{ page: "page-a" }}>
           Routing
+        </ExampleLink>
+        <ExampleLink name="xstate" params={{}}>
+          XState
         </ExampleLink>
       </Flex>
       {content}

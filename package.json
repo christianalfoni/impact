@@ -63,6 +63,7 @@
     "typed-client-router": "^0.7.0",
     "typescript": "^5.2.1-rc",
     "vite": "^4.4.0",
-    "vite-tsconfig-paths": "^4.2.0"
+    "vite-tsconfig-paths": "^4.2.0",
+    "xstate": "^4.38.2"
   }
 }
