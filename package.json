@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.26.3",
+  "version": "0.26.4",
   "description": "Reactive Hooks for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -60,7 +60,7 @@
     "rimraf": "^2.6.1",
     "ts-jest": "^29.0.5",
     "tslib": "^2.6.2",
-    "typed-client-router": "^0.6.0",
+    "typed-client-router": "^0.7.0",
     "typescript": "^5.2.1-rc",
     "vite": "^4.4.0",
     "vite-tsconfig-paths": "^4.2.0"

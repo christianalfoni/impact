@@ -4714,10 +4714,10 @@ typed-array-length@^1.0.4:
     for-each "^0.3.3"
     is-typed-array "^1.1.9"
 
-typed-client-router@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/typed-client-router/-/typed-client-router-0.6.0.tgz#ce0c694e26921e11358aaebd97a4468f1bcc2742"
-  integrity sha512-6f093fh0sYTZgJkSx26+/lThGcPmJGOFd7ZZjCqGcMDTxHs+mWrIQveENI5r8KjTu1e5NZhyGkj8PYdXo0kFdQ==
+typed-client-router@^0.7.0:
+  version "0.7.0"
+  resolved "https://registry.yarnpkg.com/typed-client-router/-/typed-client-router-0.7.0.tgz#bed5495e92528340ccfb3ba72763b07e3187bed6"
+  integrity sha512-TX0hafi3KkNmYbiIGlgm9CpVlUDtibWdmWmKFn5KP5voLhyjGpCXGHaDBQVrTANazXS85xyxh4EKdYYvZhbILg==
   dependencies:
     history "^5.3.0"
     path-parser "^6.1.0"

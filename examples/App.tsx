@@ -5,6 +5,7 @@ import { globalHooks } from "./global-hooks";
 import { ExampleLink } from "./ExampleLink";
 import { VisibilityExample } from "./examples/visibility";
 import { observe } from "../src/Signal";
+import { RoutingExample } from "./examples/routing";
 
 export function App() {
   using _ = observe();
@@ -34,6 +35,10 @@ export function App() {
     }
     case "visibility": {
       content = <VisibilityExample />;
+      break;
+    }
+    case "routing": {
+      content = <RoutingExample />;
     }
   }
 
@@ -43,8 +48,11 @@ export function App() {
         <ExampleLink name="caching" params={{ example: "1" }}>
           Caching
         </ExampleLink>
-        <ExampleLink name="visibility" params={{ example: "1" }}>
+        <ExampleLink name="visibility" params={{}}>
           Visibility
+        </ExampleLink>
+        <ExampleLink name="routing" params={{ page: "page-a" }}>
+          Routing
         </ExampleLink>
       </Flex>
       {content}
