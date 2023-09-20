@@ -1,4 +1,4 @@
-import { useCleanup, createHook, emitter, signal } from "impact-app";
+import { useCleanup, createHook, emitter, signal, query } from "impact-app";
 
 export function generateId() {
   return (
@@ -48,7 +48,7 @@ function Api() {
     get version() {
       return version.value;
     },
-    async getPost(id: string) {
+    posts: query(async (id: string) => {
       await sleep(2000);
 
       let post = serverPosts[id];
@@ -62,7 +62,7 @@ function Api() {
       }
 
       return post;
-    },
+    }),
     addPost() {
       const id = generateId();
 

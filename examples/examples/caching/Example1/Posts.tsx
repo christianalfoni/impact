@@ -1,15 +1,10 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useState } from "react";
-import { usePostsCache } from "./usePostsCache";
-import { generateId } from "../../../global-hooks/useApi";
-
-import { observe } from "impact-app";
+import { generateId, useApi } from "../../../global-hooks/useApi";
 
 function Post({ id }: { id: string }) {
-  using _ = observe();
-
-  const postsCache = usePostsCache();
-  const post = postsCache.getPost(id).use();
+  const api = useApi();
+  const post = api.posts.suspend(id);
 
   return (
     <Text size="4">
@@ -21,7 +16,7 @@ function Post({ id }: { id: string }) {
 const firstPostId = generateId();
 const secondPostId = generateId();
 
-export function PostsCache() {
+export function Posts() {
   const [postId, setPostId] = useState(firstPostId);
 
   return (

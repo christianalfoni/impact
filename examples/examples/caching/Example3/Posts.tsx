@@ -1,31 +1,28 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
 import { Suspense, useEffect, useState } from "react";
-import { usePostsCache } from "./usePostsCache";
-import { observe } from "impact-app";
+
+import { useApi } from "../../../global-hooks/useApi";
 
 function Post({ id }: { id: string }) {
-  using _ = observe();
-
-  const postsCache = usePostsCache();
-  const post = postsCache.getPost(id).use();
+  const api = useApi();
+  const post = api.posts.suspend(id);
 
   return (
     <Text size="4">
-      {id} - {post.title}
+      {post.id} - {post.title}
     </Text>
   );
 }
 
-export function PostsCache() {
-  using _ = observe();
-
-  const postsCache = usePostsCache();
+export function Posts() {
+  const api = useApi();
   const [postId, setPostId] = useState<string | null>(null);
   const [availablePosts, setAvailablePosts] = useState<string[]>([]);
 
   useEffect(
     () =>
-      postsCache.onNewPost((id) => {
+      api.onNewPost((id) => {
+        api.posts.fetch(id);
         setAvailablePosts((current) => [...current, id]);
       }),
     [],

@@ -171,7 +171,7 @@ The `/global-hooks` at the root represents reactive hooks across the entire proj
 
 The `global-hooks/index.tsx` file would be where you define the `ReactiveHooksProvider`, here showing `features/project/hooks/index.ts`
 
-```ts
+```ts 
 import { createHooksProvider } from 'impact-app'
 import { useProject } from './useProject'
 import { useSomethingElse } from './useSomethingElse'
