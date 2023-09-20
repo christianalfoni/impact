@@ -22,9 +22,9 @@ Impact ships with its own reactive state primitives, but you can use other state
 
 A signal is just a way to store a state value components can track when they change. You will use `observe` with components to register any signal access from any store to the component as it renders. This avoids having to manually select and optimise state in components. Consume any hooks and the component reconciles based on what you access from those hooks.
 
-### SuspensePromise
+### Query
 
-A promise which allows React to synchronously access it when it is resolved/rejected. In combiniation with a Suspense and Error boundary this promise allows it to be consumed directly in components.
+A powerful query and caching primitive that allows you to consume queries in hooks and components, using suspense, subscribing to query state updates, manage mutations and manually keeping cache up to date with subscriptions and cleaning it.
 
 ### Emitter
 

@@ -1,4 +1,4 @@
-import { Box, Flex } from "@radix-ui/themes";
+import { Box, Flex, Heading } from "@radix-ui/themes";
 
 import { Caching } from "./examples/caching";
 import { globalHooks } from "./global-hooks";
@@ -50,7 +50,9 @@ export function App() {
 
   return (
     <Flex gap="4">
-      <Flex p="4" direction="column">
+      <Flex p="4" gap="2" direction="column">
+        <Heading size="4">Learn</Heading>
+        <Heading size="4">Examples</Heading>
         <ExampleLink name="caching" params={{ example: "1" }}>
           Caching
         </ExampleLink>

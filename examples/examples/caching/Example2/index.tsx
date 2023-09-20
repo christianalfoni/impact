@@ -1,13 +1,5 @@
-import { createHooksProvider } from "impact-app";
-import { usePostsCache } from "./usePostsCache";
-import { PostsCache } from "./PostsCache";
-
-const HooksProvider = createHooksProvider({ usePostsCache });
+import { Posts } from "./Posts";
 
 export function Example2() {
-  return (
-    <HooksProvider>
-      <PostsCache />
-    </HooksProvider>
-  );
+  return <Posts />;
 }

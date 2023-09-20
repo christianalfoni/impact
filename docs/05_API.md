@@ -3,10 +3,10 @@
 - [createHook](#createHook)
 - [createHooksProvider](#createHooksProvider)
 - [signal](#signal)
-- [compute](#compute)
+- [derive](#derive)
 - [observe](#observe)
 - [cleanup](#cleanup)
-- [SuspensePromise](#suspensepromise)
+- [query](#query)
 - [emitter](#emitter)
 
 ## createHook
@@ -131,16 +131,16 @@ Make sure your project has a `.vscode/launch.json` file with the following conte
 
 **NOTE!** If it is not working and you are taken to the source tab, refresh the app
 
-## compute
+## derive
 
-Creates a signal that lazily recomputes whenever any accessed signals within the compute callback changes.
+Creates a signal that lazily recomputes whenever any accessed signals within the derive callback changes.
 
 ```ts
-import { createHook, signal, compute } from 'impact-app'
+import { createHook, signal, derive } from 'impact-app'
 
 function HelloWorld() {
     const message = signal('Hello World')
-    const shoutingMessage = compute(() => message.value + '!!!')
+    const shoutingMessage = derive(() => message.value + '!!!')
     
     return {
         get message() {
@@ -231,49 +231,211 @@ function Counter() {
 export const useCounter = createHook(Counter)
 ```
 
-## SuspensePromise
+## query
 
-An enhanced promise which allows React to consume it directly in components. It is just an extended `Promise` which has some additional properties.
+A primitive to handle data fetching and mutation across hooks and components.
 
 ```ts
-import { createHook, SuspensePromise } from 'impact-app'
+import { createHook, query } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
-function PostsCache() {
-    const api = useApi()
-    const cache: Record<string, SuspensePromise<PostDTO>> = {}
+function Api() {
+    return {
+        posts: query((id: string) =>
+            fetch('/posts/' + id).then((response) => response.json())
+        )
+    }
+}
+
+export const useApi = createHook(Api)
+```
+
+The first argument to `query` is considered the key. It can be a `string` or an array combining `string`, `number` or `boolean`. The query generates a unique caching key based on this.
+
+### query.fetch
+
+Will perform the fetch or use the cached result. If the query is currently pending it will abort it and fetch again. If it is already fulfilled it will fetch in the background to update the already fulfilled cache. If the cache is rejected, it will fetch again.
+
+```tsx
+import { useApi } from '../useApi'
+
+export const Post = ({ id }: { id: string }) => {
+  const api = useApi()
+  
+  return (
+    <button
+        onClick={() => {
+            api.posts.fetch(id)
+        }}
+    >
+        Fetch it!
+    </button>
+  )
+}
+```
+
+### query.fetchAndSubscribe
+
+Runs the query and returns a subscription to the state of the query, where `idle` is not part of the union.
+
+```tsx
+import { useApi } from '../useApi'
+
+export const Post = ({ id }: { id: string }) => {
+  const api = useApi()
+  const postState = api.posts.fetchAndSubscribe(id)
+
+  if (postState === 'pending') {
+    return <div>Loading...</div>
+  }
+
+  if (postState === 'rejected') {
+    return <div>Error: {postState.reason}</div>
+  }
+
+  const post = postState.value
+  
+  return <div>{post.title}</div>
+}
+```
+
+### query.subscribe
+
+Gives you the state of the query and subscribes to any updates. Can only be called in components.
+
+```tsx
+import { useApi } from '../useApi'
+
+export const Post = ({ id }: { id: string }) => {
+  const api = useApi()
+  // status of idle, pending, fulfilled or rejected with related properties
+  const postState = api.posts.subscribe(id)
+  
+  return (
+    <button
+        onClick={() => {
+            api.posts.fetch(id)
+        }}
+    >
+        Fetch it!
+    </button>
+  )
+}
+```
+
+### query.suspend
+
+Calls fetch is no current cache. The promise is thrown to suspense or error boundary when pending or rejected. When resolved it will subscribe to query state changes and re-evaluate the suspense. Calling suspense with existing cache will not cause a refetch. Can only be called in components.
+
+```tsx
+import { useApi } from '../useApi'
+
+export const Post = ({ id }: { id: string }) => {
+  const api = useApi()
+  
+  const post = api.posts.suspend(id)
+  
+  return <div>{post.title}</div>
+}
+```
+
+### query.fulfill
+
+Immediately set the cache to a fulfilled value. Will notify any subscribers of the query. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
+
+```tsx
+import { query, useCleanup } from 'impact-app'
+
+function Api() {
+    const notifications = useApiNotifications()
+    const posts = query((id: string) =>
+        fetch('/posts/' + id).then((response) => response.json())
+    )
+
+    useCleanup(notifications.subscribeNewPosts(handleNewPosts))
+
+    function handleNewPosts(post) {
+        posts.fulfill(post.id, post)
+    }
 
     return {
-        getPost(id: string) {
-            let existingPost = cache[id]
+        posts
+    }
+}
 
-            if (!existingPost) { 
-                cache[id] = existingPost = SuspensePromise.from(api.fetchPost(id))
-            }
-            
-            return existingPost
+export const useApi = createHook(Api)
+```
+
+### query.reject
+
+This same as `query.fulfill` only setting the query to be rejected.
+
+### query.onFulfill
+
+Subscribe to when a value is fulfilled in the query. This can be useful to sync signals.
+
+```ts
+import { signal, createHook } from 'impact-app'
+import { PostDTO } from './useApi'
+
+function Post(initialPost: PostDTO) {
+    const api = useApi()
+    const post = signal(initialPost)
+
+    useCleanup(api.posts.onFulfill(handlePostUpdate))
+
+    function handlePostUpdate(updatedPost: PostDTO) {
+        post.value = updatedPost
+    }
+
+    return {
+        get id() {
+            return post.value.id
+        },
+        get title() {
+            return post.value.title
         }
     }
 }
 
-export const usePostsCache = createHook(PostsCache)
+export const usePost = createHook(Post)
 ```
 
-And now in a component you can consume it directly:
+### query.onReject
 
-```tsx
-import { usePostsCache } from '../usePostsCache'
+Same as above, only triggered when a query is rejected
 
-export const Post = ({ id }: { id: string }) => {
-  const posts = usePostsCache()
-  // When React gets its own "use" hook, you can use that instead
-  const post = posts.getPost(id).use()
+### query.onStateChange
+
+Same as above, but receives the `QueryState` which can have a status of `idle | pending | fulfilled | rejected`.
+
+### query.clear
+
+Allows you to clear out the whole query cache or a single value. This also aborts any pending fetch.
+
+```ts
+import { createHook, useCleanup } from 'impact-app'
+
+function Posts() {
+    const router = useRouter()
+    const posts = query((id: string) => {})
+
+    useCleanup(router.listen(handleRouteChange))
+
+    function handleRouteChange(route) {
+        if (route.name !== 'posts') {
+            posts.clear()
+        }
+    }
+
+    return {
+        posts,
+    }
 }
+
+export const usePosts = createHook(Posts)
 ```
 
-This promise throws to the closest Suspense boundary when pending and to the Error boundary when rejected. If the promise is already resolved it will synchronously resolve.
-
-You can also use `SuspensePromise.fromValue` to create a resolved SuspensePromise.
 
 ## emitter
 

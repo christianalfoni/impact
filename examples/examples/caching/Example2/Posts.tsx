@@ -1,18 +1,25 @@
 import { Box, Button, Flex, Text } from "@radix-ui/themes";
-import { Suspense, useState } from "react";
-import { usePostsCache } from "./usePostsCache";
-import { generateId } from "../../../global-hooks/useApi";
-import { observe } from "impact-app";
+import { Suspense, useEffect, useState } from "react";
+
+import { generateId, useApi } from "../../../global-hooks/useApi";
 
 function Post({ id }: { id: string }) {
-  using _ = observe();
+  const api = useApi();
+  const post = api.posts.suspend(id);
 
-  const postsCache = usePostsCache();
-  const post = postsCache.getPost(id).use();
+  useEffect(
+    () =>
+      api.onPostUpdate((updatedPost) => {
+        if (updatedPost.id === id) {
+          api.posts.fulfill(id, updatedPost);
+        }
+      }),
+    [id],
+  );
 
   return (
     <Text size="4">
-      {id} - {post.title} - {post.updateCount}
+      {post.id} - {post.title} - {post.updateCount}
     </Text>
   );
 }
@@ -20,14 +27,15 @@ function Post({ id }: { id: string }) {
 const firstPostId = generateId();
 const secondPostId = generateId();
 
-export function PostsCache() {
+export function Posts() {
   const [postId, setPostId] = useState(firstPostId);
 
   return (
     <Flex direction="column" gap="2">
       <Text>
-        In this example we subscribe to updates on posts loaded and we keep them
-        up to date, even though you are not looking at the post
+        In this example we subscribe to updates on posts when the post is shown.
+        When you navigate to a different post the cache goes stale, but updates
+        again when the post loads
       </Text>
       <Flex gap="2">
         <Button

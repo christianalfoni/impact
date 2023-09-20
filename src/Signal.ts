@@ -130,7 +130,7 @@ export function signal<T>(value: T): Signal<T> {
   };
 }
 
-export function compute<T>(cb: () => T) {
+export function derive<T>(cb: () => T) {
   let value: T;
   let disposer: () => void;
   let isDirty = true;

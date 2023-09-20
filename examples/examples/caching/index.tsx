@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Tabs, Text } from "@radix-ui/themes";
+import { Box, Button, Flex, Heading, Tabs, Text } from "@radix-ui/themes";
 import { Example1 } from "./Example1";
 import { globalHooks } from "../../global-hooks";
 import { Example2 } from "./Example2";
@@ -19,12 +19,8 @@ export function Caching({
   const api = globalHooks.useApi();
 
   return (
-    <Flex direction="column" gap="2">
-      <Box p="4">
-        <Text align="center" size="8">
-          Caching Examples in Impact
-        </Text>
-      </Box>
+    <Flex direction="column" gap="6">
+      <Heading>Caching</Heading>
       <Flex align="center" gap="2">
         <Text weight="bold">API:</Text>
         <Button
