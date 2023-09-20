@@ -7,6 +7,16 @@
 - [observe](#observe)
 - [cleanup](#cleanup)
 - [query](#query)
+    - [query.fetch](#query-fetch)
+    - [query.fetchAndSubscribe](#query-fetchandsubscribe)
+    - [query.subscribe](#query-subscribe)
+    - [query.suspend](#query-suspend)
+    - [query.fulfill](#query-fulfill)
+    - [query.reject](#query-reject)
+    - [query.onFulfill](#query-onfulfill)
+    - [query.onReject](#query-onreject)
+    - [query.onStateChange](#query-onstatechange)
+    - [query.clear](#query-clear)
 - [emitter](#emitter)
 
 ## createHook

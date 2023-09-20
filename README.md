@@ -36,7 +36,7 @@
 - [Hello World](./docs/04_Hello_World.md)
 - [API](./docs/05_API.md)
 - [Reactive Hooks](./docs/06_Reactive_Hooks.md)
-- [Reactive State](./docs/07_Reactive_State.md)
+- [Reactivity](./docs/07_Reactivity.md)
 - [Query](./docs/08_Query.md)
 - [Events](./docs/09_Events.md)
 
