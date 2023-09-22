@@ -2,21 +2,22 @@
 
 - [createHook](#createHook)
 - [createHooksProvider](#createHooksProvider)
+- [useCleanup](#useCleanup)
 - [signal](#signal)
-- [derive](#derive)
-- [observe](#observe)
-- [cleanup](#cleanup)
-- [query](#query)
-    - [query.fetch](#queryfetch)
-    - [query.fetchAndSubscribe](#queryfetchandsubscribe)
-    - [query.subscribe](#querysubscribe)
-    - [query.suspend](#querysuspend)
-    - [query.fulfill](#queryfulfill)
-    - [query.reject](#queryreject)
-    - [query.onFulfill](#queryonfulfill)
-    - [query.onReject](#queryonreject)
-    - [query.onStateChange](#queryonstatechange)
-    - [query.clear](#queryclear)
+    - [derive](#derive)
+    - [observe](#observe)
+    - [Debugging](#debugging)
+- [query/queries](#queryqueries)
+    - [fetch](#queryfetch)
+    - [refetch](#queryrefetch)
+    - [suspend](#querysuspend)
+    - [setValue](#querysetvalue)
+    - [getValue](#querygetvalue)
+    - [onStatusChange](#queryonstatuschange)
+- [mutation/mutations](#mutationmutations)
+    - [mutate](#mutationmutate)
+    - [subscribe](#mutationsubscribe)
+    - [onStatusChange](#mutationonstatuschange)
 - [emitter](#emitter)
 
 ## createHook
@@ -70,6 +71,30 @@ function SomeComponent() {
 }
 ```
 
+## useCleanup
+
+It used in combination with reactive hooks providers. When the `ReactiveHooksProvider` unmounts it will call this function for any reactive hooks resolved within the provider.
+
+```ts
+import { createHook, signal, useCleanup } from 'impact-app'
+
+function Counter() {
+    const count = signal(0)
+
+    const interval = setInterval(() => count.value++, 1000)
+
+    useCleanup(() => clearInterval(interval))
+
+    return {
+        get count() {
+            return count.value
+        }
+    }
+}
+
+export const useCounter = createHook(Counter)
+```
+
 ## signal
 
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
@@ -113,35 +138,7 @@ function HelloWorld() {
 export const useHelloWorld = createHook(HelloWorld)
 ```
 
-### Debugging
-
-You can configure VSCode to open the file and position of signal changes and observations by clicking debug statements in the browser.
-
-Make sure your project has a `.vscode/launch.json` file with the following contents:
-
-```json
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "msedge",
-      "request": "launch",
-      "name": "Dev",
-      "url": "http://localhost:5173",
-      "webRoot": "${workspaceFolder}"
-    }
-  ]
-}
-```
-
--  Make sure you have the [Edge](https://www.microsoft.com/en-us/edge?form=MA13FJ&exp=e00) browser installed (It is Chromium, so works just like Chrome)
-- Start your dev server
-- Use the Debug tool in VSCode and start it, this opens up Edge
-- The first time Edge will ask you to set the the workspace folder. Navigate to the project folder on your computer and select it
-
-**NOTE!** If it is not working and you are taken to the source tab, refresh the app
-
-## derive
+### derive
 
 Creates a signal that lazily recomputes whenever any accessed signals within the derive callback changes.
 
@@ -165,7 +162,7 @@ function HelloWorld() {
 export const useHelloWorld = createHook(HelloWorld)
 ```
 
-## observe
+### observe
 
 To observe signals, and "rerender" the components, they need to bound to an `ObserverContext`. There are two ways you can achieve this. The default way is to use a traditional `observe` higher order component. 
 
@@ -217,89 +214,73 @@ yarn add @babel/plugin-proposal-explicit-resource-management -D
 
 This is a **Stage 3** proposal and is coming to JavaScript.
 
-## useCleanup
+### Debugging
 
-It used in combination with reactive hooks providers. When the `ReactiveHooksProvider` unmounts it will call this function for any reactive hooks resolved within the provider.
+You can configure VSCode to open the file and position of signal changes and observations by clicking debug statements in the browser.
 
-```ts
-import { createHook, signal, useCleanup } from 'impact-app'
+Make sure your project has a `.vscode/launch.json` file with the following contents:
 
-function Counter() {
-    const count = signal(0)
-
-    const interval = setInterval(() => count.value++, 1000)
-
-    useCleanup(() => clearInterval(interval))
-
-    return {
-        get count() {
-            return count.value
-        }
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "msedge",
+      "request": "launch",
+      "name": "Dev",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}"
     }
+  ]
 }
-
-export const useCounter = createHook(Counter)
 ```
 
-## query
+-  Make sure you have the [Edge](https://www.microsoft.com/en-us/edge?form=MA13FJ&exp=e00) browser installed (It is Chromium, so works just like Chrome)
+- Start your dev server
+- Use the Debug tool in VSCode and start it, this opens up Edge
+- The first time Edge will ask you to set the the workspace folder. Navigate to the project folder on your computer and select it
 
-A primitive to handle data fetching and mutation across hooks and components.
+**NOTE!** If it is not working and you are taken to the source tab, refresh the app
+
+## query / queries
+
+A primitive to handle quering and consuming data across reactive hooks and components. The only difference between `query` and `queries` is that `queries` takes a unqiue identifier, typically the UID of a resource, as its first argument. Though that argument can also be an array of multiple values representing the uniqueness of the resource. Using `query` represents a single resource and does not requires a unique identifier.
 
 ```ts
-import { createHook, query } from 'impact-app'
+import { createHook, queries, query } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function Api() {
     return {
-        posts: query((id: string) =>
+        posts: queries((id: string) =>
             fetch('/posts/' + id).then((response) => response.json())
-        )
+        ),
+        status: query(() => fetch('/status').then((response) => response.json()))
     }
 }
 
 export const useApi = createHook(Api)
 ```
 
-The first argument to `query` is considered the key. It can be a `string` or an array combining `string`, `number` or `boolean`. The query generates a unique caching key based on this.
+The first argument to the `queries` callback is considered the key. It can be a `string` or an array combining `string`, `number` or `boolean`. The query generates a unique caching key based on this. The `query` caches as well.
 
-### query.fetch
+### fetch
 
-Will perform the fetch or use the cached result. If the query is currently pending it will abort it and fetch again. If it is already fulfilled it will fetch in the background to update the already fulfilled cache. If the cache is rejected, it will fetch again.
-
-```tsx
-import { useApi } from '../useApi'
-
-export const Post = ({ id }: { id: string }) => {
-  const api = useApi()
-  
-  return (
-    <button
-        onClick={() => {
-            api.posts.fetch(id)
-        }}
-    >
-        Fetch it!
-    </button>
-  )
-}
-```
-
-### query.fetchAndSubscribe
-
-Runs the query and returns a subscription to the state of the query, where `idle` is not part of the union.
+Runs the query and returns a subscription to the state of the query. 
 
 ```tsx
 import { useApi } from '../useApi'
 
 export const Post = ({ id }: { id: string }) => {
   const api = useApi()
-  const postState = api.posts.fetchAndSubscribe(id)
+  const postState = api.posts.fetch(id)
+  // const statusState = api.status.fetch()
 
-  if (postState === 'pending') {
+  if (postState.status === 'pending') {
     return <div>Loading...</div>
   }
 
-  if (postState === 'rejected') {
+  if (postState.status === 'rejected') {
     return <div>Error: {postState.reason}</div>
   }
 
@@ -309,33 +290,29 @@ export const Post = ({ id }: { id: string }) => {
 }
 ```
 
-### query.subscribe
+### refetch
 
-Gives you the state of the query and subscribes to any updates. Can only be called in components.
+Runs the query again, even when `fulfilled`. In this state the state of the query has an additional `isRefetching` property set to `true`. Any subscribers of the query will update.
 
 ```tsx
 import { useApi } from '../useApi'
 
 export const Post = ({ id }: { id: string }) => {
   const api = useApi()
-  // status of idle, pending, fulfilled or rejected with related properties
-  const postState = api.posts.subscribe(id)
   
   return (
-    <button
-        onClick={() => {
-            api.posts.fetch(id)
-        }}
-    >
-        Fetch it!
-    </button>
-  )
+    <div onClick={() => {
+        api.posts.refetch(id)
+        api.status.refetch()
+    }}>
+        Click to get a fresh value
+    </div>
 }
 ```
 
-### query.suspend
+### suspend
 
-Calls fetch is no current cache. The promise is thrown to suspense or error boundary when pending or rejected. When resolved it will subscribe to query state changes and re-evaluate the suspense. Calling suspense with existing cache will not cause a refetch. Can only be called in components.
+Just like `fetch`, but the promise is thrown to suspense or error boundary when pending or rejected. When resolved it will subscribe to query state changes and re-evaluate the suspense value. To update the data `refetch` needs to be called.
 
 ```tsx
 import { useApi } from '../useApi'
@@ -344,66 +321,109 @@ export const Post = ({ id }: { id: string }) => {
   const api = useApi()
   
   const post = api.posts.suspend(id)
+  // const status = api.status.suspend()
   
   return <div>{post.title}</div>
 }
 ```
 
-### query.fulfill
+### setValue
 
-Immediately set the cache to a fulfilled value. Will notify any subscribers of the query. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
+Immediately set the cache to a fulfilled value. Will notify any subscribers of the change. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
 
 ```tsx
-import { query, useCleanup } from 'impact-app'
+import { queries, query, useCleanup } from 'impact-app'
 
 function Api() {
     const notifications = useApiNotifications()
-    const posts = query((id: string) =>
+    const posts = queries((id: string) =>
         fetch('/posts/' + id).then((response) => response.json())
+    )
+    const status = query(() =>
+        fetch('/status').then((response) => response.json())
     )
 
     useCleanup(notifications.subscribeNewPosts(handleNewPosts))
+    useCleanup(notifications.subscribeStatus(handleNewStatus))
 
     function handleNewPosts(post) {
-        posts.fulfill(post.id, post)
+        posts.setValue(post.id, post)
+    }
+
+    function handleNewStatus(newStatus) {
+        status.setValue(newStatus)
     }
 
     return {
-        posts
+        posts,
+        status
     }
 }
 
 export const useApi = createHook(Api)
 ```
 
-### query.reject
+### getValue
 
-This same as `query.fulfill` only setting the query to be rejected.
+Allows you to consume the query as a normal promise. It will fetch the value if not cached, or hook into the existing pending state of the query. This is useful to access query values in other reactive hooks.
 
-### query.onFulfill
+```tsx
+import { useCleanup } from 'impact-app'
 
-Subscribe to when a value is fulfilled in the query. This can be useful to sync signals.
+function Api() {
+    const api = useApi()
+
+    return {
+        async doSomething() {
+            try {
+                const currentStatus = await api.status.getValue()
+                
+                if (currentStatus.isAwesome) {
+                    // Do something awesome
+                }
+            } catch () {
+                api.status.refetch()
+            }
+        }
+    }
+}
+
+export const useApi = createHook(Api)
+```
+
+
+### onStatusChange
+
+Subscribe to when a query changes its status. This can be useful to sync signals.
 
 ```ts
-import { signal, createHook } from 'impact-app'
+import { signal, createHook, QueryState } from 'impact-app'
 import { PostDTO } from './useApi'
 
 function Post(initialPost: PostDTO) {
     const api = useApi()
-    const post = signal(initialPost)
+    // We split up the DTO into multiple signals for optimal consumption in components
+    const title = signal(initialPost.title)
+    const description = signal(initialPost.description)
 
-    useCleanup(api.posts.onFulfill(handlePostUpdate))
+    useCleanup(api.posts.onStatusChange(post.value.id, handlePostStatusChange))
 
-    function handlePostUpdate(updatedPost: PostDTO) {
-        post.value = updatedPost
+    function handlePostStatusChange(postQueryState: QueryState<PostDTO>) {
+        if (postQueryState.status === 'fulfilled') {
+            title.value = postQueryState.value.title
+            description.value = postQueryState.value.description
+        }
     }
 
     return {
         get id() {
-            return post.value.id
+            return initialPost.id
         },
         get title() {
-            return post.value.title
+            return title.value
+        },
+        get description() {
+            return description.value
         }
     }
 }
@@ -411,41 +431,77 @@ function Post(initialPost: PostDTO) {
 export const usePost = createHook(Post)
 ```
 
-### query.onReject
+## mutation / mutations
 
-Same as above, only triggered when a query is rejected
-
-### query.onStateChange
-
-Same as above, but receives the `QueryState` which can have a status of `idle | pending | fulfilled | rejected`.
-
-### query.clear
-
-Allows you to clear out the whole query cache or a single value. This also aborts any pending fetch.
+A mutation represents a one off request which changes something externally. The `mutations` function is for resource with unique identifiers, while `mutation` is for a request representing a single resource.
 
 ```ts
-import { createHook, useCleanup } from 'impact-app'
+import { createHook, mutations, query } from 'impact-app'
+import { useApi, PostDTO } from './Api'
 
-function Posts() {
-    const router = useRouter()
-    const posts = query((id: string) => {})
-
-    useCleanup(router.listen(handleRouteChange))
-
-    function handleRouteChange(route) {
-        if (route.name !== 'posts') {
-            posts.clear()
-        }
-    }
-
+function Api() {
     return {
-        posts,
+        changePostTile: mutations((id: string, newTitle: string) =>
+            fetch({
+                url: '/posts/' + id,
+                method: POST,
+                body: JSON.stringify({ title: newTitle }),
+            }).then((response) => response.json())
+        ),
     }
 }
 
-export const usePosts = createHook(Posts)
+export const useApi = createHook(Api)
 ```
 
+### mutate
+
+Runs the request. This method can be called in both hooks and components.
+
+```tsx
+import { useApi } from '../useApi'
+
+export const Post = ({ id }: { id: string }) => {
+  const api = useApi()
+  const post = api.posts.suspend(id)
+  const [title, setTitle] = useState(post.title)
+  const changeTitleState = api.changePostTitle.subscribe(id)
+
+  useEffect(() => api.changePostTile.onStatusChange((changePostTileState) => {
+    if (changePostTileState.status === 'fulfilled') {
+        alert("Oh yeah, you changed it!")
+    }
+  }), [])
+  
+  return (
+    <div>
+        <input
+            disabled={changeTitleState.status === 'pending'}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                    api.changePostTitle.mutate(id, title)
+                }
+            }}
+        />
+        {changeTitleState.status === 'rejected' ? 'Ops, there was an error!' : null}
+    </div>
+  )
+}
+```
+
+### subscribe
+
+Subscribe to the state of a mutation. This method can only be called in components.
+
+**Look at example above**
+
+### onStatusChange
+
+A traditional event listener to react to state changes of a mutation.
+
+**Look at example above**
 
 ## emitter
 
