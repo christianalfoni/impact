@@ -26,7 +26,7 @@ export function VisibilityExample() {
         files={{
           "/node_modules/stacktrace-gps/stacktrace-gps.js": {
             hidden: true,
-            code: `console.log("BLAAAAAH")`,
+            code: `export default class Fake { pinpoint() { return Promise.resolve({ setFunctionName() {} })} }`,
           },
           "/useVisbility.js": `import { useCleanup, createHook, emitter, signal } from "impact-app"
           

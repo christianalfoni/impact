@@ -292,7 +292,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
       return promise;
     }
 
-    return this.fetch(key, ...params);
+    return this._fetch(key, ...params);
   }
 }
 
@@ -511,7 +511,7 @@ class Query<P extends any[], T> {
       return promise;
     }
 
-    return this.fetch(...params);
+    return this._fetch(...params);
   }
 }
 
