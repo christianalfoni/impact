@@ -11,7 +11,7 @@ function Post({ id }: { id: string }) {
     () =>
       api.onPostUpdate((updatedPost) => {
         if (updatedPost.id === id) {
-          api.posts.fulfill(id, updatedPost);
+          api.posts.setValue(id, updatedPost);
         }
       }),
     [id],
@@ -57,7 +57,7 @@ export function Posts() {
       </Flex>
       <Box m="4">
         <Suspense fallback={<Text size="2">Loading post {postId}...</Text>}>
-          <Post id={postId} />
+          <Post key={postId} id={postId} />
         </Suspense>
       </Box>
     </Flex>

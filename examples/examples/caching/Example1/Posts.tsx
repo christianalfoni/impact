@@ -8,7 +8,7 @@ function Post({ id }: { id: string }) {
 
   return (
     <Text size="4">
-      {id} - {post.title}
+      {post.id} - {post.title}
     </Text>
   );
 }
@@ -46,7 +46,7 @@ export function Posts() {
       </Flex>
       <Box m="4">
         <Suspense fallback={<Text size="2">Loading post {postId}...</Text>}>
-          <Post id={postId} />
+          <Post key={postId} id={postId} />
         </Suspense>
       </Box>
     </Flex>

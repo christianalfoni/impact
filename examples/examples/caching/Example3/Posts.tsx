@@ -22,7 +22,8 @@ export function Posts() {
   useEffect(
     () =>
       api.onNewPost((id) => {
-        api.posts.fetch(id);
+        console.log("EHM", id);
+        api.posts.refetch(id);
         setAvailablePosts((current) => [...current, id]);
       }),
     [],
@@ -51,7 +52,7 @@ export function Posts() {
       {postId ? (
         <Box m="4">
           <Suspense fallback={<Text size="2">Loading post {postId}...</Text>}>
-            <Post id={postId} />
+            <Post key={postId} id={postId} />
           </Suspense>
         </Box>
       ) : null}
