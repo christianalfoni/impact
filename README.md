@@ -37,7 +37,7 @@
 - [API](./docs/05_API.md)
 - [Reactive Hooks](./docs/06_Reactive_Hooks.md)
 - [Reactivity](./docs/07_Reactivity.md)
-- [Query](./docs/08_Query.md)
+- [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
 - [Events](./docs/09_Events.md)
 
 ## Examples
