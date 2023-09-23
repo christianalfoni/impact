@@ -7,6 +7,7 @@ import { observe } from "../src/Signal";
 import { RoutingExample } from "./examples/routing";
 import { XStateExample } from "./examples/xstate";
 import { useRouter } from "./useRouter";
+import { LearnHooks } from "./learn/hooks";
 
 export function App() {
   using _ = observe();
@@ -36,12 +37,19 @@ export function App() {
       content = <XStateExample />;
       break;
     }
+    case "hooks": {
+      content = <LearnHooks />;
+      break;
+    }
   }
 
   return (
     <Flex gap="4">
-      <Flex p="4" gap="2" direction="column">
+      <Flex p="4" gap="2" direction="column" style={{ minWidth: "200px" }}>
         <Heading size="4">Learn</Heading>
+        <ExampleLink name="hooks" params={{}}>
+          Hooks
+        </ExampleLink>
         <Heading size="4">Examples</Heading>
         <ExampleLink name="datafetching" params={{}}>
           Data Fetching
