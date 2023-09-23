@@ -78,7 +78,7 @@ class Mutations<K extends IdentifierKey, P extends any[], T> {
     this._state[lookupKey] = state;
     this._notifySubscribers(lookupKey, state);
   }
-  onStatusChange(key: K, subscriber: (state: State<T>) => void) {
+  onChange(key: K, subscriber: (state: State<T>) => void) {
     return this._subscribe(key, subscriber);
   }
   subscribe(key: K): State<T> {
@@ -161,7 +161,7 @@ class Mutation<P extends any[], T> {
     this._state = state;
     this._notifySubscribers(state);
   }
-  onStatusChange(subscriber: (state: State<T>) => void) {
+  onChange(subscriber: (state: State<T>) => void) {
     return this._subscribe(subscriber);
   }
   subscribe(): State<T> {
