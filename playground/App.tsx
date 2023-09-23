@@ -8,6 +8,7 @@ import { RoutingExample } from "./examples/routing";
 import { XStateExample } from "./examples/xstate";
 import { useRouter } from "./useRouter";
 import { LearnHooks } from "./learn/hooks";
+import { LearnSignals } from "./learn/signals";
 
 export function App() {
   using _ = observe();
@@ -41,6 +42,9 @@ export function App() {
       content = <LearnHooks />;
       break;
     }
+    case "signals": {
+      content = <LearnSignals />;
+    }
   }
 
   return (
@@ -49,6 +53,9 @@ export function App() {
         <Heading size="4">Learn</Heading>
         <ExampleLink name="hooks" params={{}}>
           Hooks
+        </ExampleLink>
+        <ExampleLink name="signals" params={{}}>
+          Signals
         </ExampleLink>
         <Heading size="4">Examples</Heading>
         <ExampleLink name="datafetching" params={{}}>
