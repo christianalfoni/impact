@@ -9,7 +9,7 @@ export function LearnHooks() {
         The fundamental primitive of Impact is the hook. This hook conceptually
         works the same way as traditional React hooks, but they run outside of
         the reconciliation loop of React. That means you can not use hooks like
-        <b>useState</b>, <b>useEffect</b> etc., but you rather use reactive
+        <b> useState</b>, <b>useEffect</b> etc., but you rather use reactive
         state primitives. Either from Impact or the ecosystem.
       </Text>
       <Text>
@@ -18,32 +18,33 @@ export function LearnHooks() {
       </Text>
       <ExampleSandpack
         example={`import { Button, Flex } from "@radix-ui/themes";
-import { useMessage } from "./useMessage";
+import { useHelloWorld } from "./useHelloWorld";
 
-function Message() {
-  const message = useMessage()
+function HelloWorld() {
+  const helloWorld = useHelloWorld()
 
   return (
     <Flex p="6" gap="4" align="center">
-      The message is: {message}
+      {helloWorld}
     </Flex>
   );
 }
 
-export default Message`}
+export default HelloWorld`}
         files={{
-          "/useMessage.js": `import { createHook } from "impact-app";
+          "/useHelloWorld.js": `import { createHook } from "impact-app";
 
-function Message() {
+function HelloWorld() {
   return 'Hello World'
 }
 
-export const useMessage = createHook(Message);`,
+export const useHelloWorld = createHook(HelloWorld);`,
         }}
       />
       <Text>
         That means if we where to use multiple components consuming the hook,
-        they would consume the same global instance.
+        they would consume the same global instance. Let us move to a counter
+        instead.
       </Text>
       <ExampleSandpack
         example={`import { Button, Flex } from "@radix-ui/themes";
@@ -87,9 +88,9 @@ export const useCounter = createHook(Counter);`,
         }}
       />
       <Text>
-        Impact allows you to scope a hook to a component tree. Typically you
+        Impact allows you to scope hooks to a component tree. Typically you
         would do this for pages or features within a page, but for this example
-        lets us create a unique counter for each component.
+        lets us create a unique <b>Counter</b> hook for each component.
       </Text>
       <ExampleSandpack
         example={`import { Button, Flex } from "@radix-ui/themes";
@@ -142,7 +143,7 @@ export const useCounter = createHook(Counter);`,
       <Text>
         In this scenario we just added a single hook to the provider, but you
         can add multiple hooks. What this also means is that hooks are resolved
-        through the component tree. To understand this better, let us add a new
+        using the component tree. To understand this better, let us add a new
         hook that will be exposed at the top of the application.
       </Text>
       <ExampleSandpack
@@ -216,13 +217,11 @@ export const useMath = createHook(Math)
         consuming the <b>useMath</b> hook. Also notice that we are exposing the{" "}
         <b>useMath</b> hook at the top of the application on a provider. If you
         remove this provider the code will fail with an error message stating
-        that the <b>Math</b> hook is not available. That means hooks are always
-        resolved through the component tree, even when one hook uses an other
-        hook.
+        that the <b>Math</b> hook is not available.
       </Text>
       <Text>
-        Even though reactive hooks in Impact run outside the component tree,
-        they are still <b>resolved</b> through the component tree. And this is
+        When using hook providers the hooks still run outside the component
+        tree, but they are <b>resolved</b> through the component tree. This is
         what enables you to scope certain state and logic to specific pages and
         features of your application.
       </Text>

@@ -8,6 +8,7 @@ export const routes = {
   routing: "/examples/routing",
   xstate: "/examples/xstate",
   hooks: "/learn/hooks",
+  signals: "/learn/signals",
 } as const;
 
 export type Routes = TRoutes<typeof routes>;
