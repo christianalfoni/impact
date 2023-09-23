@@ -33,6 +33,7 @@
     "dist"
   ],
   "dependencies": {
+    "@radix-ui/react-icons": "^1.3.0",
     "immer": "^10.0.2",
     "react": "*",
     "stackframe": "^1.3.4",
