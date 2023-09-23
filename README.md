@@ -40,6 +40,8 @@
 - [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
 - [Events](./docs/09_Events.md)
 
-## Examples
+## Learn with examples
 
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main) and navigate the examples application and the related code
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open playground on CodeSandbox](https://t79hzw-5173.csb.app)
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main)

@@ -20,7 +20,7 @@
       "impact-app": ["./src"]
     }
   },
-  "include": ["src", "examples"],
+  "include": ["src", "playground"],
   "exclude": ["node_modules", "dist", "tests"],
   "references": [
     {

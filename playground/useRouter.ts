@@ -3,10 +3,11 @@ import { useCleanup, createHook, signal } from "impact-app";
 
 export const routes = {
   main: "/",
-  datafetching: "/datafetching",
-  visibility: "/visibility",
-  routing: "/routing",
-  xstate: "/xstate",
+  datafetching: "/examples/datafetching",
+  visibility: "/examples/visibility",
+  routing: "/examples/routing",
+  xstate: "/examples/xstate",
+  hooks: "/learn/hooks",
 } as const;
 
 export type Routes = TRoutes<typeof routes>;
@@ -18,7 +19,7 @@ function Router() {
 
   // We'll immediately redirect to the first example when on root
   if (router.current?.name === "main") {
-    router.replace("datafetching", { example: "1" });
+    router.replace("hooks", { example: "1" });
   }
 
   const currentRoute = signal(router.current);
