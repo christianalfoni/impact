@@ -9,6 +9,7 @@ import { XStateExample } from "./examples/xstate";
 import { useRouter } from "./useRouter";
 import { LearnHooks } from "./learn/hooks";
 import { LearnSignals } from "./learn/signals";
+import { LearnQueries } from "./learn/queries";
 
 export function App() {
   using _ = observe();
@@ -44,6 +45,11 @@ export function App() {
     }
     case "signals": {
       content = <LearnSignals />;
+      break;
+    }
+    case "queries": {
+      content = <LearnQueries />;
+      break;
     }
   }
 
@@ -56,6 +62,9 @@ export function App() {
         </ExampleLink>
         <ExampleLink name="signals" params={{}}>
           Signals
+        </ExampleLink>
+        <ExampleLink name="queries" params={{}}>
+          Queries
         </ExampleLink>
         <Heading size="4">Examples</Heading>
         <ExampleLink name="datafetching" params={{}}>

@@ -1,5 +1,6 @@
-import { Flex, Heading, Text } from "@radix-ui/themes";
+import { Callout, Flex, Heading, Text } from "@radix-ui/themes";
 import { ExampleSandpack } from "../ExampleSandpack";
+import { CheckCircledIcon } from "@radix-ui/react-icons";
 
 export function LearnSignals() {
   return (
@@ -11,8 +12,16 @@ export function LearnSignals() {
         and components can observe changes to them. Let us look at our message
         hook again and make it reactive.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn how to define a signal.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { observe } from "impact-app";
 import { useHelloWorld } from "./useHelloWorld";
 
@@ -20,8 +29,8 @@ function HelloWorld() {
   const helloWorld = useHelloWorld()
 
   return (
-    <Flex p="6" gap="4" align="center">
-      {helloWorld.message}
+    <Flex p="6" gap="4" justify="center">
+      <Heading>{helloWorld.message}</Heading>
     </Flex>
   );
 }
@@ -59,8 +68,17 @@ export const useHelloWorld = createHook(HelloWorld);`,
         Now we can expose a method to change this message and our reactive
         circle is completely.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn how to change a signal and observe
+          those changes in a component.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { observe } from "impact-app";
 import { useHelloWorld } from "./useHelloWorld";
 
@@ -68,8 +86,8 @@ function HelloWorld() {
   const helloWorld = useHelloWorld()
 
   return (
-    <Flex p="6" gap="4" align="center" direction="column">
-        {helloWorld.message}
+    <Flex p="6" gap="4" justify="center" align="center" direction="column">
+        <Heading>{helloWorld.message}</Heading>
         <Button
             onClick={() => {
                 helloWorld.changeMessage()
@@ -106,8 +124,17 @@ export const useHelloWorld = createHook(HelloWorld);`,
         example an entity from the server. In this example we have a hook
         representing the current project on a project page.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn how to define complex objects in a
+          signal and expose it to components and other hooks.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex, Text } from "@radix-ui/themes";
+        example={`import { Button, Flex, Text, Heading } from "@radix-ui/themes";
 import { observe } from "impact-app";
 import { useProject } from "./useProject";
 
@@ -116,7 +143,7 @@ function Project() {
 
   return (
     <Flex p="6" gap="4" align="center" direction="column">
-        <Text>{project.title}</Text>
+        <Heading>{project.title}</Heading>
         <Text>{project.description}</Text>
     </Flex>
   );
@@ -156,15 +183,24 @@ export const useProject = createHook(Project);`,
         when changing for example the title. Only the components consuming the
         title should reconcile. Let us split up the project into two signals.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn how to optimise component
+          reconciliation using signals.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex, Text } from "@radix-ui/themes";
+        example={`import { Button, Flex, Text, Heading } from "@radix-ui/themes";
 import { observe } from "impact-app";
 import { useProject } from "./useProject";
 
 const Title = observe(() => {
     const project = useProject()
     console.log("Render title")
-    return <Text>{project.title}</Text>
+    return <Heading>{project.title}</Heading>
 })
 
 const Description = observe(() => {

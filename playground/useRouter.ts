@@ -9,6 +9,7 @@ export const routes = {
   xstate: "/examples/xstate",
   hooks: "/learn/hooks",
   signals: "/learn/signals",
+  queries: "/learn/queries",
 } as const;
 
 export type Routes = TRoutes<typeof routes>;

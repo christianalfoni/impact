@@ -1,5 +1,6 @@
-import { Flex, Heading, Text } from "@radix-ui/themes";
+import { Callout, Flex, Heading, Text } from "@radix-ui/themes";
 import { ExampleSandpack } from "../ExampleSandpack";
+import { CheckCircledIcon, InfoCircledIcon } from "@radix-ui/react-icons";
 
 export function LearnHooks() {
   return (
@@ -16,16 +17,24 @@ export function LearnHooks() {
         The most important thing to understand about reactive hooks in Impact is
         that will by default be registered globally.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn about defining and consuming hooks.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { useHelloWorld } from "./useHelloWorld";
 
 function HelloWorld() {
   const helloWorld = useHelloWorld()
 
   return (
-    <Flex p="6" gap="4" align="center">
-      {helloWorld}
+    <Flex p="6" justify="center">
+      <Heading>{helloWorld}</Heading>
     </Flex>
   );
 }
@@ -46,25 +55,37 @@ export const useHelloWorld = createHook(HelloWorld);`,
         they would consume the same global instance. Let us move to a counter
         instead.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn that multiple components consumes the
+          same instance of a hook.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { useCounter } from "./useCounter";
 
-function Counter() {
+function Counter({ name }) {
   const counter = useCounter()
 
   return (
-    <Button onClick={() => counter.increase()}>
-      Click to increase count and see the value
-    </Button>
+    <>
+      <Heading size="4">{name}</Heading>
+      <Button onClick={() => counter.increase()}>
+        Increase count
+      </Button>
+    </>
   );
 }
 
 function Counters() {
   return (
-    <Flex gap="4" direction="column">
-      <Counter />
-      <Counter />
+    <Flex gap="4" p="6" direction="column">
+      <Counter name="Counter 1" />
+      <Counter name="Counter 2" />
     </Flex>
   )
 }
@@ -92,31 +113,44 @@ export const useCounter = createHook(Counter);`,
         would do this for pages or features within a page, but for this example
         lets us create a unique <b>Counter</b> hook for each component.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn about hook providers, which allows you
+          to scope hooks to component trees. Now each component tree has its own
+          instance of the hook.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { createHooksProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 
 const CounterProvider = createHooksProvider({ useCounter })
 
-function Counter() {
+function Counter({ name }) {
   const counter = useCounter()
 
   return (
-    <Button onClick={() => counter.increase()}>
-      Click to increase count and see the value
-    </Button>
+    <>
+      <Heading size="4">{name}</Heading>
+      <Button onClick={() => counter.increase()}>
+        Increase count
+      </Button>
+    </>
   );
 }
 
 function Counters() {
   return (
-    <Flex gap="4" direction="column">
+    <Flex gap="4" p="6" direction="column">
       <CounterProvider>
-        <Counter />
+        <Counter name="Counter 1" />
       </CounterProvider>
       <CounterProvider>
-        <Counter />
+        <Counter name="Counter 2" />
       </CounterProvider>
     </Flex>
   )
@@ -146,8 +180,18 @@ export const useCounter = createHook(Counter);`,
         using the component tree. To understand this better, let us add a new
         hook that will be exposed at the top of the application.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn that hooks are resolved through the
+          component tree. That means hooks can user other hooks, but only if
+          they can be resolved through the component tree.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { createHooksProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 import { useMath } from "./useMath";
@@ -155,25 +199,28 @@ import { useMath } from "./useMath";
 const GlobalProvider = createHooksProvider({ useMath })
 const CounterProvider = createHooksProvider({ useCounter })
 
-function Counter() {
+function Counter({ name }) {
   const counter = useCounter()
 
   return (
-    <Button onClick={() => counter.increase()}>
-      Click to increase count and see the value
-    </Button>
+    <>
+      <Heading size="4">{name}</Heading>
+      <Button onClick={() => counter.increase()}>
+        Increase count
+      </Button>
+    </>
   );
 }
 
 function Counters() {
   return (
     <GlobalProvider>
-      <Flex gap="4" direction="column">
+      <Flex gap="4" p="6" direction="column">
         <CounterProvider>
-          <Counter />
+          <Counter name="Counter 1" />
         </CounterProvider>
         <CounterProvider>
-          <Counter />
+          <Counter name="Counter 2" />
         </CounterProvider>
       </Flex>
     </GlobalProvider>
@@ -230,8 +277,17 @@ export const useMath = createHook(Math)
         possibility to instantiate hooks with an initial value. Let us extend
         our <b>Counter</b> hook to take an initial count.
       </Text>
+      <Callout.Root color="green">
+        <Callout.Icon>
+          <CheckCircledIcon />
+        </Callout.Icon>
+        <Callout.Text>
+          In this example you will learn that hooks exposed through a hooks
+          provider can be instantiated with initial values.
+        </Callout.Text>
+      </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex } from "@radix-ui/themes";
+        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
 import { createHooksProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 import { useMath } from "./useMath";
@@ -239,25 +295,28 @@ import { useMath } from "./useMath";
 const GlobalProvider = createHooksProvider({ useMath })
 const CounterProvider = createHooksProvider({ useCounter })
 
-function Counter() {
+function Counter({ name }) {
   const counter = useCounter()
 
   return (
-    <Button onClick={() => counter.increase()}>
-      Click to increase count and see the value
-    </Button>
+    <>
+      <Heading size="4">{name}</Heading>
+      <Button onClick={() => counter.increase()}>
+        Increase count
+      </Button>
+    </>
   );
 }
 
 function Counters() {
   return (
     <GlobalProvider>
-      <Flex gap="4" direction="column">
+      <Flex gap="4" p="6" direction="column">
         <CounterProvider useCounter={5}>
-          <Counter />
+          <Counter name="Counter 1" />
         </CounterProvider>
         <CounterProvider useCounter={10}>
-          <Counter />
+          <Counter name="Counter 2" />
         </CounterProvider>
       </Flex>
     </GlobalProvider>
