@@ -28,6 +28,13 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Global stores and typing](https://youtu.be/7yGfwx2m0qk) 25:20
 
+## Playground
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open playground on CodeSandbox](https://t79hzw-5173.csb.app)
+
+<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo with playground on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main)
+
+
 ## Documentation
 
 - [Getting Started](./docs/01_Getting_Started.md)
@@ -40,8 +47,3 @@
 - [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
 - [Events](./docs/09_Events.md)
 
-## Learn with examples
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open playground on CodeSandbox](https://t79hzw-5173.csb.app)
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main)
