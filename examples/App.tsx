@@ -1,17 +1,17 @@
 import { Box, Flex, Heading } from "@radix-ui/themes";
 
-import { Caching } from "./examples/caching";
-import { globalHooks } from "./global-hooks";
+import { DataFetchingExample } from "./examples/dataFetching";
 import { ExampleLink } from "./ExampleLink";
 import { VisibilityExample } from "./examples/visibility";
 import { observe } from "../src/Signal";
 import { RoutingExample } from "./examples/routing";
 import { XStateExample } from "./examples/xstate";
+import { useRouter } from "./useRouter";
 
 export function App() {
   using _ = observe();
 
-  const router = globalHooks.useRouter();
+  const router = useRouter();
 
   let content;
 
@@ -20,18 +20,8 @@ export function App() {
   }
 
   switch (router.route.name) {
-    case "caching": {
-      content = (
-        <Caching
-          example={router.route.params.example}
-          onClickExample={(example) => {
-            router.open({
-              name: "caching",
-              params: { example },
-            });
-          }}
-        />
-      );
+    case "datafetching": {
+      content = <DataFetchingExample />;
       break;
     }
     case "visibility": {
@@ -53,8 +43,8 @@ export function App() {
       <Flex p="4" gap="2" direction="column">
         <Heading size="4">Learn</Heading>
         <Heading size="4">Examples</Heading>
-        <ExampleLink name="caching" params={{ example: "1" }}>
-          Caching
+        <ExampleLink name="datafetching" params={{}}>
+          Data Fetching
         </ExampleLink>
         <ExampleLink name="visibility" params={{}}>
           Visibility

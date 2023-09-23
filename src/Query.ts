@@ -174,7 +174,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
 
     return promise;
   }
-  onStatusChange(key: K, subscriber: (state: QueryState<T>) => void) {
+  onChange(key: K, subscriber: (state: QueryState<T>) => void) {
     return this._subscribe(key, subscriber);
   }
   setValue(key: K, value: T) {
@@ -400,7 +400,7 @@ class Query<P extends any[], T> {
 
     return promise;
   }
-  onStatusChange(subscriber: (state: QueryState<T>) => void) {
+  onChange(subscriber: (state: QueryState<T>) => void) {
     return this._subscribe(subscriber);
   }
   setValue(value: T) {

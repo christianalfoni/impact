@@ -1,6 +1,13 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
 import { useCleanup, createHook, signal } from "impact-app";
-import { routes } from "../routes";
+
+export const routes = {
+  main: "/",
+  datafetching: "/datafetching",
+  visibility: "/visibility",
+  routing: "/routing",
+  xstate: "/xstate",
+} as const;
 
 export type Routes = TRoutes<typeof routes>;
 
@@ -11,7 +18,7 @@ function Router() {
 
   // We'll immediately redirect to the first example when on root
   if (router.current?.name === "main") {
-    router.replace("caching", { example: "1" });
+    router.replace("datafetching", { example: "1" });
   }
 
   const currentRoute = signal(router.current);
