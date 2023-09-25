@@ -20,13 +20,26 @@
 
 ⚛️ Use built-in reactive state primitives or existing primitives from the eco system
 
+<br/>
+
+> **State management** is hard
+>
+> **Building UIs** is hard
+>
+> **Building UIs** should not be hard because of **state management**
+>
+> **State management** should not be hard because of **building UIs**
+*Engineering Zen Master, Christian Alfoni*
+
+<br/>
+
 ## Concept introduction
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://youtu.be/6HoiA7W65k4) 06:34
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Managing state across components](https://youtu.be/wyy-In5SLCE) 10:51
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Global stores and typing](https://youtu.be/7yGfwx2m0qk) 25:20
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> WIP: Optimising share ability and context awareness --:--
 
 ## Playground
 

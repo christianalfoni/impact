@@ -118,6 +118,16 @@ export const getPost = async (id) => {
   return post;
 }
 
+export const getProject = async (id) => {
+  await sleep(2000);
+
+  return {
+    id,
+    title: "My awesome project",
+    updatedAt: Date.now()
+  }
+}
+
 export const addPost = () => {
   const id = generateId();
 
