@@ -1,6 +1,5 @@
-import { Callout, Flex, Heading, Text } from "@radix-ui/themes";
+import { Flex, Heading, Text } from "@radix-ui/themes";
 import { ExampleSandpack } from "../ExampleSandpack";
-import { CheckCircledIcon } from "@radix-ui/react-icons";
 import { LearnCallout } from "../LearnCallout";
 
 export function LearnQueries() {
@@ -105,6 +104,53 @@ function App() {
         Refetch
       </Button>
     </Flex>
+  )
+}
+
+export default App;`}
+        files={{
+          "/useApi.js": `import { queries, createHook } from "impact-app";
+import { getProject } from './api'
+
+function Api() {
+    return {
+        projects: queries((id) =>
+            getProject(id)
+        )
+    }
+}
+
+export const useApi = createHook(Api);`,
+        }}
+      />
+      <Text>
+        You can also use <b>suspend</b> to consume the query. This requires a
+        suspense and optionally an error boundary to handle errors.
+      </Text>
+      <LearnCallout>
+        In this example you will learn how to use suspense to consume a query.
+      </LearnCallout>
+      <ExampleSandpack
+        example={`import { Flex, Heading, Button, Text } from '@radix-ui/themes';
+import { Suspense } from 'react';
+import { useApi } from './useApi';
+        
+function Project() {
+  const api = useApi()
+  const project = api.projects.suspend('123')
+
+  return (
+    <Flex align="center" p="6" direction="column" gap="4">
+      <Heading>{project.title}</Heading>
+    </Flex>
+  )
+}
+
+function App() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Project />
+    </Suspense>
   )
 }
 
