@@ -4,10 +4,10 @@ One of the most common things you do in any web application is to fetch data fro
 
 There are several data fetching solutions for React, like [useQuery](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [useSWR](https://swr.vercel.app/), but these are tied to your React components. That means you can not access and manage this data in an external state management layer.
 
-That is why **Impact** ships with its own primitive which allows you to manage data fetching with your general state management and still consume it in components.
+That is why **Impact** ships with its own primitives which allows you to manage data fetching with your general state management and still consume it in components.
 
 ```ts
-import { queries, createHook } from 'impact-app'
+import { queries, createStore } from 'impact-app'
 
 function Api() {
     return {
@@ -20,13 +20,13 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api)
+export const useApi = createStore(Api)
 ```
 
 `queries` will automatically cache and update consumers of the query when it changes. An example of this is using suspense in a component. It requires the first argument to be a unique identifier.
 
 ```tsx
-import { useApi } from '../hooks/useApi'
+import { useApi } from '../stores/useApi'
 
 const Post = ({ id }: { id: string }) => {
     const api = useApi()
@@ -37,7 +37,7 @@ const Post = ({ id }: { id: string }) => {
 But maybe you do not want to use suspense, you just want to deal with the states of the query directly in the component:
 
 ```tsx
-import { useApi } from '../hooks/useApi'
+import { useApi } from '../stores/useApi'
 
 const Post = ({ id }: { id: string }) => {
     const api = useApi()
@@ -60,7 +60,7 @@ const Post = ({ id }: { id: string }) => {
 Or maybe you need to do some layout effect related to a `fulfilled` query?
 
 ```tsx
-import { useApi } from '../hooks/useApi'
+import { useApi } from '../stores/useApi'
 
 const Post = ({ id }: { id: string }) => {
     const api = useApi()
@@ -75,13 +75,13 @@ const Post = ({ id }: { id: string }) => {
 }
 ```
 
-And then in some hook you might also need access to the data where `getValue` is the method you use to consume a query as a pure promise. So there are different tools for different scenarios.
+And then in some store you might also need access to the data where `getValue` is the method you use to consume a query as a pure promise. So there are different tools for different scenarios.
 
 But data fetching is not only about getting and displaying data, it is also about mutations. 
 
 ```tsx
 import { useState } from 'react'
-import { useApi } from '../hooks/useApi'
+import { useApi } from '../stores/useApi'
 
 const Post = ({ id }: { id: string }) => {
     const api = useApi()
@@ -105,4 +105,4 @@ const Post = ({ id }: { id: string }) => {
 }
 ```
 
-**Impact** allows you to manage your data fetching across its own hooks, your React hooks and components seamlessly.
+**Impact** allows you to manage your data fetching across its stores, your React hooks and components seamlessly.

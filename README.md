@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Reactive Hooks for React</b>
+  <b>Composable Stores for React</b>
 </p>
 
 <br />
@@ -14,11 +14,11 @@
 
 <br />
 
-🗄️ Balancing global and scoped state management using hooks
+🗄️ Global and scoped stores
 
-🏗️ The hooks composition you know and love, without the overhead of reconciliation
+🏗️ Compose stores using the hooks pattern
 
-⚛️ Use built-in reactive state primitives or existing primitives from the eco system
+🔋 Reactive state primitives included
 
 <br/>
 
@@ -29,7 +29,10 @@
 > **Building UIs** should not be hard because of **state management**
 >
 > **State management** should not be hard because of **building UIs**
-*Engineering Zen Master, Christian Alfoni*
+>
+> *Engineering Zen Master, Christian Alfoni*
+
+
 
 <br/>
 
@@ -55,7 +58,7 @@
 - [Understanding The Design](./docs/03_Understanding_The_Design.md)
 - [Hello World](./docs/04_Hello_World.md)
 - [API](./docs/05_API.md)
-- [Reactive Hooks](./docs/06_Reactive_Hooks.md)
+- [Stores](./docs/06_Stores.md)
 - [Reactivity](./docs/07_Reactivity.md)
 - [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
 - [Events](./docs/09_Events.md)

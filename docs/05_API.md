@@ -1,7 +1,7 @@
 # API
 
-- [createHook](#createHook)
-- [createHooksProvider](#createHooksProvider)
+- [createStore](#createStore)
+- [createStoresProvider](#createStoresProvider)
 - [useCleanup](#useCleanup)
 - [signal](#signal)
     - [derive](#derive)
@@ -20,12 +20,12 @@
     - [onChange](#onchange)
 - [emitter](#emitter)
 
-## createHook
+## createStore
 
-Create your hook. By default you hooks are automatically registered globally and is shared by all components.
+Create your store. By default you stores are automatically registered globally and is shared by all components and other stores.
 
 ```ts
-import { createHook } from 'impact-app'
+import { createStore } from 'impact-app'
 
 function HelloWorld() {
     return {
@@ -33,50 +33,50 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
-## createHooksProvider
+## createStoresProvider
 
-Creating a `ReactiveHooksProvider` allows you to define what hooks are shared by what components. Typically you create one provider at the root of your component tree to capture all hooks resolvement and control which hooks are considered global to the application and which are scoped to specific pages/features.
+Creating a `StoresProvider` allows you to define what stores are shared by what components and other stores. Typically you create one provider at the root of your component tree to capture all stores resolvement and control which stores are considered global to the application and which are scoped to specific pages/features.
 
 ```tsx
-import { createHooksProvider } from 'impact-app'
-import { useHookA } from './useHookA'
-import { useHookB } from './useHookB'
-import { useHookC } from './useHookC'
+import { createStoresProvider } from 'impact-app'
+import { useStoreA } from './useStoreA'
+import { useStoreB } from './useStoreB'
+import { useStoreC } from './useStoreC'
 
-export const MyHooksProvider = createHooksProvider({
-    useHookA,
-    useHookB,
-    useHookC
+export const MyStoresProvider = createStoresProvider({
+    useStoreA,
+    useStoreB,
+    useStoreA
 })
 ```
 
 ```tsx
-import { MyHooksProvider } from './hooks'
+import { MyStoresProvider } from './stores'
 
 function SomeComponent() {
     return (
         /*
-            If a hook takes an argument, you will pass it here. Typed so that you will not miss it.
-            The value is only used when resolving the hook, which means if you expect to "remount"
-            the hook with a new initial value you will need to remount the provider
+            If a store takes an argument, you will pass it here. Typed so that you will not miss it.
+            The value is only used when resolving the store, which means if you expect to "remount"
+            the store with a new initial value you will need to remount the provider
         */
-        <MyHooksProvider useHookB={100}>
+        <MyStoresProvider useStoreB={100}>
             <SomeComponent />
             <SomeOtherComponent />
-        </MyHooksProvider>
+        </MyStoresProvider>
     )
 }
 ```
 
 ## useCleanup
 
-It used in combination with reactive hooks providers. When the `ReactiveHooksProvider` unmounts it will call this function for any reactive hooks resolved within the provider.
+It used in combination with store providers. When the `StoresProvider` unmounts it will call this function for any stores resolved within the provider.
 
 ```ts
-import { createHook, signal, useCleanup } from 'impact-app'
+import { createStore, signal, useCleanup } from 'impact-app'
 
 function Counter() {
     const count = signal(0)
@@ -92,7 +92,7 @@ function Counter() {
     }
 }
 
-export const useCounter = createHook(Counter)
+export const useCounter = createStore(Counter)
 ```
 
 ## signal
@@ -100,7 +100,7 @@ export const useCounter = createHook(Counter)
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { createHook, signal } from 'impact-app'
+import { createStore, signal } from 'impact-app'
 
 function HelloWorld() {
     const message = signal('Hello World')
@@ -112,13 +112,13 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
 Under the hood signals uses [Immer](https://immerjs.github.io/immer/) which allows you to update the value by using a function. This function gives you the current value and you can use the normal mutation APIs and Immer returns an immutable value:
 
 ```ts
-import { createHook, signal } from 'impact-app'
+import { createStore, signal } from 'impact-app'
 
 function HelloWorld() {
     const messages = signal<string[]>([])
@@ -135,7 +135,7 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ### derive
@@ -143,7 +143,7 @@ export const useHelloWorld = createHook(HelloWorld)
 Creates a signal that lazily recomputes whenever any accessed signals within the derive callback changes.
 
 ```ts
-import { createHook, signal, derive } from 'impact-app'
+import { createStore, signal, derive } from 'impact-app'
 
 function HelloWorld() {
     const message = signal('Hello World')
@@ -159,7 +159,7 @@ function HelloWorld() {
     }
 }
 
-export const useHelloWorld = createHook(HelloWorld)
+export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ### observe
@@ -168,7 +168,7 @@ To observe signals, and "rerender" the components, they need to bound to an `Obs
 
 ```tsx
 import { observe } from 'impact-app'
-import { useHelloWorld } from '../hooks/useHelloWorld'
+import { useHelloWorld } from '../stores/useHelloWorld'
 
 function HelloWorld() {
     const helloWorld = useHelloWorld()
@@ -183,7 +183,7 @@ But the approach above can result in anonymous component names and dictates to s
 
 ```tsx
 import { observe } from 'impact-app'
-import { useHelloWorld } from '../hooks/useHelloWorld'
+import { useHelloWorld } from '../stores/useHelloWorld'
 
 export function HelloWorld() {
     using _ = observe()
@@ -244,10 +244,10 @@ Make sure your project has a `.vscode/launch.json` file with the following conte
 
 ## query / queries
 
-A primitive to handle quering and consuming data across reactive hooks and components. The only difference between `query` and `queries` is that `queries` takes a unqiue identifier, typically the UID of a resource, as its first argument. Though that argument can also be an array of multiple values representing the uniqueness of the resource. Using `query` represents a single resource and does not requires a unique identifier.
+A primitive to handle quering and consuming data across stores and components. The only difference between `query` and `queries` is that `queries` takes a unqiue identifier, typically the UID of a resource, as its first argument. Though that argument can also be an array of multiple values representing the uniqueness of the resource. Using `query` represents a single resource and does not requires a unique identifier.
 
 ```ts
-import { createHook, queries, query } from 'impact-app'
+import { createStore, queries, query } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function Api() {
@@ -259,7 +259,7 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api)
+export const useApi = createStore(Api)
 ```
 
 The first argument to the `queries` callback is considered the key. It can be a `string` or an array combining `string`, `number` or `boolean`. The query generates a unique caching key based on this. The `query` caches as well.
@@ -332,7 +332,7 @@ export const Post = ({ id }: { id: string }) => {
 Immediately set the cache to a fulfilled value. Will notify any subscribers of the change. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
 
 ```tsx
-import { queries, query, useCleanup } from 'impact-app'
+import { queries, query, useCleanup, createStore } from 'impact-app'
 
 function Api() {
     const notifications = useApiNotifications()
@@ -360,15 +360,15 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api)
+export const useApi = createStore(Api)
 ```
 
 ### getValue
 
-Allows you to consume the query as a normal promise. It will fetch the value if not cached, or hook into the existing pending state of the query. This is useful to access query values in other reactive hooks.
+Allows you to consume the query as a normal promise. It will fetch the value if not cached, or hook into the existing pending state of the query. This is useful to access query values in other stores.
 
 ```tsx
-import { useCleanup } from 'impact-app'
+import { createStore } from 'impact-app'
 
 function Api() {
     const api = useApi()
@@ -388,7 +388,7 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api)
+export const useApi = createStore(Api)
 ```
 
 
@@ -397,7 +397,7 @@ export const useApi = createHook(Api)
 Subscribe to when a query changes its status. This can be useful to sync signals.
 
 ```ts
-import { signal, createHook, QueryState } from 'impact-app'
+import { signal, createStore, QueryState } from 'impact-app'
 import { PostDTO } from './useApi'
 
 function Post(initialPost: PostDTO) {
@@ -428,7 +428,7 @@ function Post(initialPost: PostDTO) {
     }
 }
 
-export const usePost = createHook(Post)
+export const usePost = createStore(Post)
 ```
 
 ## mutation / mutations
@@ -436,7 +436,7 @@ export const usePost = createHook(Post)
 A mutation represents a one off request which changes something externally. The `mutations` function is for resource with unique identifiers, while `mutation` is for a request representing a single resource.
 
 ```ts
-import { createHook, mutations, query } from 'impact-app'
+import { createStore, mutations, query } from 'impact-app'
 import { useApi, PostDTO } from './Api'
 
 function Api() {
@@ -451,12 +451,12 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api)
+export const useApi = createStore(Api)
 ```
 
 ### mutate
 
-Runs the request. This method can be called in both hooks and components.
+Runs the request. This method can be called in both stores and components.
 
 ```tsx
 import { useApi } from '../useApi'
@@ -508,9 +508,9 @@ A traditional event listener to react to state changes of a mutation.
 A typed event emitter which enables accessor pattern and disposal.
 
 ```ts
-import { emitter, createHook } from 'impact-app'
+import { emitter, createStore } from 'impact-app'
 
-function SomeHook() {
+function SomeStore() {
     const fooEmitter = emitter<string>()
 
     return {
@@ -521,7 +521,7 @@ function SomeHook() {
     }
 }
 
-export const useSomeHook = createHook(SomeHook)
+export const useSomeStore = createStore(SomeStore)
 ```
 
 

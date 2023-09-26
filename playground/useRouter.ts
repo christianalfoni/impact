@@ -1,5 +1,5 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
-import { useCleanup, createHook, signal } from "impact-app";
+import { useCleanup, createStore, signal } from "impact-app";
 
 export const routes = {
   main: "/",
@@ -48,4 +48,4 @@ function Router() {
   };
 }
 
-export const useRouter = createHook(Router);
+export const useRouter = createStore(Router);
