@@ -21,7 +21,7 @@ export function ExampleSandpack({
       }}
       customSetup={{
         dependencies: {
-          "impact-app": "latest",
+          "impact-app": "0.29.0",
           "@radix-ui/themes": "latest",
           ...(dependencies?.reduce<Record<string, string>>(
             (aggr, dependency) => {

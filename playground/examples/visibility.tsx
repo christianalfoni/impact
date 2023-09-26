@@ -6,7 +6,7 @@ export function VisibilityExample() {
     <Flex direction="column" gap="4" grow="1">
       <Heading>Visibility</Heading>
       <Text>
-        In this example we create a hook for the visibility API of the browser.
+        In this example we create a store for the visibility API of the browser.
       </Text>
       <ExampleSandpack
         example={`import { observe } from "impact-app";
@@ -36,7 +36,7 @@ function Example() {
 
 export default observe(Example)`}
         files={{
-          "/useVisbility.js": `import { useCleanup, createHook, emitter, signal } from "impact-app"
+          "/useVisbility.js": `import { useCleanup, createStore, emitter, signal } from "impact-app"
           
 function Visibility() {
   const isVisible = signal(document.visibilityState === "visible");
@@ -60,7 +60,7 @@ function Visibility() {
   };
 }
 
-export const useVisbility = createHook(Visibility);`,
+export const useVisbility = createStore(Visibility);`,
         }}
       />
     </Flex>

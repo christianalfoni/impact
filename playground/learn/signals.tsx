@@ -8,9 +8,9 @@ export function LearnSignals() {
       <Heading>Signals</Heading>
       <Text>
         Impact ships with its own reactive primitives. One of those primitives
-        is a <b>signal</b>. The signal allows you to consume state from hooks
+        is a <b>signal</b>. The signal allows you to consume state from stores
         and components can observe changes to them. Let us look at our message
-        hook again and make it reactive.
+        store again and make it reactive.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
@@ -37,7 +37,7 @@ function HelloWorld() {
 
 export default observe(HelloWorld);`}
         files={{
-          "/useHelloWorld.js": `import { createHook, signal } from "impact-app";
+          "/useHelloWorld.js": `import { createStore, signal } from "impact-app";
 
 function HelloWorld() {
   const message = signal("Hello World");
@@ -49,18 +49,18 @@ function HelloWorld() {
   }
 }
 
-export const useHelloWorld = createHook(HelloWorld);`,
+export const useHelloWorld = createStore(HelloWorld);`,
         }}
       />
       <Text>
         First we used a <b>signal</b> to hold our reactive value. We returned
         the signals value using a <i>getter</i>. This makes our value{" "}
         <i>readonly</i> ensuring that we can only change the message from within
-        the hook.
+        the store.
       </Text>
       <Text>
         Additionally we are using the <b>observe</b> function to make our
-        component able to observe any consumed signal from any hook. You can
+        component able to observe any consumed signal from any store. You can
         also express this observability inline in the component, which you can
         read more about in the documentation.
       </Text>
@@ -101,7 +101,7 @@ function HelloWorld() {
 
 export default observe(HelloWorld);`}
         files={{
-          "/useHelloWorld.js": `import { createHook, signal } from "impact-app";
+          "/useHelloWorld.js": `import { createStore, signal } from "impact-app";
 
 function HelloWorld() {
   const message = signal("Hello World");
@@ -116,12 +116,12 @@ function HelloWorld() {
   }
 }
 
-export const useHelloWorld = createHook(HelloWorld);`,
+export const useHelloWorld = createStore(HelloWorld);`,
         }}
       />
       <Text>
         You probably want to store more complex objects in a signal as well. For
-        example an entity from the server. In this example we have a hook
+        example an entity from the server. In this example we have a store
         representing the current project on a project page.
       </Text>
       <Callout.Root color="green">
@@ -130,7 +130,7 @@ export const useHelloWorld = createHook(HelloWorld);`,
         </Callout.Icon>
         <Callout.Text>
           In this example you will learn how to define complex objects in a
-          signal and expose it to components and other hooks.
+          signal and expose it to components and other stores.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
@@ -151,7 +151,7 @@ function Project() {
 
 export default observe(Project);`}
         files={{
-          "/useProject.js": `import { createHook, signal } from "impact-app";
+          "/useProject.js": `import { createStore, signal } from "impact-app";
 
 function Project() {
   const project = signal({
@@ -169,7 +169,7 @@ function Project() {
   }
 }
 
-export const useProject = createHook(Project);`,
+export const useProject = createStore(Project);`,
         }}
       />
       <Text>
@@ -224,7 +224,7 @@ function Project() {
 
 export default Project;`}
         files={{
-          "/useProject.js": `import { createHook, signal } from "impact-app";
+          "/useProject.js": `import { createStore, signal } from "impact-app";
 
           
 function Project() {
@@ -247,7 +247,7 @@ function Project() {
   }
 }
 
-export const useProject = createHook(Project);`,
+export const useProject = createStore(Project);`,
         }}
       />
       <Text>

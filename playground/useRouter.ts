@@ -7,7 +7,7 @@ export const routes = {
   visibility: "/examples/visibility",
   routing: "/examples/routing",
   xstate: "/examples/xstate",
-  hooks: "/learn/hooks",
+  stores: "/learn/stores",
   signals: "/learn/signals",
   queries: "/learn/queries",
 } as const;
@@ -21,7 +21,7 @@ function Router() {
 
   // We'll immediately redirect to the first example when on root
   if (router.current?.name === "main") {
-    router.replace("hooks", { example: "1" });
+    router.replace("stores", {});
   }
 
   const currentRoute = signal(router.current);
