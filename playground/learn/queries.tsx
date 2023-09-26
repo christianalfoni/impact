@@ -47,7 +47,7 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createHook } from "impact-app";
+          "/useApi.js": `import { queries, createStore } from "impact-app";
 import { getProject } from './api'
 
 function Api() {
@@ -58,7 +58,7 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
         }}
       />
       <Text>
@@ -109,7 +109,7 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createHook } from "impact-app";
+          "/useApi.js": `import { queries, createStore } from "impact-app";
 import { getProject } from './api'
 
 function Api() {
@@ -120,7 +120,7 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
         }}
       />
       <Text>
@@ -156,7 +156,7 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createHook } from "impact-app";
+          "/useApi.js": `import { queries, createStore } from "impact-app";
 import { getProject } from './api'
 
 function Api() {
@@ -167,7 +167,7 @@ function Api() {
     }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
         }}
       />
     </Flex>

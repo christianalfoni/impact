@@ -5,7 +5,7 @@ export function RoutingExample() {
   return (
     <Flex direction="column" gap="4" grow="1">
       <Heading>Routing</Heading>
-      <Text>In this example we create a hook for a router.</Text>
+      <Text>In this example we create a store for a router.</Text>
       <ExampleSandpack
         dependencies={["typed-client-router"]}
         example={`import { observe } from "impact-app";
@@ -61,7 +61,7 @@ function Pages() {
 
 export default observe(Pages)`}
         files={{
-          "/useRouter.js": `import { createHook, signal, useCleanup } from "impact-app";
+          "/useRouter.js": `import { createStore, signal, useCleanup } from "impact-app";
 import { createRouter } from "typed-client-router";
 
 const routes = {
@@ -98,7 +98,7 @@ function Router() {
   };
 }
 
-export const useRouter = createHook(Router);`,
+export const useRouter = createStore(Router);`,
         }}
       />
     </Flex>

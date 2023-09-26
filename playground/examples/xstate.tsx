@@ -29,7 +29,7 @@ function Toggle() {
 export default observe(Toggle)`}
         files={{
           "/useToggle.js": `import { createMachine, interpret } from "xstate";
-import { createHook, signal } from "impact-app";
+import { createStore, signal } from "impact-app";
 
 const toggleMachine = createMachine({
   id: "toggle",
@@ -66,7 +66,7 @@ function Toggle() {
   };
 }
 
-export const useToggle = createHook(Toggle);`,
+export const useToggle = createStore(Toggle);`,
         }}
       />
     </Flex>

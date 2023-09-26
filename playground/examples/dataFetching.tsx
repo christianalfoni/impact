@@ -66,7 +66,7 @@ function Posts() {
 
 export default Posts`}
           files={{
-            "/useApi.js": `import { createHook, queries } from "impact-app";
+            "/useApi.js": `import { createStore, queries } from "impact-app";
 import { getPost } from './api'
 
 function Api() {
@@ -75,7 +75,7 @@ function Api() {
   }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
           }}
         />
 
@@ -139,7 +139,7 @@ export function Posts() {
 
 export default Posts`}
           files={{
-            "/useApi.js": `import { createHook, queries, useCleanup } from "impact-app";
+            "/useApi.js": `import { createStore, queries, useCleanup } from "impact-app";
 import { onPostUpdate, getPost } from './api'
 
 function Api() {
@@ -156,7 +156,7 @@ function Api() {
   }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
           }}
         />
 
@@ -224,7 +224,7 @@ export function Posts() {
 
 export default observe(Posts)`}
           files={{
-            "/useApi.js": `import { createHook, queries, useCleanup, signal } from "impact-app";
+            "/useApi.js": `import { createStore, queries, useCleanup, signal } from "impact-app";
 import { onNewPost, getPost } from './api'
 
 function Api() {
@@ -246,7 +246,7 @@ function Api() {
   }
 }
 
-export const useApi = createHook(Api);`,
+export const useApi = createStore(Api);`,
           }}
         />
       </Flex>

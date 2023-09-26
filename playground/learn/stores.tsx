@@ -1,28 +1,26 @@
 import { Callout, Flex, Heading, Text } from "@radix-ui/themes";
 import { ExampleSandpack } from "../ExampleSandpack";
-import { CheckCircledIcon, InfoCircledIcon } from "@radix-ui/react-icons";
+import { CheckCircledIcon } from "@radix-ui/react-icons";
 
-export function LearnHooks() {
+export function LearnStores() {
   return (
     <Flex direction="column" gap="4" grow="1" pb="6">
-      <Heading>Hooks</Heading>
+      <Heading>Stores</Heading>
       <Text>
-        The fundamental primitive of Impact is the hook. This hook conceptually
-        works the same way as traditional React hooks, but they run outside of
-        the reconciliation loop of React. That means you can not use hooks like
-        <b> useState</b>, <b>useEffect</b> etc., but you rather use reactive
-        state primitives. Either from Impact or the ecosystem.
+        The fundamental primitive of Impact is the store. This store is just a
+        function exposing a public interface. That interface exposing reactive
+        state or not is up to you.
       </Text>
       <Text>
-        The most important thing to understand about reactive hooks in Impact is
-        that will by default be registered globally.
+        The most important thing to understand about stores in Impact is that
+        will by default be registered globally.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn about defining and consuming hooks.
+          In this example you will learn about defining and consuming stores.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
@@ -41,17 +39,17 @@ function HelloWorld() {
 
 export default HelloWorld`}
         files={{
-          "/useHelloWorld.js": `import { createHook } from "impact-app";
+          "/useHelloWorld.js": `import { createStore } from "impact-app";
 
 function HelloWorld() {
   return 'Hello World'
 }
 
-export const useHelloWorld = createHook(HelloWorld);`,
+export const useHelloWorld = createStore(HelloWorld);`,
         }}
       />
       <Text>
-        That means if we where to use multiple components consuming the hook,
+        That means if we where to use multiple components consuming the store,
         they would consume the same global instance. Let us move to a counter
         instead.
       </Text>
@@ -61,7 +59,7 @@ export const useHelloWorld = createHook(HelloWorld);`,
         </Callout.Icon>
         <Callout.Text>
           In this example you will learn that multiple components consumes the
-          same instance of a hook.
+          same instance of a store.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
@@ -92,7 +90,7 @@ function Counters() {
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createHook } from "impact-app";
+          "/useCounter.js": `import { createStore } from "impact-app";
 
 function Counter() {
   let count = 0
@@ -105,30 +103,30 @@ function Counter() {
   }
 }
 
-export const useCounter = createHook(Counter);`,
+export const useCounter = createStore(Counter);`,
         }}
       />
       <Text>
-        Impact allows you to scope hooks to a component tree. Typically you
+        Impact allows you to scope stores to a component tree. Typically you
         would do this for pages or features within a page, but for this example
-        lets us create a unique <b>Counter</b> hook for each component.
+        lets us create a unique <b>Counter</b> store for each component.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn about hook providers, which allows you
-          to scope hooks to component trees. Now each component tree has its own
-          instance of the hook.
+          In this example you will learn about store providers, which allows you
+          to scope stores to component trees. Now each component tree has its
+          own instance of the store.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createHooksProvider } from 'impact-app'
+import { createStoresProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 
-const CounterProvider = createHooksProvider({ useCounter })
+const CounterProvider = createStoresProvider({ useCounter })
 
 function Counter({ name }) {
   const counter = useCounter()
@@ -158,7 +156,7 @@ function Counters() {
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createHook } from "impact-app";
+          "/useCounter.js": `import { createStore } from "impact-app";
 
 function Counter() {
   let count = 0
@@ -171,33 +169,33 @@ function Counter() {
   }
 }
 
-export const useCounter = createHook(Counter);`,
+export const useCounter = createStore(Counter);`,
         }}
       />
       <Text>
-        In this scenario we just added a single hook to the provider, but you
-        can add multiple hooks. What this also means is that hooks are resolved
-        using the component tree. To understand this better, let us add a new
-        hook that will be exposed at the top of the application.
+        In this scenario we just added a single store to the provider, but you
+        can add multiple stores. What this also means is that stores are
+        resolved using the component tree. To understand this better, let us add
+        a new store that will be exposed at the top of the application.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn that hooks are resolved through the
-          component tree. That means hooks can user other hooks, but only if
+          In this example you will learn that stores are resolved through the
+          component tree. That means stores can user other stores, but only if
           they can be resolved through the component tree.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createHooksProvider } from 'impact-app'
+import { createStoresProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 import { useMath } from "./useMath";
 
-const GlobalProvider = createHooksProvider({ useMath })
-const CounterProvider = createHooksProvider({ useCounter })
+const GlobalProvider = createStoresProvider({ useMath })
+const CounterProvider = createStoresProvider({ useCounter })
 
 function Counter({ name }) {
   const counter = useCounter()
@@ -229,7 +227,7 @@ function Counters() {
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createHook } from "impact-app";
+          "/useCounter.js": `import { createStore } from "impact-app";
 import { useMath } from './useMath';
 
 function Counter() {
@@ -244,8 +242,8 @@ function Counter() {
   }
 }
 
-export const useCounter = createHook(Counter);`,
-          "/useMath.js": `import { createHook } from "impact-app";
+export const useCounter = createStore(Counter);`,
+          "/useMath.js": `import { createStore } from "impact-app";
 
 function Math() {
   return {
@@ -255,45 +253,45 @@ function Math() {
   }
 }
 
-export const useMath = createHook(Math)
+export const useMath = createStore(Math)
 `,
         }}
       />
       <Text>
-        What to take notice of here is that our <b>useCounter</b> hook is
-        consuming the <b>useMath</b> hook. Also notice that we are exposing the{" "}
-        <b>useMath</b> hook at the top of the application on a provider. If you
+        What to take notice of here is that our <b>useCounter</b> store is
+        consuming the <b>useMath</b> store. Also notice that we are exposing the{" "}
+        <b>useMath</b> store at the top of the application on a provider. If you
         remove this provider the code will fail with an error message stating
-        that the <b>Math</b> hook is not available.
+        that the <b>Math</b> store is not available.
       </Text>
       <Text>
-        When using hook providers the hooks still run outside the component
+        When using store providers the stores still run outside the component
         tree, but they are <b>resolved</b> through the component tree. This is
         what enables you to scope certain state and logic to specific pages and
         features of your application.
       </Text>
       <Text>
-        With the scoping of hooks to component trees we also enable the
-        possibility to instantiate hooks with an initial value. Let us extend
-        our <b>Counter</b> hook to take an initial count.
+        With the scoping of stores to component trees we also enable the
+        possibility to instantiate stores with an initial value. Let us extend
+        our <b>Counter</b> store to take an initial count.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn that hooks exposed through a hooks
+          In this example you will learn that stores exposed through a stores
           provider can be instantiated with initial values.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createHooksProvider } from 'impact-app'
+import { createStoresProvider } from 'impact-app'
 import { useCounter } from "./useCounter";
 import { useMath } from "./useMath";
 
-const GlobalProvider = createHooksProvider({ useMath })
-const CounterProvider = createHooksProvider({ useCounter })
+const GlobalProvider = createStoresProvider({ useMath })
+const CounterProvider = createStoresProvider({ useCounter })
 
 function Counter({ name }) {
   const counter = useCounter()
@@ -325,7 +323,7 @@ function Counters() {
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createHook } from "impact-app";
+          "/useCounter.js": `import { createStore } from "impact-app";
 import { useMath } from './useMath';
 
 function Counter(initialCount) {
@@ -340,8 +338,8 @@ function Counter(initialCount) {
   }
 }
 
-export const useCounter = createHook(Counter);`,
-          "/useMath.js": `import { createHook } from "impact-app";
+export const useCounter = createStore(Counter);`,
+          "/useMath.js": `import { createStore } from "impact-app";
 
 function Math() {
   return {
@@ -351,13 +349,13 @@ function Math() {
   }
 }
 
-export const useMath = createHook(Math)
+export const useMath = createStore(Math)
 `,
         }}
       />
       <Text>
         Now you have the fundamental idea of what Impact enables. Now it is time
-        to put some reactive primitives inside these hooks and explore some
+        to put some reactive primitives inside these stores and explore some
         patterns for organising them.
       </Text>
     </Flex>
