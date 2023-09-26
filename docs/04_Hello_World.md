@@ -1,7 +1,7 @@
 # Hello World
 
 ```ts
-import { signal, createHook } from 'impact-app'
+import { signal, createStore } from 'impact-app'
 
 function Timer() {
   // This function runs once, so you can initialize variables
@@ -41,16 +41,16 @@ function Timer() {
   }
 }
 
-export const useTimer = createHook(Timer)
+export const useTimer = createStore(Timer)
 ```
 
 ```tsx
 import { observe } from 'impact-app'
-import { useTimer } from './hooks/useTimer'
+import { useTimer } from './stores/useTimer'
 
 function App() {
     /*
-      By default all hooks are global and can be used in any component
+      By default all stores are global and can be used in any component
     */
     const timer = useTimer()
     

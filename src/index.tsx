@@ -1,4 +1,4 @@
-export * from "./ReactiveHooksProvider";
+export * from "./StoresProvider";
 export * from "./Signal";
 export * from "./emitter";
 export * from "./Query";
