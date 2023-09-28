@@ -103,7 +103,7 @@ export const onPostUpdate = postUpdateEmitter.on
 export const onNewPost = newPostEmitter.on
 
 export const getPost = async (id) => {
-  await sleep(2000);
+  await sleep(1000);
 
   let post = serverPosts[id];
 
@@ -119,13 +119,15 @@ export const getPost = async (id) => {
 }
 
 export const getProject = async (id) => {
-  await sleep(2000);
+  await sleep(1000);
 
-  return {
+  serverPosts[id] = serverPosts[id] || {
     id,
     title: "My awesome project",
     updatedAt: Date.now()
   }
+
+  return serverPosts[id]
 }
 
 export const addPost = () => {
@@ -138,6 +140,19 @@ export const addPost = () => {
   };
 
   newPostEmitter.emit(id);
+}
+
+export const changeProjectTitle = async (id, newTitle) => {
+  await sleep(1000);
+
+  serverPosts[id] = {
+    ...serverPosts[id],
+    title: newTitle,
+  };
+
+  postUpdateEmitter.emit(serverPosts[id]);
+
+  return serverPosts[id]
 }
 
 export const clear = () => {

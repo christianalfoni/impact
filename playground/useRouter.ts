@@ -10,6 +10,7 @@ export const routes = {
   stores: "/learn/stores",
   signals: "/learn/signals",
   queries: "/learn/queries",
+  mutations: "/learn/mutations",
 } as const;
 
 export type Routes = TRoutes<typeof routes>;
