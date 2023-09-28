@@ -10,6 +10,7 @@ import { useRouter } from "./useRouter";
 import { LearnStores } from "./learn/stores";
 import { LearnSignals } from "./learn/signals";
 import { LearnQueries } from "./learn/queries";
+import { LearnMutations } from "./learn/mutations";
 
 export function App() {
   using _ = observe();
@@ -51,6 +52,10 @@ export function App() {
       content = <LearnQueries />;
       break;
     }
+    case "mutations": {
+      content = <LearnMutations />;
+      break;
+    }
   }
 
   return (
@@ -65,6 +70,9 @@ export function App() {
         </ExampleLink>
         <ExampleLink name="queries" params={{}}>
           Queries
+        </ExampleLink>
+        <ExampleLink name="mutations" params={{}}>
+          Mutations
         </ExampleLink>
         <Heading size="4">Examples</Heading>
         <ExampleLink name="datafetching" params={{}}>

@@ -9,8 +9,8 @@ export function LearnQueries() {
       <Text>
         Data fetching at its core is just a request and response encapsulated by
         a promise. But data fetching is more than that. You have to consider
-        things like caching, but importantly how you want to consume the state
-        of the data fetching.
+        things like caching, but more importantly how you want to consume the
+        state of the data fetching to produce the user experience.
       </Text>
       <Text>
         Impact gives you a primitive to manage your data fetching with an
