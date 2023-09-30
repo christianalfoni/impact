@@ -143,14 +143,12 @@ export class StoresProvider<
 
 export function createStoresProvider<
   T extends {
-    [name: string]: (() => any) & { [STORE_REFERENCE]: Store<any, any> };
+    [name: string]: () => any;
   },
 >(stores: T) {
   return function ScopedStoresProvider(
     props: {
-      [U in keyof T as T[U][typeof STORE_REFERENCE] extends () => any
-        ? never
-        : U]: Parameters<T[U][typeof STORE_REFERENCE]>[0];
+      [U in keyof T as T[U] extends () => any ? never : U]: Parameters<T[U]>[0];
     } & { children: React.ReactNode },
   ) {
     return (
@@ -158,14 +156,14 @@ export function createStoresProvider<
         stores={Object.keys(stores).map((storeKey) => {
           if (storeKey in props) {
             return [
-              stores[storeKey][STORE_REFERENCE],
+              stores[storeKey],
               () =>
                 // @ts-ignore
-                stores[storeKey][STORE_REFERENCE](props[storeKey as keyof T]),
+                stores[storeKey](props[storeKey as keyof T]),
             ];
           }
 
-          return stores[storeKey][STORE_REFERENCE];
+          return stores[storeKey];
         })}
       >
         {props.children}
@@ -185,25 +183,15 @@ export function useCleanup(cleaner: () => void) {
   activeStoresContainer.registerCleanup(cleaner);
 }
 
-const STORE_REFERENCE = Symbol("STORE_REFERENCE");
+export function useStore<T, A extends any[]>(store: Store<T, A>) {
+  const activeStoresContainer =
+    currentStoresContainer[currentStoresContainer.length - 1];
 
-export function createStore<T, A extends any[]>(hook: Store<T, A>) {
-  const hookRef = () => {
-    const activeStoresContainer =
-      currentStoresContainer[currentStoresContainer.length - 1];
+  if (!activeStoresContainer) {
+    const hookContainer = useContext(context) || globalStoresContainer;
 
-    if (!activeStoresContainer) {
-      const hookContainer = useContext(context) || globalStoresContainer;
+    return hookContainer.resolve<T, A>(store);
+  }
 
-      return hookContainer.resolve<T, A>(hook);
-    }
-
-    return activeStoresContainer.resolve(hook);
-  };
-
-  hookRef[STORE_REFERENCE] = hook;
-
-  return hookRef as (() => T) & {
-    [STORE_REFERENCE]: Store<T, A>;
-  };
+  return activeStoresContainer.resolve(store);
 }

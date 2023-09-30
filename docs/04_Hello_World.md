@@ -1,9 +1,9 @@
 # Hello World
 
 ```ts
-import { signal, createStore } from 'impact-app'
+import { signal } from 'impact-app'
 
-function Timer() {
+export function TimerStore() {
   // This function runs once, so you can initialize variables
   let interval: number
   let isRunning = false
@@ -40,25 +40,23 @@ function Timer() {
     }
   }
 }
-
-export const useTimer = createStore(Timer)
 ```
 
 ```tsx
-import { observe } from 'impact-app'
-import { useTimer } from './stores/useTimer'
+import { observe, useStore } from 'impact-app'
+import { TimerStore } from './stores/TimerStore'
 
 function App() {
     /*
       By default all stores are global and can be used in any component
     */
-    const timer = useTimer()
+    const timerStore = useStore(TimerStore)
     
     return (
       <div>
-        <h1>{timer.count}</h1>
-        <button onClick={() => timer.start()}>Start</button>
-        <button onClick={() => timer.stop()}>Stop</button>
+        <h1>{timerStore.count}</h1>
+        <button onClick={() => timerStore.start()}>Start</button>
+        <button onClick={() => timerStore.stop()}>Stop</button>
       </div>
     )
 }

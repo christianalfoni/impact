@@ -5,21 +5,31 @@
 A store is just a function that returns state and/or logic, just like any other traditional React hook. We call it a store because it runs outside of React and enables reactive behaviour by the usage of reactive state primitives within it, like the signals from **Impact**. That means on its own a store is not reactive, it is a just a container for reactive primitives.
 
 ```ts
-import { createStore } from 'impact-app'
-
 export function SomeStore() { 
     return {}
 }
-
-export const useSomeStore = createStore(SomeStore)
 ```
 
-## Providing stores
+## Providing and consuming stores
+
+By default all stores are global and you can just start consuming them within components and other stores. They will all share a single instance of any store consumed.
+
+```tsx
+import { useStore } from 'impact-app'
+
+function SomeStore() {
+    return {}
+}
+
+function SomeComponent() {
+    const someStore = useStore(SomeStore)
+}
+```
 
 The `StoresProvider` allows you to scope your stores to a component tree. The components in the component tree consuming the stores from a `StoresProvider` will all consume the same instance of stores. When the `StoresProvider` unmounts any `useCleanup` callbacks will be called on the resolved stores.
 
 ```tsx
-import { createStoresProvider, createStore, useCleanup } from 'impact-app'
+import { createStoresProvider, useStore, useCleanup } from 'impact-app'
 
 function SomeStore() {
     useCleanup(() => {
@@ -29,16 +39,13 @@ function SomeStore() {
     return {}
 }
 
-const useSomeStore = createStore(SomeStore)
-
-const StoresProvider = createStoresProvider({ useSomeStore })
+const StoresProvider = createStoresProvider({ SomeStore })
 
 function SomeComponent() {
     /*
-        Using "useSomeStore" will throw an error if the store is not provided
-        by a "StoresProvider"
+        When the component has a parent "StoresProvider" it will throw an error if "SomeStore" can not be resolved. 
     */
-    const store = useSomeStore()
+    const someStore = useStore(SomeStore)
 }
 
 function SomeOtherComponent() {
@@ -46,7 +53,7 @@ function SomeOtherComponent() {
       This will get the same instance of the store as
       "SomeComponent" because they use the same StoresProvider
     */
-    const store = useSomeStore()
+    const someStore = useStore(SomeStore)
 }
 
 const App = () => (
@@ -61,22 +68,19 @@ const App = () => (
 )
 ```
 
-
 ## Composing stores
 
 The stores can be used by any other store, any traditional React hook or in a component.
 
 ```ts
-import { createStore } from 'impact-app'
-import { useApi } from './useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from './stores/ApiStore'
 
 export function SomeStore() {
-    const api = useApi()
+    const apiStore = useStore(ApiStore)
 
     return {}
 }
-
-export const useSomeStore = createStore(SomeStore)
 ```
 
 ## Disposing
@@ -84,12 +88,12 @@ export const useSomeStore = createStore(SomeStore)
 When a `StoresProvider` is unmounted it will be disposed. Any resolved stores will also be disposed. The `useCleanup` hook registers a callback that will be called when this disposal occurs.
 
 ```ts
-import { createStore, useCleanup } from 'impact-app'
-import { useApi } from './useApi'
+import { useStore, useCleanup } from 'impact-app'
+import { ApiStore } from './useApi'
 
-function SomeSubscriber() {
-    const api = useApi()
-    const disposeSubscription = api.subscribeSomething(() => {
+export function SomeSubscribingStore() {
+    const apiStore = useStore(ApiStore)
+    const disposeSubscription = apiStore.subscribeSomething(() => {
         // Update a signal or whatever    
     })
 
@@ -97,8 +101,6 @@ function SomeSubscriber() {
 
     return {}
 }
-
-export const useSomeSubscriber = createStore(SomeSubscriber)
 ```
 
 ## Passing params to stores
@@ -112,14 +114,12 @@ function SomeStore(id: string) {
     return {}
 }
 
-const useSomeStore = createStore(SomeStore)
-
-const StoresProvider = createStoresProvider({ useSomeStore })
+const StoresProvider = createStoresProvider({ SomeStore })
 
 const App = ({ id }: { id: string }) => {
     return (
-        // HooksProvider is now typed to ensure you pass the argument
-        <StoresProvider useSomeStore={id}>
+        // StoresProvider is now typed to ensure you pass the argument
+        <StoresProvider SomeStore={id}>
             <Content />
         </StoresProvider>
     )
@@ -153,15 +153,15 @@ It can be a good idea to structure your application as a set of pages and/or fea
 
 ```bash
 /global-stores
-  useApi.ts
-  useVisibility.ts
-  useTime.ts
+  ApiStore.ts
+  VisibilityStore.ts
+  TimeStore.ts
   index.ts
 /features
   /project
     /stores
-        useSomething.ts
-        useSomethingElse.ts
+        SomethingStore.ts
+        SomethingElseStore.ts
         index.tsx
     /components
     index.tsx
@@ -173,16 +173,16 @@ The `global-stores/index.tsx` file would be where you define the `StoresProvider
 
 ```ts 
 import { createStoresProvider } from 'impact-app'
-import { useProject } from './useProject'
-import { useSomethingElse } from './useSomethingElse'
+import { ProjectStore } from './ProjectStore'
+import { SomethingElseStore } from './SomethingElseStore'
 
 /*
-    It is a good idea to export the stores so any component can import a single "projectStores". This reduces number of imports
+    It can be a good idea to export the stores so any component can import a single "projectStores". This reduces number of imports
     and makes the stores more discoverable as you can `.` with your intellisense to find all stores for a certain page/feature etc.
 */
 export const projectStores = {
-    useProject,
-    useSomethingElse
+    ProjectStore,
+    SomethingElseStore
 }
 
 export const ProjectStoresProvider = createStoresProvider(projectStores)
@@ -191,6 +191,7 @@ export const ProjectStoresProvider = createStoresProvider(projectStores)
 The `index.tsx` file would be responsible for exposing the related stores and composing your components.
 
 ```tsx
+import { useStore } from 'impact-app'
 import { globalStores } from '../global-stores'
 import { ProjectStoresProvider } from './stores'
 import { Layout } from './components/Layout'
@@ -198,11 +199,11 @@ import { ProjectOverview } from './components/ProjectOverview'
 import { ConfigureProject } from './components/ConfigureProject'
 
 export function Project({ id }: { id: string }) {
-    const projects = globalStores.useProjects()
-    const projectData = projects.getProject(id).use()
+    const apiStore = useStore(globalStores.ApiStore)
+    const projectData = apiStore.projects.suspend(id)
 
     return (
-        <ProjectStoresProvider key={id} useProject={projectData}>
+        <ProjectStoresProvider key={id} ProjectStore={projectData}>
             <Layout>
                 <ProjectOverview />
                 <ConfigureProject />

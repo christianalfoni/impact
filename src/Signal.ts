@@ -123,6 +123,10 @@ export function signal<T>(value: T): Signal<T> {
         createSetterDebugEntry(signal, value);
       }
 
+      if (value === prevValue) {
+        return;
+      }
+
       signal.notify();
 
       listeners?.forEach((listener) => listener(value, prevValue));

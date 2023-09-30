@@ -3,9 +3,9 @@
 Signals makes state in stores observable, but we also need to emit events. **Impact** ships with its own event emitter for good measure;
 
 ```ts
-import { emitter, createStore } from 'impact-app'
+import { emitter } from 'impact-app'
 
-function SomeStore() {
+export function SomeStore() {
     const helloEmitter = emitter<string>()
 
     return {
@@ -15,6 +15,4 @@ function SomeStore() {
         }
     }
 }
-
-export const useSomeStore = createStore(SomeStore)
 ```
