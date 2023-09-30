@@ -1,7 +1,16 @@
 # Hello World
 
+This example is a *silly* example, but it shows:
+
+- Stores are just functions
+- You can define variables
+- You can safely run a side effect when the store initialises
+- You can define reactive state to be consumed by components and other stores
+- You can dispose when the store unmounts
+- You can use getters to consume signals as readonly state
+
 ```ts
-import { signal } from 'impact-app'
+import { signal, useCleanup } from 'impact-app'
 
 export function TimerStore() {
   // This function runs once, so you can initialize variables
@@ -10,6 +19,9 @@ export function TimerStore() {
 
   // Use signals to expose reactive state
   const count = signal(0)
+
+  // When this store unmounts it will stop the interval
+  useCleanup(stopInterval)
 
   // You can also safely start side effects
   startInterval()
