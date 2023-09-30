@@ -24,28 +24,25 @@ export function LearnStores() {
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { useHelloWorld } from "./useHelloWorld";
+        example={`import { useStore } from "impact-app";
+import { Button, Flex, Heading } from "@radix-ui/themes";
+import { MessageStore } from "./MessageStore";
 
 function HelloWorld() {
-  const helloWorld = useHelloWorld()
+  const message = useStore(MessageStore)
 
   return (
     <Flex p="6" justify="center">
-      <Heading>{helloWorld}</Heading>
+      <Heading>{message}</Heading>
     </Flex>
   );
 }
 
 export default HelloWorld`}
         files={{
-          "/useHelloWorld.js": `import { createStore } from "impact-app";
-
-function HelloWorld() {
+          "/MessageStore.js": `export function MessageStore() {
   return 'Hello World'
-}
-
-export const useHelloWorld = createStore(HelloWorld);`,
+}`,
         }}
       />
       <Text>
@@ -63,16 +60,17 @@ export const useHelloWorld = createStore(HelloWorld);`,
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { useCounter } from "./useCounter";
+        example={`import { useStore } from "impact-app";
+import { Button, Flex, Heading } from "@radix-ui/themes";
+import { CounterStore } from "./CounterStore";
 
 function Counter({ name }) {
-  const counter = useCounter()
+  const counterStore = useStore(CounterStore)
 
   return (
     <>
       <Heading size="4">{name}</Heading>
-      <Button onClick={() => counter.increase()}>
+      <Button onClick={() => counterStore.increase()}>
         Increase count
       </Button>
     </>
@@ -90,9 +88,7 @@ function Counters() {
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createStore } from "impact-app";
-
-function Counter() {
+          "/CounterStore.js": `export function CounterStore() {
   let count = 0
 
   return {
@@ -101,9 +97,7 @@ function Counter() {
       alert(count)
     }
   }
-}
-
-export const useCounter = createStore(Counter);`,
+}`,
         }}
       />
       <Text>
@@ -122,19 +116,20 @@ export const useCounter = createStore(Counter);`,
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
-        example={`import { Button, Flex, Heading } from "@radix-ui/themes";
+        example={`import { useStore } from "impact-app";
+import { Button, Flex, Heading } from "@radix-ui/themes";
 import { createStoresProvider } from 'impact-app'
-import { useCounter } from "./useCounter";
+import { CounterStore } from "./CounterStore";
 
-const CounterProvider = createStoresProvider({ useCounter })
+const CounterStoresProvider = createStoresProvider({ CounterStore })
 
 function Counter({ name }) {
-  const counter = useCounter()
+  const counterStore = useStore(CounterStore)
 
   return (
     <>
       <Heading size="4">{name}</Heading>
-      <Button onClick={() => counter.increase()}>
+      <Button onClick={() => counterStore.increase()}>
         Increase count
       </Button>
     </>
@@ -144,21 +139,19 @@ function Counter({ name }) {
 function Counters() {
   return (
     <Flex gap="4" p="6" direction="column">
-      <CounterProvider>
+      <CounterStoresProvider>
         <Counter name="Counter 1" />
-      </CounterProvider>
-      <CounterProvider>
+      </CounterStoresProvider>
+      <CounterStoresProvider>
         <Counter name="Counter 2" />
-      </CounterProvider>
+      </CounterStoresProvider>
     </Flex>
   )
 }
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createStore } from "impact-app";
-
-function Counter() {
+          "/CounterStore.js": `export function CounterStore() {
   let count = 0
 
   return {
@@ -167,9 +160,7 @@ function Counter() {
       alert(count)
     }
   }
-}
-
-export const useCounter = createStore(Counter);`,
+}`,
         }}
       />
       <Text>
@@ -190,20 +181,20 @@ export const useCounter = createStore(Counter);`,
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createStoresProvider } from 'impact-app'
-import { useCounter } from "./useCounter";
-import { useMath } from "./useMath";
+import { createStoresProvider, useStore } from 'impact-app'
+import { CounterStore } from "./CounterStore";
+import { MathStore } from "./MathStore";
 
-const GlobalProvider = createStoresProvider({ useMath })
-const CounterProvider = createStoresProvider({ useCounter })
+const GlobalStoresProvider = createStoresProvider({ MathStore })
+const CounterStoresProvider = createStoresProvider({ CounterStore })
 
 function Counter({ name }) {
-  const counter = useCounter()
+  const counterStore = useStore(CounterStore)
 
   return (
     <>
       <Heading size="4">{name}</Heading>
-      <Button onClick={() => counter.increase()}>
+      <Button onClick={() => counterStore.increase()}>
         Increase count
       </Button>
     </>
@@ -212,49 +203,42 @@ function Counter({ name }) {
 
 function Counters() {
   return (
-    <GlobalProvider>
+    <GlobalStoresProvider>
       <Flex gap="4" p="6" direction="column">
-        <CounterProvider>
+        <CounterStoresProvider>
           <Counter name="Counter 1" />
-        </CounterProvider>
-        <CounterProvider>
+        </CounterStoresProvider>
+        <CounterStoresProvider>
           <Counter name="Counter 2" />
-        </CounterProvider>
+        </CounterStoresProvider>
       </Flex>
-    </GlobalProvider>
+    </GlobalStoresProvider>
   )
 }
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createStore } from "impact-app";
-import { useMath } from './useMath';
+          "/CounterStore.js": `import { useStore } from "impact-app";
+import { MathStore } from './MathStore';
 
-function Counter() {
-  const math = useMath()
+export function CounterStore() {
+  const mathStore = useStore(MathStore)
   let count = 0
 
   return {
     increase() {
-      count = math.add(count, 1)
+      count = mathStore.add(count, 1)
       alert(count)
     }
   }
-}
-
-export const useCounter = createStore(Counter);`,
-          "/useMath.js": `import { createStore } from "impact-app";
-
-function Math() {
+}`,
+          "/MathStore.js": `export function MathStore() {
   return {
     add(valA, valB) {
       return valA + valB
     }
   }
-}
-
-export const useMath = createStore(Math)
-`,
+}`,
         }}
       />
       <Text>
@@ -286,15 +270,15 @@ export const useMath = createStore(Math)
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createStoresProvider } from 'impact-app'
-import { useCounter } from "./useCounter";
-import { useMath } from "./useMath";
+import { createStoresProvider, useStore } from 'impact-app'
+import { CounterStore } from "./CounterStore";
+import { MathStore } from "./MathStore";
 
-const GlobalProvider = createStoresProvider({ useMath })
-const CounterProvider = createStoresProvider({ useCounter })
+const GlobalStoresProvider = createStoresProvider({ MathStore })
+const CounterStoresProvider = createStoresProvider({ CounterStore })
 
 function Counter({ name }) {
-  const counter = useCounter()
+  const counter = useStore(CounterStore)
 
   return (
     <>
@@ -308,26 +292,26 @@ function Counter({ name }) {
 
 function Counters() {
   return (
-    <GlobalProvider>
+    <GlobalStoresProvider>
       <Flex gap="4" p="6" direction="column">
-        <CounterProvider useCounter={5}>
+        <CounterStoresProvider useCounter={5}>
           <Counter name="Counter 1" />
-        </CounterProvider>
-        <CounterProvider useCounter={10}>
+        </CounterStoresProvider>
+        <CounterStoresProvider useCounter={10}>
           <Counter name="Counter 2" />
-        </CounterProvider>
+        </CounterStoresProvider>
       </Flex>
-    </GlobalProvider>
+    </GlobalStoresProvider>
   )
 }
 
 export default Counters`}
         files={{
-          "/useCounter.js": `import { createStore } from "impact-app";
-import { useMath } from './useMath';
+          "/CounterStore.js": `import { useStore } from "impact-app";
+import { MathStore } from './MathStore';
 
-function Counter(initialCount) {
-  const math = useMath()
+export function CounterStore(initialCount) {
+  const math = useStore(MathStore)
   let count = initialCount
 
   return {
@@ -336,21 +320,14 @@ function Counter(initialCount) {
       alert(count)
     }
   }
-}
-
-export const useCounter = createStore(Counter);`,
-          "/useMath.js": `import { createStore } from "impact-app";
-
-function Math() {
+}`,
+          "/MathStore.js": `export function MathStore() {
   return {
     add(valA, valB) {
       return valA + valB
     }
   }
-}
-
-export const useMath = createStore(Math)
-`,
+}`,
         }}
       />
       <Text>

@@ -22,24 +22,24 @@ export function LearnSignals() {
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { observe } from "impact-app";
-import { useHelloWorld } from "./useHelloWorld";
+import { observe, useStore } from "impact-app";
+import { MessageStore } from "./MessageStore";
 
 function HelloWorld() {
-  const helloWorld = useHelloWorld()
+  const messageStore = useStore(MessageStore)
 
   return (
     <Flex p="6" gap="4" justify="center">
-      <Heading>{helloWorld.message}</Heading>
+      <Heading>{messageStore.message}</Heading>
     </Flex>
   );
 }
 
 export default observe(HelloWorld);`}
         files={{
-          "/useHelloWorld.js": `import { createStore, signal } from "impact-app";
+          "/MessageStore.js": `import { signal } from "impact-app";
 
-function HelloWorld() {
+export function MessageStore() {
   const message = signal("Hello World");
 
   return {
@@ -47,9 +47,7 @@ function HelloWorld() {
       return message.value;
     }
   }
-}
-
-export const useHelloWorld = createStore(HelloWorld);`,
+}`,
         }}
       />
       <Text>
@@ -79,18 +77,18 @@ export const useHelloWorld = createStore(HelloWorld);`,
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { observe } from "impact-app";
-import { useHelloWorld } from "./useHelloWorld";
+import { observe, useStore } from "impact-app";
+import { MessageStore } from "./MessageStore";
 
 function HelloWorld() {
-  const helloWorld = useHelloWorld()
+  const messageStore = useStore(MessageStore)
 
   return (
     <Flex p="6" gap="4" justify="center" align="center" direction="column">
-        <Heading>{helloWorld.message}</Heading>
+        <Heading>{messageStore.message}</Heading>
         <Button
             onClick={() => {
-                helloWorld.changeMessage()
+                messageStore.changeMessage()
             }}
         >
             Change message
@@ -101,9 +99,9 @@ function HelloWorld() {
 
 export default observe(HelloWorld);`}
         files={{
-          "/useHelloWorld.js": `import { createStore, signal } from "impact-app";
+          "/MessageStore.js": `import {  signal } from "impact-app";
 
-function HelloWorld() {
+export function MessageStore() {
   const message = signal("Hello World");
 
   return {
@@ -114,9 +112,7 @@ function HelloWorld() {
         message.value = "Changed message";
     }
   }
-}
-
-export const useHelloWorld = createStore(HelloWorld);`,
+}`,
         }}
       />
       <Text>
@@ -135,25 +131,25 @@ export const useHelloWorld = createStore(HelloWorld);`,
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Text, Heading } from "@radix-ui/themes";
-import { observe } from "impact-app";
-import { useProject } from "./useProject";
+import { observe, useStore } from "impact-app";
+import { ProjectStore } from "./ProjectStore";
 
 function Project() {
-  const project = useProject()
+  const projectStore = useStore(ProjectStore)
 
   return (
     <Flex p="6" gap="4" align="center" direction="column">
-        <Heading>{project.title}</Heading>
-        <Text>{project.description}</Text>
+        <Heading>{projectStore.title}</Heading>
+        <Text>{projectStore.description}</Text>
     </Flex>
   );
 }
 
 export default observe(Project);`}
         files={{
-          "/useProject.js": `import { createStore, signal } from "impact-app";
+          "/ProjectStore.js": `import { signal } from "impact-app";
 
-function Project() {
+export function ProjectStore() {
   const project = signal({
     title: "My awesome project",
     description: "This project is truly the most awesome thing ever"
@@ -167,9 +163,7 @@ function Project() {
         return project.value.description
     }
   }
-}
-
-export const useProject = createStore(Project);`,
+}`,
         }}
       />
       <Text>
@@ -194,40 +188,40 @@ export const useProject = createStore(Project);`,
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Text, Heading } from "@radix-ui/themes";
-import { observe } from "impact-app";
-import { useProject } from "./useProject";
+import { observe, useStore } from "impact-app";
+import { ProjectStore } from "./ProjectStore";
 
 const Title = observe(() => {
-    const project = useProject()
+    const projectStore = useStore(ProjectStore)
     console.log("Render title")
-    return <Heading>{project.title}</Heading>
+    return <Heading>{projectStore.title}</Heading>
 })
 
 const Description = observe(() => {
-    const project = useProject()
+    const projectStore = useStore(ProjectStore)
     console.log("Render description")
-    return <Text>{project.description}</Text>
+    return <Text>{projectStore.description}</Text>
 })
 
 function Project() {
-    const project = useProject()
+    const projectStore = useStore(ProjectStore)
 
     return (
         <Flex p="6" gap="4" align="center" direction="column">
             <Title />
             <Description />
-            <Button onClick={() => project.changeTitle()}>Change title</Button>
-            <Button onClick={() => project.changeDescription()}>Change description</Button>
+            <Button onClick={() => projectStore.changeTitle()}>Change title</Button>
+            <Button onClick={() => projectStore.changeDescription()}>Change description</Button>
         </Flex>
     );
 }
 
 export default Project;`}
         files={{
-          "/useProject.js": `import { createStore, signal } from "impact-app";
+          "/ProjectStore.js": `import { signal } from "impact-app";
 
           
-function Project() {
+export function ProjectStore() {
   const title = signal("My awesome project")
   const description = signal("My even more awesome description")
 
@@ -245,9 +239,7 @@ function Project() {
         description.value = "Just changing up the description";
     }
   }
-}
-
-export const useProject = createStore(Project);`,
+}`,
         }}
       />
       <Text>
