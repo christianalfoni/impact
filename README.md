@@ -40,7 +40,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://youtu.be/6HoiA7W65k4) 06:34
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Shared state and shared management of state]([https://youtu.be/wyy-In5SLCE](https://youtu.be/uadE4LVC3LI)) 11:25
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Shared state and shared management of state](https://www.youtube.com/watch?v=uadE4LVC3LI) 11:25
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> WIP: Optimising share ability and context awareness --:--
 
