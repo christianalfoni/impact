@@ -7,9 +7,9 @@ There are several data fetching solutions for React, like [useQuery](https://tan
 That is why **Impact** ships with its own primitives which allows you to manage data fetching with your general state management and still consume it in components.
 
 ```ts
-import { queries, createStore } from 'impact-app'
+import { queries } from 'impact-app'
 
-function Api() {
+export function ApiStore() {
     return {
         posts: queries((id: string) => {
             return fetch('/posts/' + id).then((response) => response.json())
@@ -19,29 +19,29 @@ function Api() {
         })
     }
 }
-
-export const useApi = createStore(Api)
 ```
 
 `queries` will automatically cache and update consumers of the query when it changes. An example of this is using suspense in a component. It requires the first argument to be a unique identifier.
 
 ```tsx
-import { useApi } from '../stores/useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
-    const post = api.posts.suspend(id)
+    const apiStore = useStore(ApiStore)
+    const post = apiStore.posts.suspend(id)
 }
 ```
 
 But maybe you do not want to use suspense, you just want to deal with the states of the query directly in the component:
 
 ```tsx
-import { useApi } from '../stores/useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
-    const postState = api.posts.fetch(id)
+    const apiStore = useStore(ApiStore)
+    const postState = apiStore.posts.fetch(id)
 
     if (postState.status === 'pending') {
         return <div>Loading...</div>
@@ -60,10 +60,11 @@ const Post = ({ id }: { id: string }) => {
 Or maybe you need to do some layout effect related to a `fulfilled` query?
 
 ```tsx
-import { useApi } from '../stores/useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
+    const apiStore = useStore(ApiStore)
     
     useLayoutEffect(() => api.posts.onStatusChange(id, (postState) => {
         if (postState.status === 'fulfilled') {
@@ -80,23 +81,23 @@ And then in some store you might also need access to the data where `getValue` i
 But data fetching is not only about getting and displaying data, it is also about mutations. 
 
 ```tsx
-import { useState } from 'react'
-import { useApi } from '../stores/useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
+    const apiStore = useStore(ApiStore)
     const [title, setTitle] = useState('')
-    const changePostTitleState = api.changePostTitle.subscribe(id)
+    const changePostTitleMutation = apiStore.changePostTitle.subscribe(id)
 
     return (
         <div>
             <input
-                disabled={changePostTitleState.status === 'pending'}
+                disabled={changePostTitleMutation.status === 'pending'}
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 onKeyDown={(event) => {
                     if (event.key === 'ENTER') {
-                        changePostTitleState.mutate(id, title)
+                        changePostTitleMutation.mutate(id, title)
                     }
                 }}
             />

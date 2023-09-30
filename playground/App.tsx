@@ -1,4 +1,5 @@
 import { Box, Flex, Heading } from "@radix-ui/themes";
+import { useStore } from "impact-app";
 
 import { DataFetchingExample } from "./examples/dataFetching";
 import { ExampleLink } from "./ExampleLink";
@@ -6,16 +7,16 @@ import { VisibilityExample } from "./examples/visibility";
 import { observe } from "../src/Signal";
 import { RoutingExample } from "./examples/routing";
 import { XStateExample } from "./examples/xstate";
-import { useRouter } from "./useRouter";
 import { LearnStores } from "./learn/stores";
 import { LearnSignals } from "./learn/signals";
 import { LearnQueries } from "./learn/queries";
 import { LearnMutations } from "./learn/mutations";
+import { RouterStore } from "./stores/RouterStore";
 
 export function App() {
   using _ = observe();
 
-  const router = useRouter();
+  const router = useStore(RouterStore);
 
   let content;
 

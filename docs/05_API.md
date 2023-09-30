@@ -1,6 +1,6 @@
 # API
 
-- [createStore](#createStore)
+- [useStore](#useStore)
 - [createStoresProvider](#createStoresProvider)
 - [useCleanup](#useCleanup)
 - [signal](#signal)
@@ -20,20 +20,32 @@
     - [onChange](#onchange)
 - [emitter](#emitter)
 
-## createStore
+## useStore
 
-Create your store. By default you stores are automatically registered globally and is shared by all components and other stores.
+By default you stores are automatically registered globally and is shared by all components and other stores.
 
-```ts
-import { createStore } from 'impact-app'
+```tsx
+import { useStore } from 'impact-app'
 
-function HelloWorld() {
+function OtherStore () {
+    return {}
+}
+
+function MessageStore() {
+    // Use the hook in a store
+    const otherStore = useStore(OtherStore)
+    
     return {
         message: 'Hello World'
     }
 }
 
-export const useHelloWorld = createStore(HelloWorld)
+function MessageComponent() {
+    // Or use it in a component
+    const messageStore = useStore(MessageStore)
+
+    return <div>{messageStore.message}</div>
+}
 ```
 
 ## createStoresProvider
@@ -42,14 +54,14 @@ Creating a `StoresProvider` allows you to define what stores are shared by what 
 
 ```tsx
 import { createStoresProvider } from 'impact-app'
-import { useStoreA } from './useStoreA'
-import { useStoreB } from './useStoreB'
-import { useStoreC } from './useStoreC'
+import { StoreA } from './StoreA'
+import { StoreB } from './StoreB'
+import { StoreC } from './StoreC'
 
 export const MyStoresProvider = createStoresProvider({
-    useStoreA,
-    useStoreB,
-    useStoreA
+    StoreA,
+    StoreB,
+    StoreC
 })
 ```
 
@@ -63,7 +75,7 @@ function SomeComponent() {
             The value is only used when resolving the store, which means if you expect to "remount"
             the store with a new initial value you will need to remount the provider
         */
-        <MyStoresProvider useStoreB={100}>
+        <MyStoresProvider StoreB={100}>
             <SomeComponent />
             <SomeOtherComponent />
         </MyStoresProvider>
@@ -76,9 +88,9 @@ function SomeComponent() {
 It used in combination with store providers. When the `StoresProvider` unmounts it will call this function for any stores resolved within the provider.
 
 ```ts
-import { createStore, signal, useCleanup } from 'impact-app'
+import { signal, useCleanup } from 'impact-app'
 
-function Counter() {
+export function CounterStore() {
     const count = signal(0)
 
     const interval = setInterval(() => count.value++, 1000)
@@ -91,8 +103,6 @@ function Counter() {
         }
     }
 }
-
-export const useCounter = createStore(Counter)
 ```
 
 ## signal
@@ -100,9 +110,9 @@ export const useCounter = createStore(Counter)
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { createStore, signal } from 'impact-app'
+import { signal } from 'impact-app'
 
-function HelloWorld() {
+export function MessageStore() {
     const message = signal('Hello World')
 
     return {
@@ -111,16 +121,14 @@ function HelloWorld() {
         }
     }
 }
-
-export const useHelloWorld = createStore(HelloWorld)
 ```
 
 Under the hood signals uses [Immer](https://immerjs.github.io/immer/) which allows you to update the value by using a function. This function gives you the current value and you can use the normal mutation APIs and Immer returns an immutable value:
 
 ```ts
-import { createStore, signal } from 'impact-app'
+import { signal } from 'impact-app'
 
-function HelloWorld() {
+export function MessageStore() {
     const messages = signal<string[]>([])
 
     return {
@@ -134,8 +142,6 @@ function HelloWorld() {
         }
     }
 }
-
-export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ### derive
@@ -143,9 +149,9 @@ export const useHelloWorld = createStore(HelloWorld)
 Creates a signal that lazily recomputes whenever any accessed signals within the derive callback changes.
 
 ```ts
-import { createStore, signal, derive } from 'impact-app'
+import { signal, derive } from 'impact-app'
 
-function HelloWorld() {
+export function MessageStore() {
     const message = signal('Hello World')
     const shoutingMessage = derive(() => message.value + '!!!')
     
@@ -158,8 +164,6 @@ function HelloWorld() {
         }
     }
 }
-
-export const useHelloWorld = createStore(HelloWorld)
 ```
 
 ### observe
@@ -167,13 +171,13 @@ export const useHelloWorld = createStore(HelloWorld)
 To observe signals, and "rerender" the components, they need to bound to an `ObserverContext`. There are two ways you can achieve this. The default way is to use a traditional `observe` higher order component. 
 
 ```tsx
-import { observe } from 'impact-app'
-import { useHelloWorld } from '../stores/useHelloWorld'
+import { observe, useStore } from 'impact-app'
+import { MessageStore } from '../stores/MessageStore'
 
 function HelloWorld() {
-    const helloWorld = useHelloWorld()
+    const messageStore = useStore(MessageStore)
 
-    return <div>{helloWorld.message}</div>
+    return <div>{messageStore.message}</div>
 }
 
 export default observe(HelloWorld)
@@ -182,15 +186,15 @@ export default observe(HelloWorld)
 But the approach above can result in anonymous component names and dictates to some extent how you can define and export components. Another approach, given you do a little bit of configuration is:
 
 ```tsx
-import { observe } from 'impact-app'
-import { useHelloWorld } from '../stores/useHelloWorld'
+import { observe, useStore } from 'impact-app'
+import { MessageStore } from '../stores/MessageStore'
 
 export function HelloWorld() {
     using _ = observe()
 
-    const helloWorld = useHelloWorld()
+    const messageStore = useStore(MessageStore)
 
-    return <div>{helloWorld.message}</div>
+    return <div>{messageStore.message}</div>
 }
 ```
 
@@ -247,10 +251,9 @@ Make sure your project has a `.vscode/launch.json` file with the following conte
 A primitive to handle quering and consuming data across stores and components. The only difference between `query` and `queries` is that `queries` takes a unqiue identifier, typically the UID of a resource, as its first argument. Though that argument can also be an array of multiple values representing the uniqueness of the resource. Using `query` represents a single resource and does not requires a unique identifier.
 
 ```ts
-import { createStore, queries, query } from 'impact-app'
-import { useApi, PostDTO } from './Api'
+import { queries, query } from 'impact-app'
 
-function Api() {
+export function ApiStore() {
     return {
         posts: queries((id: string) =>
             fetch('/posts/' + id).then((response) => response.json())
@@ -258,8 +261,6 @@ function Api() {
         status: query(() => fetch('/status').then((response) => response.json()))
     }
 }
-
-export const useApi = createStore(Api)
 ```
 
 The first argument to the `queries` callback is considered the key. It can be a `string` or an array combining `string`, `number` or `boolean`. The query generates a unique caching key based on this. The `query` caches as well.
@@ -269,22 +270,23 @@ The first argument to the `queries` callback is considered the key. It can be a 
 Runs the query and returns a subscription to the state of the query. 
 
 ```tsx
-import { useApi } from '../useApi'
+import { useStore } from 'impact-app' 
+import { ApiStore } from '../stores/ApiStore'
 
 export const Post = ({ id }: { id: string }) => {
-  const api = useApi()
-  const postState = api.posts.fetch(id)
-  // const statusState = api.status.fetch()
+  const apiStore = useStore(ApiStore)
+  const postQuery = apiStore.posts.fetch(id)
+  // const statusQuery = api.status.fetch()
 
-  if (postState.status === 'pending') {
+  if (postQuery.status === 'pending') {
     return <div>Loading...</div>
   }
 
-  if (postState.status === 'rejected') {
-    return <div>Error: {postState.reason}</div>
+  if (postQuery.status === 'rejected') {
+    return <div>Error: {postQuery.reason}</div>
   }
 
-  const post = postState.value
+  const post = postQuery.value
   
   return <div>{post.title}</div>
 }
@@ -295,15 +297,16 @@ export const Post = ({ id }: { id: string }) => {
 Runs the query again, even when `fulfilled`. In this state the state of the query has an additional `isRefetching` property set to `true`. Any subscribers of the query will update.
 
 ```tsx
-import { useApi } from '../useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 export const Post = ({ id }: { id: string }) => {
-  const api = useApi()
+  const apiStore = useStore(ApiStore)
   
   return (
     <div onClick={() => {
-        api.posts.refetch(id)
-        api.status.refetch()
+        apiStore.posts.refetch(id)
+        // apiStore.status.refetch()
     }}>
         Click to get a fresh value
     </div>
@@ -315,13 +318,14 @@ export const Post = ({ id }: { id: string }) => {
 Just like `fetch`, but the promise is thrown to suspense or error boundary when pending or rejected. When resolved it will subscribe to query state changes and re-evaluate the suspense value. To update the data `refetch` needs to be called.
 
 ```tsx
-import { useApi } from '../useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 export const Post = ({ id }: { id: string }) => {
-  const api = useApi()
+  const apiStore = useStore(ApiStore)
   
-  const post = api.posts.suspend(id)
-  // const status = api.status.suspend()
+  const post = apiStore.posts.suspend(id)
+  // const status = apiStore.status.suspend()
   
   return <div>{post.title}</div>
 }
@@ -332,10 +336,12 @@ export const Post = ({ id }: { id: string }) => {
 Immediately set the cache to a fulfilled value. Will notify any subscribers of the change. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
 
 ```tsx
-import { queries, query, useCleanup, createStore } from 'impact-app'
+import { queries, query, useCleanup } from 'impact-app'
+import { useApiNotificationsStore } from './useApiNotificationsStore'
 
-function Api() {
-    const notifications = useApiNotifications()
+export function ApiStore() {
+    const apiNotificationsStore = useApiNotificationsStore()
+
     const posts = queries((id: string) =>
         fetch('/posts/' + id).then((response) => response.json())
     )
@@ -343,8 +349,8 @@ function Api() {
         fetch('/status').then((response) => response.json())
     )
 
-    useCleanup(notifications.subscribeNewPosts(handleNewPosts))
-    useCleanup(notifications.subscribeStatus(handleNewStatus))
+    useCleanup(apiNotificationsStore.subscribeNewPosts(handleNewPosts))
+    useCleanup(apiNotificationsStore.subscribeStatus(handleNewStatus))
 
     function handleNewPosts(post) {
         posts.setValue(post.id, post)
@@ -359,8 +365,6 @@ function Api() {
         status
     }
 }
-
-export const useApi = createStore(Api)
 ```
 
 ### getValue
@@ -368,27 +372,26 @@ export const useApi = createStore(Api)
 Allows you to consume the query as a normal promise. It will fetch the value if not cached, or hook into the existing pending state of the query. This is useful to access query values in other stores.
 
 ```tsx
-import { createStore } from 'impact-app'
+import { useStore } from 'impact-app'
+import { ApiStore } from './ApiStore'
 
-function Api() {
-    const api = useApi()
+export function SomeStore() {
+    const apiStore = useStore(ApiStore)
 
     return {
         async doSomething() {
             try {
-                const currentStatus = await api.status.getValue()
+                const currentStatus = await apiStore.status.getValue()
                 
                 if (currentStatus.isAwesome) {
                     // Do something awesome
                 }
             } catch () {
-                api.status.refetch()
+                
             }
         }
     }
 }
-
-export const useApi = createStore(Api)
 ```
 
 
@@ -397,27 +400,29 @@ export const useApi = createStore(Api)
 Subscribe to when a query changes its status. This can be useful to sync signals.
 
 ```ts
-import { signal, createStore, QueryState } from 'impact-app'
-import { PostDTO } from './useApi'
+import { signal, useStore, QueryState, useCleanup } from 'impact-app'
+import { PostDTO, ApiStore } from './ApiStore'
 
-function Post(initialPost: PostDTO) {
-    const api = useApi()
+function PostStore(postData: PostDTO) {
+    const apiStore = useStore(ApiStore)
+    
     // We split up the DTO into multiple signals for optimal consumption in components
-    const title = signal(initialPost.title)
-    const description = signal(initialPost.description)
+    const title = signal(postData.title)
+    const description = signal(postData.description)
 
-    useCleanup(api.posts.onStatusChange(post.value.id, handlePostStatusChange))
+    useCleanup(apiStore.posts.onStatusChange(postData.id, handlePostStatusChange))
 
-    function handlePostStatusChange(postQueryState: QueryState<PostDTO>) {
-        if (postQueryState.status === 'fulfilled') {
-            title.value = postQueryState.value.title
-            description.value = postQueryState.value.description
+    function handlePostStatusChange(postQuery: QueryState<PostDTO>) {
+        if (postQuery.status === 'fulfilled') {
+            // Signals only notify a change if the actual value changes
+            title.value = postQuery.value.title
+            description.value = postQuery.value.description
         }
     }
 
     return {
         get id() {
-            return initialPost.id
+            return postData.id
         },
         get title() {
             return title.value
@@ -427,8 +432,6 @@ function Post(initialPost: PostDTO) {
         }
     }
 }
-
-export const usePost = createStore(Post)
 ```
 
 ## mutation / mutations
@@ -436,22 +439,19 @@ export const usePost = createStore(Post)
 A mutation represents a one off request which changes something externally. The `mutations` function is for resource with unique identifiers, while `mutation` is for a request representing a single resource.
 
 ```ts
-import { createStore, mutations, query } from 'impact-app'
-import { useApi, PostDTO } from './Api'
+import { mutations, query } from 'impact-app'
 
-function Api() {
+export function ApiStore() {
     return {
         changePostTile: mutations((id: string, newTitle: string) =>
             fetch({
                 url: '/posts/' + id,
-                method: POST,
+                method: 'POST',
                 body: JSON.stringify({ title: newTitle }),
             }).then((response) => response.json())
         ),
     }
 }
-
-export const useApi = createStore(Api)
 ```
 
 ### mutate
@@ -459,15 +459,16 @@ export const useApi = createStore(Api)
 Runs the request. This method can be called in both stores and components.
 
 ```tsx
-import { useApi } from '../useApi'
+import { useStore } from 'impact-app'
+import { ApiStore } from '../stores/ApiStore'
 
 export const Post = ({ id }: { id: string }) => {
-  const api = useApi()
-  const post = api.posts.suspend(id)
+  const apiStore = useStore(ApiStore)
+  const post = apiStore.posts.suspend(id)
   const [title, setTitle] = useState(post.title)
-  const changeTitleState = api.changePostTitle.subscribe(id)
+  const changeTitleMutation = apiStore.changePostTitle.subscribe(id)
 
-  useEffect(() => api.changePostTile.onStatusChange((changePostTileState) => {
+  useEffect(() => apiStore.changePostTile.onStatusChange((changePostTileState) => {
     if (changePostTileState.status === 'fulfilled') {
         alert("Oh yeah, you changed it!")
     }
@@ -476,16 +477,16 @@ export const Post = ({ id }: { id: string }) => {
   return (
     <div>
         <input
-            disabled={changeTitleState.status === 'pending'}
+            disabled={changeTitleMutation.status === 'pending'}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             onKeyDown={(event) => {
                 if (event.key === 'Enter') {
-                    api.changePostTitle.mutate(id, title)
+                    apiStore.changePostTitle.mutate(id, title)
                 }
             }}
         />
-        {changeTitleState.status === 'rejected' ? 'Ops, there was an error!' : null}
+        {changeTitleMutation.status === 'rejected' ? 'Ops, there was an error!' : null}
     </div>
   )
 }
@@ -508,9 +509,9 @@ A traditional event listener to react to state changes of a mutation.
 A typed event emitter which enables accessor pattern and disposal.
 
 ```ts
-import { emitter, createStore } from 'impact-app'
+import { emitter } from 'impact-app'
 
-function SomeStore() {
+export function SomeStore() {
     const fooEmitter = emitter<string>()
 
     return {
@@ -520,8 +521,6 @@ function SomeStore() {
         }
     }
 }
-
-export const useSomeStore = createStore(SomeStore)
 ```
 
 

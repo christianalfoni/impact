@@ -5,7 +5,7 @@ By default it can be a good idea to use the reactive state primitives shipped wi
 You could use a state machine from [XState](https://xstate.js.org/):
 
 ```ts
-import { createStore, signal, useCleanup } from 'impact-app'
+import {  signal, useCleanup } from 'impact-app'
 import { createMachine, interpret, assign } from 'xstate';
 
 const increment = (context) => context.count + 1;
@@ -26,7 +26,7 @@ const counterMachine = createMachine({
   },
 });
 
-function Counter() {
+export function CounterStore() {
     const counterService = interpret(counterMachine).start();
     const context = signal(counterService.getSnapshot().context);
 
@@ -50,17 +50,14 @@ function Counter() {
         }
     };
 }
-
-export const useCounter = createStore(Counter)
 ```
 
 Or you could even replace signals with `observables` from [Mobx](https://mobx.js.org/README.html):
 
 ```ts
 import { observable } from 'mobx'
-import { createStore } from 'impact-app'
 
-function HelloWorld() {
+export function MessageStore() {
     const messages = observable<string[]>([])
 
     return {
@@ -70,6 +67,4 @@ function HelloWorld() {
         }
     }
 }
-
-export const useHelloWorld = createStore(HelloWorld)
 ```
