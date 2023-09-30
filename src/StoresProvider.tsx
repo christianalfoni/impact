@@ -155,7 +155,7 @@ export class StoresProvider<
 
 export function createStoresProvider<
   T extends {
-    [name: string]: () => any;
+    [name: string]: Store<any, any>;
   },
 >(stores: T) {
   return function ScopedStoresProvider(
