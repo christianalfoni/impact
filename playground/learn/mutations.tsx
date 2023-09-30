@@ -17,49 +17,52 @@ export function LearnMutations() {
       </Text>
       <LearnCallout>
         In this example you will learn how to define mutations and use them in
-        components. We will just refetch the project when the mutation is done
+        components. We will just refetch the project when the mutation is done.
+        This example aims to show all the complexity of data fetching and
+        mutations working together.
       </LearnCallout>
       <ExampleSandpack
         example={`import { Flex, Heading, Button } from '@radix-ui/themes';
+import { useStore } from "impact-app";
 import { useEffect } from 'react';
-import { useApi } from './useApi';
+import { ApiStore } from './ApiStore';
         
 function App() {
     const id = '123';
-    const api = useApi()
-    const projectState = api.projects.fetch(id)
-    const changeProjectTitleState = api.changeProjectTitle.subscribe(id)
+    const apiStore = useStore(ApiStore)
+    const projectQuery = apiStore.projects.fetch(id)
+    const changeProjectTitleMutation = apiStore.changeProjectTitle.subscribe(id)
 
     useEffect(() => {
-        if (changeProjectTitleState.status === 'fulfilled') {
-            api.projects.refetch(id)
+        if (changeProjectTitleMutation.status === 'fulfilled') {
+            apiStore.projects.refetch(id)
         }
-    }, [changeProjectTitleState])
+    }, [changeProjectTitleMutation])
 
-    if (projectState.status === 'pending') {
+    if (projectQuery.status === 'pending') {
         return <div>Loading...</div>
     }
 
-    if (projectState.status === 'rejected') {
-        return <div>Error: \${projectState.reason}</div>
+    if (projectQuery.status === 'rejected') {
+        return <div>Error: \${projectQuery.reason}</div>
     }
 
-    const project = projectState.value
+    const project = projectQuery.value
 
     return (
         <Flex align="center" p="6" direction="column" gap="4">
             <Heading>{project.title}</Heading>
             <Button
-                disabled={changeProjectTitleState.status === 'pending' || projectState.isRefetching}
+                disabled={changeProjectTitleMutation.status === 'pending' || projectQuery.isRefetching}
                 onClick={() => {
                     api.changeProjectTitle.mutate('123', "Well, this is an awesome title")
                 }}
             >
                 Change title
             </Button>
-            {changeProjectTitleState.status === 'error' && (
+            {changeProjectTitleMutation.status === 'error' && (
                 <Text>
-                    There was an error changing the title: {changeProjectTitleState.reason}
+                    There was an error changing the title: {changeProjectTitleMutation.reason}
                 </Text>
             )}
         </Flex>
@@ -68,12 +71,10 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, mutations, createStore } from "impact-app";
+          "/ApiStore.js": `import { queries, mutations } from "impact-app";
 import { getProject, changeProjectTitle } from './api'
 
-function Api() {
-    
-    
+export function ApiStore() {
     return {
         projects: queries((id) =>
             getProject(id)
@@ -82,9 +83,7 @@ function Api() {
             changeProjectTitle(id, newTitle)
         )
     }
-}
-
-export const useApi = createStore(Api);`,
+}`,
         }}
       />
       <Text>

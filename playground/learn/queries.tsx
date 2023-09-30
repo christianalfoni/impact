@@ -21,22 +21,23 @@ export function LearnQueries() {
         queries.
       </LearnCallout>
       <ExampleSandpack
-        example={`import { Flex, Heading } from '@radix-ui/themes';
-import { useApi } from './useApi';
+        example={`import { useStore } from "impact-app";
+import { Flex, Heading } from '@radix-ui/themes';
+import { ApiStore } from './ApiStore';
         
 function App() {
-  const api = useApi()
-  const projectState = api.projects.fetch('123')
+  const apiStore = useStore(ApiStore)
+  const projectQuery = apiStore.projects.fetch('123')
 
-  if (projectState.status === 'pending') {
+  if (projectQuery.status === 'pending') {
     return <div>Loading...</div>
   }
 
-  if (projectState.status === 'rejected') {
-    return <div>Error: \${projectState.reason}</div>
+  if (projectQuery.status === 'rejected') {
+    return <div>Error: \${projectQuery.reason}</div>
   }
 
-  const project = projectState.value
+  const project = projectQuery.value
 
   return (
     <Flex justify="center" p="6">
@@ -47,18 +48,16 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createStore } from "impact-app";
+          "/ApiStore.js": `import { queries } from "impact-app";
 import { getProject } from './api'
 
-function Api() {
+export function ApiStore() {
     return {
         projects: queries((id) =>
             getProject(id)
         )
     }
-}
-
-export const useApi = createStore(Api);`,
+}`,
         }}
       />
       <Text>
@@ -74,29 +73,30 @@ export const useApi = createStore(Api);`,
         In this example you will learn how to use refetch to update a query.
       </LearnCallout>
       <ExampleSandpack
-        example={`import { Flex, Heading, Button, Text } from '@radix-ui/themes';
-import { useApi } from './useApi';
+        example={`import { useStore } from "impact-app";
+import { Flex, Heading, Button, Text } from '@radix-ui/themes';
+import { ApiStore } from './ApiStore';
         
 function App() {
-  const api = useApi()
-  const projectState = api.projects.fetch('123')
+  const apiStore = useStore(ApiStore)
+  const projectQuery = apiStore.projects.fetch('123')
 
-  if (projectState.status === 'pending') {
+  if (projectQuery.status === 'pending') {
     return <div>Loading...</div>
   }
 
-  if (projectState.status === 'rejected') {
-    return <div>Error: \${projectState.reason}</div>
+  if (projectQuery.status === 'rejected') {
+    return <div>Error: \${projectQuery.reason}</div>
   }
 
-  const project = projectState.value
+  const project = projectQuery.value
 
   return (
     <Flex align="center" p="6" direction="column" gap="4">
       <Heading>{project.title}</Heading>
       <Text>{project.updatedAt}</Text>
       <Button
-        disabled={projectState.isRefetching}
+        disabled={projectQuery.isRefetching}
         onClick={() => {
           api.projects.refetch('123')
         }}
@@ -109,18 +109,16 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createStore } from "impact-app";
+          "/ApiStore.js": `import { queries } from "impact-app";
 import { getProject } from './api'
 
-function Api() {
+export function ApiStore() {
     return {
         projects: queries((id) =>
             getProject(id)
         )
     }
-}
-
-export const useApi = createStore(Api);`,
+}`,
         }}
       />
       <Text>
@@ -132,12 +130,13 @@ export const useApi = createStore(Api);`,
       </LearnCallout>
       <ExampleSandpack
         example={`import { Flex, Heading, Button, Text } from '@radix-ui/themes';
+import { useStore } from "impact-app";
 import { Suspense } from 'react';
-import { useApi } from './useApi';
+import { ApiStore } from './ApiStore';
         
 function Project() {
-  const api = useApi()
-  const project = api.projects.suspend('123')
+  const apiStore = useStore(ApiStore)
+  const project = apiStore.projects.suspend('123')
 
   return (
     <Flex align="center" p="6" direction="column" gap="4">
@@ -156,18 +155,16 @@ function App() {
 
 export default App;`}
         files={{
-          "/useApi.js": `import { queries, createStore } from "impact-app";
+          "/ApiStore.js": `import { queries } from "impact-app";
 import { getProject } from './api'
 
-function Api() {
+export function ApiStore() {
     return {
         projects: queries((id) =>
             getProject(id)
         )
     }
-}
-
-export const useApi = createStore(Api);`,
+}`,
         }}
       />
     </Flex>

@@ -15,6 +15,9 @@ export type StoreState =
     };
 
 class StoresContainer {
+  // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
+  // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
+  private _resolvementError?: Error;
   private _stores = new Map<Store<any, any[]>, StoreState>();
   private _disposers = new Set<() => void>();
   private _isDisposed = false;
@@ -50,6 +53,10 @@ class StoresContainer {
     this._disposers.add(cleaner);
   }
   resolve<T, A extends any[]>(store: Store<T, A>): T {
+    if (this._resolvementError) {
+      throw this._resolvementError;
+    }
+
     let existingStore = this._stores.get(store);
 
     if (!existingStore) {
@@ -72,17 +79,22 @@ class StoresContainer {
       return this._parent.resolve(store);
     }
 
-    // If we are at the top we register it if not already registered
-
     // If it is not resolved, we resolve it
     if (!existingStore.isResolved) {
-      currentStoresContainer.push(this);
-      existingStore = {
-        isResolved: true,
-        value: existingStore.constr(),
-      };
-      currentStoresContainer.pop();
-      this._stores.set(store, existingStore);
+      try {
+        currentStoresContainer.push(this);
+        existingStore = {
+          isResolved: true,
+          value: existingStore.constr(),
+        };
+        currentStoresContainer.pop();
+        this._stores.set(store, existingStore);
+      } catch (e) {
+        this._resolvementError =
+          new Error(`Could not initialize store "${store?.name}":
+${String(e)}`);
+        throw this._resolvementError;
+      }
     }
 
     return existingStore.value;
