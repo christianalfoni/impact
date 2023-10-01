@@ -2,7 +2,7 @@
 
 ## Creating a store
 
-A store is just a function that returns state and/or logic, just like any other traditional React hook. We call it a store because it runs outside of React and enables reactive behaviour by the usage of reactive state primitives within it, like the signals from **Impact**. That means on its own a store is not reactive, it is a just a container for reactive primitives.
+A store is just a function that returns state and/or management of that state, just like any other traditional React hook. We call it a store because it runs outside of React and enables reactive behaviour by the usage of reactive state primitives within it, like the signals from **Impact**. That means on its own a store is not reactive, it is a just a container for reactive primitives.
 
 ```ts
 export function SomeStore() { 
@@ -26,7 +26,7 @@ function SomeComponent() {
 }
 ```
 
-The `StoresProvider` allows you to scope your stores to a component tree. The components in the component tree consuming the stores from a `StoresProvider` will all consume the same instance of stores. When the `StoresProvider` unmounts any `useCleanup` callbacks will be called on the resolved stores.
+The `StoresProvider` allows you to scope your stores to a component tree. The components in the component tree consuming the stores from a `StoresProvider` will all consume the same instance of stores. When a store is being resolved in a `StoresProvider` and can not be found the resolvement will propagate up the component tree, all the way up to the global stores. When a `StoresProvider` unmounts any `useCleanup` callbacks will be called on the resolved stores.
 
 ```tsx
 import { createStoresProvider, useStore, useCleanup } from 'impact-app'
@@ -42,9 +42,6 @@ function SomeStore() {
 const StoresProvider = createStoresProvider({ SomeStore })
 
 function SomeComponent() {
-    /*
-        When the component has a parent "StoresProvider" it will throw an error if "SomeStore" can not be resolved. 
-    */
     const someStore = useStore(SomeStore)
 }
 
@@ -167,9 +164,9 @@ It can be a good idea to structure your application as a set of pages and/or fea
     index.tsx
 ```
 
-The `/global-stores` at the root represents stores across the entire project, which will be available to any component and other stores. Where `/features/project/stores` are stores available to the project feature and any components and other hooks within it.
+The `/global-stores` at the root represents stores across the entire project. These stores does not have to be exposed on a `StoresProvider`, but it can be a good idea to expose these on their own `StoresProvider` at the root level of your application. That way if any of the stores needs to initialize with some data, they can using the provider. The stores within `/features/project/stores` are stores available to the project feature and any stores, components and hooks within it.
 
-The `global-stores/index.tsx` file would be where you define the `StoresProvider`, here showing `features/project/stores/index.ts`
+The `features/project/stores/index.ts` could organise the stores like this:
 
 ```ts 
 import { createStoresProvider } from 'impact-app'

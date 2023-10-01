@@ -32,7 +32,7 @@ function OtherStore () {
 }
 
 function MessageStore() {
-    // Use the hook in a store
+    // Use the "useStore" hook in a store to consume an other store
     const otherStore = useStore(OtherStore)
     
     return {
@@ -41,7 +41,7 @@ function MessageStore() {
 }
 
 function MessageComponent() {
-    // Or use it in a component
+    // Or use "useStore" in a component
     const messageStore = useStore(MessageStore)
 
     return <div>{messageStore.message}</div>
@@ -50,7 +50,7 @@ function MessageComponent() {
 
 ## createStoresProvider
 
-Creating a `StoresProvider` allows you to define what stores are shared by what components and other stores. Typically you create one provider at the root of your component tree to capture all stores resolvement and control which stores are considered global to the application and which are scoped to specific pages/features.
+Creating a `StoresProvider` allows you to define what stores are shared by what components and other stores.
 
 ```tsx
 import { createStoresProvider } from 'impact-app'
