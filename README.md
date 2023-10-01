@@ -42,7 +42,7 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Shared state and shared management of state](https://www.youtube.com/watch?v=uadE4LVC3LI) 11:25
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> WIP: Optimising share ability and context awareness --:--
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Optimising share ability and context awareness](https://youtu.be/mgu1dxx9Ttk) 15:42
 
 ## Playground
 
