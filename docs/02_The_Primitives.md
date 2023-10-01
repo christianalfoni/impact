@@ -4,11 +4,11 @@ You can think about Impact as two sets of primitives.
 
 ## 1. Management primitives
 
-It does not really matter what state primitives you use, it is the fact that these primitives can be encapsulated and interacted with in a predictable and organised manner that is the "management" of "state management".
+It does not really matter what state primitives you use, it is way these primitives can be encapsulated and interacted with that is the "management" of "state management".
 
 ### Store
 
-The store in Impact is a management primitive, not a state primitive. It can encapsulate state and related logic to manage that state, but this is not required to define a store. The store is just a function which returns a public interface that can be consumed by components and other stores using the hooks pattern. You will not define one big store, but rather define several smaller stores with specific responsibilities and public interfaces as you expect from the hooks pattern.
+The store in Impact is a management primitive, not a state primitive. It can encapsulate state and related logic to manage that state, but this is not required to define a store. The store is just a function which returns a public interface that can be consumed by components and other stores using the hooks pattern. You will not define one big store, but rather define several smaller stores with specific responsibilities and public interfaces.
 
 ### StoresProvider
 

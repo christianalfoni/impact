@@ -29,7 +29,6 @@ class StoresContainer {
   constructor(
     stores: Array<Store<any, any[]> | [Store<any, any[]>, () => any]>,
     private _parent: StoresContainer | null,
-    private _isGlobal: boolean = false,
   ) {
     stores.forEach((store) => {
       if (Array.isArray(store)) {
@@ -61,18 +60,11 @@ class StoresContainer {
 
     if (!existingStore) {
       // If we are at the global container, we register the store automatically
-      if (this._isGlobal) {
+      if (!this._parent) {
         // @ts-ignore
         this.register(store, () => store());
 
         return this.resolve(store);
-      }
-
-      // If we are at a root container we stop resolving and rather throw an error
-      if (!this._parent) {
-        throw new Error(
-          `The store "${store.name}" is not registered to a StoresProvider`,
-        );
       }
 
       // We resolve up the tree when we have a parent and no store registered
@@ -112,7 +104,7 @@ ${String(e)}`);
   }
 }
 
-export const globalStoresContainer = new StoresContainer([], null, true);
+export const globalStoresContainer = new StoresContainer([], null);
 
 const context = createContext<StoresContainer | null>(null);
 
@@ -141,7 +133,7 @@ export class StoresProvider<
         this.props.stores,
         // eslint-disable-next-line
         // @ts-ignore
-        this.context,
+        this.context || globalStoresContainer,
       );
     }
 
