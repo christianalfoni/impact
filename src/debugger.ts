@@ -44,7 +44,7 @@ function createStackFrameData(stack: string) {
         (line) =>
           !line.includes("node_modules") &&
           line.includes(window.location.origin) &&
-          (isDemo ? !line.includes("/src") : true)
+          (isDemo ? !line.includes("/src") : true),
       );
 
     const stackFrameData: Array<{
@@ -87,7 +87,7 @@ function createSourceMappedStackFrame(
   file: string,
   functionName: string,
   line: number,
-  column: number
+  column: number,
 ) {
   const stackframe = new StackFrame({
     fileName: file,
@@ -108,8 +108,14 @@ function createSourceMappedStackFrame(
 export function createObserveDebugEntry(signal: SignalTracker) {
   const stack = new Error().stack!;
 
-  const { file, line, column, functionName } =
-    createStackFrameData(stack).pop()!;
+  const stackFrameData = createStackFrameData(stack).pop();
+
+  if (!stackFrameData) {
+    return;
+  }
+
+  const { file, line, column, functionName } = stackFrameData;
+
   const cacheKey = file + line + column;
 
   cache[cacheKey] =
@@ -119,7 +125,7 @@ export function createObserveDebugEntry(signal: SignalTracker) {
         delete cache[cacheKey];
         console.error({ file, stack });
         throw error;
-      }
+      },
     );
 
   const observedSignal = observedSignals.get(signal);
@@ -134,12 +140,17 @@ export function createObserveDebugEntry(signal: SignalTracker) {
 export function createSetterDebugEntry(
   signal: SignalTracker,
   value: unknown,
-  isComputed = false
+  isComputed = false,
 ) {
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
   const targetFrame = stackFrameData.shift();
+
+  if (!sourceFrame || !targetFrame) {
+    return;
+  }
+
   const sourceCacheKey =
     sourceFrame.file + sourceFrame.line + sourceFrame.column;
   let targetCacheKey: string | undefined;
@@ -150,7 +161,7 @@ export function createSetterDebugEntry(
       sourceFrame.file,
       sourceFrame.functionName,
       sourceFrame.line,
-      sourceFrame.column
+      sourceFrame.column,
     );
 
   if (
@@ -166,7 +177,7 @@ export function createSetterDebugEntry(
         targetFrame.file,
         targetFrame.functionName,
         targetFrame.line,
-        targetFrame.column
+        targetFrame.column,
       );
   }
 
@@ -175,7 +186,7 @@ export function createSetterDebugEntry(
       (stackFrame) => {
         const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
         const observers = Array.from(
-          observedSignals.get(signal) || new Set<string>()
+          observedSignals.get(signal) || new Set<string>(),
         );
         const setterPromise = targetCacheKey
           ? cache[targetCacheKey]
@@ -191,7 +202,7 @@ export function createSetterDebugEntry(
                 isComputed
                   ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
                   : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
-                value
+                value,
               );
 
               if (isComputed) {
@@ -208,16 +219,16 @@ export function createSetterDebugEntry(
                     ":" +
                     computedFrame.lineNumber +
                     ":" +
-                    computedFrame.columnNumber
+                    computedFrame.columnNumber,
                 );
               } else {
                 console.log(
                   `${targetFrame ? "%cCalled from:" : "%cChanged at:"}`,
-                  "font-weight:bold;"
+                  "font-weight:bold;",
                 );
                 console.log(
                   functionName,
-                  fileName + ":" + lineNumber + ":" + columnNumber
+                  fileName + ":" + lineNumber + ":" + columnNumber,
                 );
 
                 if (targetFrame) {
@@ -228,7 +239,7 @@ export function createSetterDebugEntry(
                       ":" +
                       targetFrame.lineNumber +
                       ":" +
-                      targetFrame.columnNumber
+                      targetFrame.columnNumber,
                   );
                 }
               }
@@ -241,17 +252,17 @@ export function createSetterDebugEntry(
                     ":" +
                     observingStackFrame.lineNumber +
                     ":" +
-                    observingStackFrame.columnNumber
+                    observingStackFrame.columnNumber,
                 );
               });
               console.groupEnd();
             });
-          }
+          },
         );
       },
       (error) => {
         console.log("ERROR SETTER", error, sourceCacheKey);
-      }
-    )
+      },
+    ),
   );
 }
