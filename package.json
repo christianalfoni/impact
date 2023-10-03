@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.31.0",
+  "version": "0.31.1",
   "description": "Composable Stores for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
