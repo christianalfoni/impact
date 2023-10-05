@@ -44,6 +44,8 @@
 
 <img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Optimising share ability and context awareness](https://youtu.be/mgu1dxx9Ttk) 15:42
 
+<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> A composition model for any state primitive (WIP) --:--
+
 ## Playground
 
 <img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open playground on CodeSandbox](https://t79hzw-5173.csb.app)
