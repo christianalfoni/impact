@@ -1,7 +1,7 @@
 # API
 
 - [useStore](#useStore)
-- [createStoresProvider](#createStoresProvider)
+- [createScopeProvider](#createScopeProvider)
 - [useCleanup](#useCleanup)
 - [signal](#signal)
     - [derive](#derive)
@@ -48,17 +48,17 @@ function MessageComponent() {
 }
 ```
 
-## createStoresProvider
+## createScopeProvider
 
-Creating a `StoresProvider` allows you to define what stores are shared by what components and other stores.
+Creating a `ScopeProvider` allows you to define what stores are shared by what components and other stores.
 
 ```tsx
-import { createStoresProvider } from 'impact-app'
+import { createScopeProvider } from 'impact-app'
 import { StoreA } from './StoreA'
 import { StoreB } from './StoreB'
 import { StoreC } from './StoreC'
 
-export const MyStoresProvider = createStoresProvider({
+export const SomeScopeProvider = createScopeProvider({
     StoreA,
     StoreB,
     StoreC
@@ -66,7 +66,7 @@ export const MyStoresProvider = createStoresProvider({
 ```
 
 ```tsx
-import { MyStoresProvider } from './stores'
+import { SomeScopeProvider } from './stores'
 
 function SomeComponent() {
     return (
@@ -75,17 +75,17 @@ function SomeComponent() {
             The value is only used when resolving the store, which means if you expect to "remount"
             the store with a new initial value you will need to remount the provider
         */
-        <MyStoresProvider StoreB={100}>
+        <SomeScopeProvider StoreB={100}>
             <SomeComponent />
             <SomeOtherComponent />
-        </MyStoresProvider>
+        </SomeScopeProvider>
     )
 }
 ```
 
 ## useCleanup
 
-It used in combination with store providers. When the `StoresProvider` unmounts it will call this function for any stores resolved within the provider.
+It used in combination with store providers. When the `ScopeProvider` unmounts it will call this function for any stores resolved within the provider.
 
 ```ts
 import { signal, useCleanup } from 'impact-app'

@@ -115,7 +115,7 @@ type StoresProviderProps<
   children: React.ReactNode;
 };
 
-export class StoresProvider<
+export class ScopeProvider<
   T extends Array<Store<any, any[]> | [Store<any, any>, () => any]>,
 > extends Component<StoresProviderProps<T>> {
   static contextType = context;
@@ -145,7 +145,7 @@ export class StoresProvider<
   }
 }
 
-export function createStoresProvider<
+export function createScopeProvider<
   T extends {
     [name: string]: Store<any, any>;
   },
@@ -156,7 +156,7 @@ export function createStoresProvider<
     } & { children: React.ReactNode },
   ) {
     return (
-      <StoresProvider
+      <ScopeProvider
         stores={Object.keys(stores).map((storeKey) => {
           if (storeKey in props) {
             return [
@@ -171,7 +171,7 @@ export function createStoresProvider<
         })}
       >
         {props.children}
-      </StoresProvider>
+      </ScopeProvider>
     );
   };
 }
