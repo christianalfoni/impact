@@ -118,10 +118,10 @@ export default Counters`}
       <ExampleSandpack
         example={`import { useStore } from "impact-app";
 import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createStoresProvider } from 'impact-app'
+import { createScopeProvider } from 'impact-app'
 import { CounterStore } from "./CounterStore";
 
-const CounterStoresProvider = createStoresProvider({ CounterStore })
+const CounterScopeProvider = createScopeProvider({ CounterStore })
 
 function Counter({ name }) {
   const counterStore = useStore(CounterStore)
@@ -139,12 +139,12 @@ function Counter({ name }) {
 function Counters() {
   return (
     <Flex gap="4" p="6" direction="column">
-      <CounterStoresProvider>
+      <CounterScopeProvider>
         <Counter name="Counter 1" />
-      </CounterStoresProvider>
-      <CounterStoresProvider>
+      </CounterScopeProvider>
+      <CounterScopeProvider>
         <Counter name="Counter 2" />
-      </CounterStoresProvider>
+      </CounterScopeProvider>
     </Flex>
   )
 }
@@ -181,12 +181,12 @@ export default Counters`}
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createStoresProvider, useStore } from 'impact-app'
+import { createScopeProvider, useStore } from 'impact-app'
 import { CounterStore } from "./CounterStore";
 import { MathStore } from "./MathStore";
 
-const GlobalStoresProvider = createStoresProvider({ MathStore })
-const CounterStoresProvider = createStoresProvider({ CounterStore })
+const GlobalScopeProvider = createScopeProvider({ MathStore })
+const CounterScopeProvider = createScopeProvider({ CounterStore })
 
 function Counter({ name }) {
   const counterStore = useStore(CounterStore)
@@ -203,16 +203,16 @@ function Counter({ name }) {
 
 function Counters() {
   return (
-    <GlobalStoresProvider>
+    <GlobalScopeProvider>
       <Flex gap="4" p="6" direction="column">
-        <CounterStoresProvider>
+        <CounterScopeProvider>
           <Counter name="Counter 1" />
-        </CounterStoresProvider>
-        <CounterStoresProvider>
+        </CounterScopeProvider>
+        <CounterScopeProvider>
           <Counter name="Counter 2" />
-        </CounterStoresProvider>
+        </CounterScopeProvider>
       </Flex>
-    </GlobalStoresProvider>
+    </GlobalScopeProvider>
   )
 }
 
@@ -270,12 +270,12 @@ export function CounterStore() {
       </Callout.Root>
       <ExampleSandpack
         example={`import { Button, Flex, Heading } from "@radix-ui/themes";
-import { createStoresProvider, useStore } from 'impact-app'
+import { createScopeProvider, useStore } from 'impact-app'
 import { CounterStore } from "./CounterStore";
 import { MathStore } from "./MathStore";
 
-const GlobalStoresProvider = createStoresProvider({ MathStore })
-const CounterStoresProvider = createStoresProvider({ CounterStore })
+const GlobalScopeProvider = createScopeProvider({ MathStore })
+const CounterScopeProvider = createScopeProvider({ CounterStore })
 
 function Counter({ name }) {
   const counter = useStore(CounterStore)
@@ -292,16 +292,16 @@ function Counter({ name }) {
 
 function Counters() {
   return (
-    <GlobalStoresProvider>
+    <GlobalScopeProvider>
       <Flex gap="4" p="6" direction="column">
-        <CounterStoresProvider useCounter={5}>
+        <CounterScopeProvider useCounter={5}>
           <Counter name="Counter 1" />
-        </CounterStoresProvider>
-        <CounterStoresProvider useCounter={10}>
+        </CounterScopeProvider>
+        <CounterScopeProvider useCounter={10}>
           <Counter name="Counter 2" />
-        </CounterStoresProvider>
+        </CounterScopeProvider>
       </Flex>
-    </GlobalStoresProvider>
+    </GlobalScopeProvider>
   )
 }
 
