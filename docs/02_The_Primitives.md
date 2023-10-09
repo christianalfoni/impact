@@ -10,9 +10,9 @@ It does not really matter what state primitives you use, it is way these primiti
 
 The store in Impact is a management primitive, not a state primitive. It can encapsulate state and related logic to manage that state, but this is not required to define a store. The store is just a function which returns a public interface that can be consumed by components and other stores using the hooks pattern. You will not define one big store, but rather define several smaller stores with specific responsibilities and public interfaces.
 
-### StoresProvider
+### Scope
 
-By default stores are available globally in any component and other store. You do not have to provide them explicitly to a component tree. This can work for some applications, but to take full advantage of Impact you will use a `StoresProvider` to expose stores to a component tree. That component tree being all pages of your application, a single page or a single feature. The `StoresProvider` manages the resolvement of stores through the component tree to give you control of what components shares what instances of stores.
+By default stores are available globally in any component and other store. You do not have to scope them explicitly to a component tree. This can work for some applications, but to take full advantage of Impact you will use a `ScopeProvider` to scope stores to a component tree. That component tree being all pages of your application, a single page or a single feature. The `ScopeProvider` manages the resolvement of stores through the component tree to give you control of what components shares what instances of stores.
 
 ## 2. Reactive state primitives
 
