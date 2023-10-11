@@ -102,15 +102,16 @@ export default Counters`}
       />
       <Text>
         Impact allows you to scope stores to a component tree. Typically you
-        would do this for pages or features within a page, but for this example
-        lets us create a unique <b>Counter</b> store for each component.
+        would do this for the user session, pages or features within a page, but
+        for this example lets us create a unique <b>Counter</b> store for each
+        component.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn about store providers, which allows you
+          In this example you will learn about scope providers, which allows you
           to scope stores to component trees. Now each component tree has its
           own instance of the store.
         </Callout.Text>
@@ -164,10 +165,10 @@ export default Counters`}
         }}
       />
       <Text>
-        In this scenario we just added a single store to the provider, but you
-        can add multiple stores. What this also means is that stores are
-        resolved using the component tree. To understand this better, let us add
-        a new store that will be exposed at the top of the application.
+        In this scenario we just added a single store to the scope, but you can
+        add multiple stores. What this also means is that stores are resolved
+        using the component tree. To understand this better, let us add a new
+        store that will be exposed at the top of the application.
       </Text>
       <Callout.Root color="green">
         <Callout.Icon>
@@ -175,8 +176,7 @@ export default Counters`}
         </Callout.Icon>
         <Callout.Text>
           In this example you will learn that stores are resolved through the
-          component tree. That means stores can user other stores, but only if
-          they can be resolved through the component tree.
+          component tree. That means stores can user other stores.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
@@ -244,15 +244,15 @@ export function CounterStore() {
       <Text>
         What to take notice of here is that our <b>useCounter</b> store is
         consuming the <b>useMath</b> store. Also notice that we are exposing the{" "}
-        <b>useMath</b> store at the top of the application on a provider. If you
-        remove this provider the code will fail with an error message stating
-        that the <b>Math</b> store is not available.
+        <b>useMath</b> store at the top of the application on a scope. If you
+        remove this scope the code will still run, but both stores are
+        registered to the default global scope of Impact.
       </Text>
       <Text>
-        When using store providers the stores still run outside the component
-        tree, but they are <b>resolved</b> through the component tree. This is
-        what enables you to scope certain state and logic to specific pages and
-        features of your application.
+        When using scopes the stores run outside the component tree, but they
+        are <b>resolved</b> through the component tree. This is what enables you
+        to scope certain state and logic to specific pages and features of your
+        application.
       </Text>
       <Text>
         With the scoping of stores to component trees we also enable the
@@ -264,8 +264,8 @@ export function CounterStore() {
           <CheckCircledIcon />
         </Callout.Icon>
         <Callout.Text>
-          In this example you will learn that stores exposed through a stores
-          provider can be instantiated with initial values.
+          In this example you will learn that stores exposed through a scope can
+          be instantiated with initial values.
         </Callout.Text>
       </Callout.Root>
       <ExampleSandpack
