@@ -7,37 +7,42 @@ type MutationsFunction<K extends IdentifierKey, P extends any[], T> = (
   ...args: P
 ) => Promise<T>;
 
-type IdleState = {
+type IdleMutationState = {
   status: "idle";
 };
 
-type PendingState = {
+type PendingMutationState = {
   status: "pending";
 };
 
-type FulfilledState<T> = {
+type FulfilledMutationState<T> = {
   status: "fulfilled";
   value: T;
 };
 
-type RejectedState = {
+type RejectedMutationState = {
   status: "rejected";
   reason: unknown;
 };
 
-type State<T> = IdleState | PendingState | FulfilledState<T> | RejectedState;
+type MutationState<T> =
+  | IdleMutationState
+  | PendingMutationState
+  | FulfilledMutationState<T>
+  | RejectedMutationState;
 
 class Mutations<K extends IdentifierKey, P extends any[], T> {
   constructor(private _queryFunction: MutationsFunction<K, P, T>) {}
   private _getLookupKey(key: IdentifierKey): string {
     return String(key);
   }
-  private _subscribers: Record<string, Set<(state: State<T>) => void>> = {};
-  private _state: Record<string, State<T>> = {};
-  private _notifySubscribers(lookupKey: string, state: State<T>) {
+  private _subscribers: Record<string, Set<(state: MutationState<T>) => void>> =
+    {};
+  private _state: Record<string, MutationState<T>> = {};
+  private _notifySubscribers(lookupKey: string, state: MutationState<T>) {
     this._subscribers[lookupKey]?.forEach((subscriber) => subscriber(state));
   }
-  private _subscribe(key: K, subscriber: (state: State<T>) => void) {
+  private _subscribe(key: K, subscriber: (state: MutationState<T>) => void) {
     const lookupKey = this._getLookupKey(key);
     let subscribers = this._subscribers[lookupKey];
 
@@ -74,14 +79,14 @@ class Mutations<K extends IdentifierKey, P extends any[], T> {
 
     return promise;
   }
-  private _setState(lookupKey: string, state: State<T>) {
+  private _setState(lookupKey: string, state: MutationState<T>) {
     this._state[lookupKey] = state;
     this._notifySubscribers(lookupKey, state);
   }
-  onChange(key: K, subscriber: (state: State<T>) => void) {
+  onChange(key: K, subscriber: (state: MutationState<T>) => void) {
     return this._subscribe(key, subscriber);
   }
-  subscribe(key: K): State<T> {
+  subscribe(key: K): MutationState<T> {
     const lookupKey = this._getLookupKey(key);
 
     let mutationState = this._state[lookupKey];
@@ -124,12 +129,12 @@ class Mutation<P extends any[], T> {
   private _getLookupKey(key: IdentifierKey): string {
     return String(key);
   }
-  private _subscribers: Set<(state: State<T>) => void> = new Set();
-  private _state?: State<T>;
-  private _notifySubscribers(state: State<T>) {
+  private _subscribers: Set<(state: MutationState<T>) => void> = new Set();
+  private _state?: MutationState<T>;
+  private _notifySubscribers(state: MutationState<T>) {
     this._subscribers.forEach((subscriber) => subscriber(state));
   }
-  private _subscribe(subscriber: (state: State<T>) => void) {
+  private _subscribe(subscriber: (state: MutationState<T>) => void) {
     this._subscribers.add(subscriber);
 
     return () => {
@@ -157,14 +162,14 @@ class Mutation<P extends any[], T> {
 
     return promise;
   }
-  private _setState(state: State<T>) {
+  private _setState(state: MutationState<T>) {
     this._state = state;
     this._notifySubscribers(state);
   }
-  onChange(subscriber: (state: State<T>) => void) {
+  onChange(subscriber: (state: MutationState<T>) => void) {
     return this._subscribe(subscriber);
   }
-  subscribe(): State<T> {
+  subscribe(): MutationState<T> {
     let state = this._state;
 
     if (!state) {

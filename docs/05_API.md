@@ -11,8 +11,8 @@
     - [fetch](#fetch)
     - [refetch](#refetch)
     - [suspend](#suspend)
-    - [setValue](#setvalue)
-    - [getValue](#getvalue)
+    - [set](#set)
+    - [promise](#promise)
     - [onChange](#onchange)
 - [mutation/mutations](#mutationmutations)
     - [mutate](#mutate)
@@ -331,7 +331,7 @@ export const Post = ({ id }: { id: string }) => {
 }
 ```
 
-### setValue
+### set
 
 Immediately set the cache to a fulfilled value. Will notify any subscribers of the change. This can be useful when a subscription updates the query. Any existing pending fetch will be aborted.
 
@@ -353,11 +353,11 @@ export function ApiStore() {
     useCleanup(apiNotificationsStore.subscribeStatus(handleNewStatus))
 
     function handleNewPosts(post) {
-        posts.setValue(post.id, post)
+        posts.set(post.id, post)
     }
 
     function handleNewStatus(newStatus) {
-        status.setValue(newStatus)
+        status.set(newStatus)
     }
 
     return {
@@ -367,7 +367,7 @@ export function ApiStore() {
 }
 ```
 
-### getValue
+### promise
 
 Allows you to consume the query as a normal promise. It will fetch the value if not cached, or hook into the existing pending state of the query. This is useful to access query values in other stores.
 
@@ -381,7 +381,7 @@ export function SomeStore() {
     return {
         async doSomething() {
             try {
-                const currentStatus = await apiStore.status.getValue()
+                const currentStatus = await apiStore.status.promise()
                 
                 if (currentStatus.isAwesome) {
                     // Do something awesome

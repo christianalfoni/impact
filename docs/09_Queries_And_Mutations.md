@@ -76,7 +76,7 @@ const Post = ({ id }: { id: string }) => {
 }
 ```
 
-And then in some store you might also need access to the data where `getValue` is the method you use to consume a query as a pure promise. So there are different tools for different scenarios.
+And then in some store you might also need access to the data where `promise` is the method you use to consume a query as a pure promise. So there are different tools for different scenarios.
 
 But data fetching is not only about getting and displaying data, it is also about mutations. 
 
