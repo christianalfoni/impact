@@ -61,7 +61,7 @@ function Pages() {
 
 export default observe(Pages)`}
         files={{
-          "/useRouter.js": `import { createStore, signal, useCleanup } from "impact-app";
+          "/useRouter.js": `import { useStore, signal, useCleanup } from "impact-app";
 import { createRouter } from "typed-client-router";
 
 const routes = {
@@ -98,7 +98,7 @@ function Router() {
   };
 }
 
-export const useRouter = createStore(Router);`,
+export const useRouter = () => useStore(Router);`,
         }}
       />
     </Flex>

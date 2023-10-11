@@ -36,7 +36,7 @@ function Example() {
 
 export default observe(Example)`}
         files={{
-          "/useVisbility.js": `import { useCleanup, createStore, emitter, signal } from "impact-app"
+          "/useVisbility.js": `import { useCleanup, useStore, emitter, signal } from "impact-app"
           
 function Visibility() {
   const isVisible = signal(document.visibilityState === "visible");
@@ -60,7 +60,7 @@ function Visibility() {
   };
 }
 
-export const useVisbility = createStore(Visibility);`,
+export const useVisbility = () => useStore(Visibility);`,
         }}
       />
     </Flex>
