@@ -61,7 +61,8 @@
 - [Hello World](./docs/04_Hello_World.md)
 - [API](./docs/05_API.md)
 - [Stores](./docs/06_Stores.md)
-- [Reactivity](./docs/07_Reactivity.md)
-- [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
-- [Events](./docs/09_Events.md)
+- [Scopes](./docs/07_Scopes.md)
+- [Reactivity](./docs/08_Reactivity.md)
+- [Queries And Mutations](./docs/09_Queries_And_Mutations.md)
+- [Events](./docs/10_Events.md)
 

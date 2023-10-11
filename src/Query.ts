@@ -177,7 +177,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
   onChange(key: K, subscriber: (state: QueryState<T>) => void) {
     return this._subscribe(key, subscriber);
   }
-  setValue(key: K, value: T) {
+  set(key: K, value: T) {
     const lookupKey = this._getLookupKey(key);
     const state = this._state[lookupKey];
 
@@ -215,7 +215,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
       },
     });
   }
-  getValue(key: K, ...params: P): Promise<T> {
+  promise(key: K, ...params: P): Promise<T> {
     return this._fetch(key, ...params);
   }
   fetch(key: K, ...params: P): QueryState<T> {
@@ -403,7 +403,7 @@ class Query<P extends any[], T> {
   onChange(subscriber: (state: QueryState<T>) => void) {
     return this._subscribe(subscriber);
   }
-  setValue(value: T) {
+  set(value: T) {
     const state = this._state;
 
     if (!state) {
@@ -440,7 +440,7 @@ class Query<P extends any[], T> {
       },
     });
   }
-  getValue(...params: P): Promise<T> {
+  promise(...params: P): Promise<T> {
     return this._fetch(...params);
   }
   fetch(...params: P): QueryState<T> {
