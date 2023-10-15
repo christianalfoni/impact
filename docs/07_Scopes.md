@@ -11,3 +11,5 @@ If you think about your application as something running on a public computer wh
 Another important aspect of creating scopes is that they act as data boundaries. Instead of managing state that might or might not be available in your global state store, due to its asynchronous nature, you can rather do data fetching between scopes so that each scope and its stores has initialized data. In practice that means you move most, if not all, your asynchronous data fetching logic to components using suspense and subscriptions, as opposed to managing promises and their state manually.
 
 A third aspect of scopes is that they improve context awareness in your components. Your components will never need to override typing or validate the existence of state. The components operate within a scope where related state stores are initialized with their initial state. No more optional initialization of state.
+
+A final aspect of scopes is that they also represent "abstraction level". In the global scope you will define generic and cross session type of stores. With nested scopes you will have higher abstractions encapsulating the domains of your application.

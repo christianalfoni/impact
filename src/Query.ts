@@ -16,7 +16,20 @@ type PendingQueryState = {
 type FulfilledQueryState<T> = {
   status: "fulfilled";
   value: T;
-  isRefetching: boolean;
+  refetch:
+    | {
+        status: "idle";
+      }
+    | {
+        status: "pending";
+      }
+    | {
+        status: "fulfilled";
+      }
+    | {
+        status: "rejected";
+        reason: unknown;
+      };
 };
 
 type RejectedQueryState = {
@@ -98,6 +111,8 @@ class Queries<K extends CacheKey, P extends any[], T> {
           return value;
         }
 
+        const state = this._state[lookupKey];
+
         this._setState(lookupKey, {
           status: "fulfilled",
           cache: {
@@ -107,7 +122,10 @@ class Queries<K extends CacheKey, P extends any[], T> {
           query: {
             status: "fulfilled",
             value,
-            isRefetching: false,
+            refetch:
+              state?.status === "pending"
+                ? { status: "idle" }
+                : { status: "fulfilled" },
           },
         });
 
@@ -118,17 +136,33 @@ class Queries<K extends CacheKey, P extends any[], T> {
           throw abortController.signal.reason;
         }
 
-        this._setState(lookupKey, {
-          status: "rejected",
-          cache: {
-            status: "rejected",
-            reason,
-          },
-          query: {
-            status: "rejected",
-            reason,
-          },
-        });
+        const state = this._state[lookupKey];
+
+        this._setState(
+          lookupKey,
+          state?.status === "fulfilled"
+            ? {
+                ...state,
+                query: {
+                  ...state.query,
+                  refetch: {
+                    status: "rejected",
+                    reason,
+                  },
+                },
+              }
+            : {
+                status: "rejected",
+                cache: {
+                  status: "rejected",
+                  reason,
+                },
+                query: {
+                  status: "rejected",
+                  reason,
+                },
+              },
+        );
 
         throw reason;
       });
@@ -191,7 +225,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
         query: {
           status: "fulfilled",
           value,
-          isRefetching: false,
+          refetch: { status: "idle" },
         },
       });
 
@@ -211,17 +245,23 @@ class Queries<K extends CacheKey, P extends any[], T> {
       query: {
         status: "fulfilled",
         value,
-        isRefetching: false,
+        refetch:
+          state.query.status === "fulfilled"
+            ? state.query.refetch
+            : { status: "idle" },
       },
     });
   }
   promise(key: K, ...params: P): Promise<T> {
+    // When using promise the promise will throw on rejected
     return this._fetch(key, ...params);
   }
   fetch(key: K, ...params: P): QueryState<T> {
     const lookupKey = this._getLookupKey(key);
 
-    this._fetch(key, ...params);
+    this._fetch(key, ...params).catch(() => {
+      // When using fetch we do not throw the promise, as the query status will be rejected
+    });
 
     const state = this._state[lookupKey];
 
@@ -285,7 +325,7 @@ class Queries<K extends CacheKey, P extends any[], T> {
         query: {
           status: "fulfilled",
           value: state.query.value,
-          isRefetching: true,
+          refetch: { status: "pending" },
         },
       });
 
@@ -325,6 +365,8 @@ class Query<P extends any[], T> {
           return value;
         }
 
+        const state = this._state;
+
         this._setState({
           status: "fulfilled",
           cache: {
@@ -334,7 +376,10 @@ class Query<P extends any[], T> {
           query: {
             status: "fulfilled",
             value,
-            isRefetching: false,
+            refetch:
+              state?.status === "pending"
+                ? { status: "idle" }
+                : { status: "fulfilled" },
           },
         });
 
@@ -345,17 +390,32 @@ class Query<P extends any[], T> {
           throw abortController.signal.reason;
         }
 
-        this._setState({
-          status: "rejected",
-          cache: {
-            status: "rejected",
-            reason,
-          },
-          query: {
-            status: "rejected",
-            reason,
-          },
-        });
+        const state = this._state;
+
+        this._setState(
+          state?.status === "fulfilled"
+            ? {
+                ...state,
+                query: {
+                  ...state.query,
+                  refetch: {
+                    status: "rejected",
+                    reason,
+                  },
+                },
+              }
+            : {
+                status: "rejected",
+                cache: {
+                  status: "rejected",
+                  reason,
+                },
+                query: {
+                  status: "rejected",
+                  reason,
+                },
+              },
+        );
 
         throw reason;
       });
@@ -416,7 +476,7 @@ class Query<P extends any[], T> {
         query: {
           status: "fulfilled",
           value,
-          isRefetching: false,
+          refetch: { status: "idle" },
         },
       });
 
@@ -436,15 +496,21 @@ class Query<P extends any[], T> {
       query: {
         status: "fulfilled",
         value,
-        isRefetching: false,
+        refetch:
+          state.query.status === "fulfilled"
+            ? state.query.refetch
+            : { status: "idle" },
       },
     });
   }
   promise(...params: P): Promise<T> {
+    // When using promise the promise will throw on rejected
     return this._fetch(...params);
   }
   fetch(...params: P): QueryState<T> {
-    this._fetch(...params);
+    this._fetch(...params).catch(() => {
+      // When using fetch we do not throw the promise, as the query status will be rejected
+    });
 
     // It is always there because we call "fetch"
     const state = this._state!;
@@ -504,7 +570,7 @@ class Query<P extends any[], T> {
         query: {
           status: "fulfilled",
           value: state.query.value,
-          isRefetching: true,
+          refetch: { status: "pending" },
         },
       });
 

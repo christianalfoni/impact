@@ -294,7 +294,7 @@ export const Post = ({ id }: { id: string }) => {
 
 ### refetch
 
-Runs the query again, even when `fulfilled`. In this state the state of the query has an additional `isRefetching` property set to `true`. Any subscribers of the query will update.
+Runs the query again, even when `fulfilled`. In this state the state of the query has an additional `refetch` property with is own `pending`, `rejected` or `fulfilled` state. Any subscribers of the query will update.
 
 ```tsx
 import { useStore } from 'impact-app'
@@ -302,14 +302,21 @@ import { ApiStore } from '../stores/ApiStore'
 
 export const Post = ({ id }: { id: string }) => {
   const apiStore = useStore(ApiStore)
+  const postsQuery = apiStore.posts.fetch(id)
   
   return (
-    <div onClick={() => {
-        apiStore.posts.refetch(id)
-        // apiStore.status.refetch()
-    }}>
+    <button
+        disabled={
+            postsQuery.status === 'pending' ||
+            (postsQuery.status === 'fulfilled' && postsQuery.refetch.status === 'pending')
+        }
+        onClick={() => {
+            apiStore.posts.refetch(id)
+            // apiStore.status.refetch()
+        }}
+    >
         Click to get a fresh value
-    </div>
+    </button>
 }
 ```
 
