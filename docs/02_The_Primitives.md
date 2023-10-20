@@ -20,11 +20,7 @@ Impact ships with its own reactive state primitives, but you can use other state
 
 ### Signal
 
-A signal is just a way to store a state value components can track when they change. You will use `observe` with components to register any signal access from any store to the component as it renders. This avoids having to manually select and optimise state in components. Consume any stores and the component reconciles based on what you access from those stores.
-
-### Queries and mutations
-
-Data fetching and mutation primitives that allows you to consume them naturally in your components subscribing to their state, using suspense or consume them directly in your stores. 
+A signal is just a way to store a state value components can track when they change. What makes Impact signals especially powerful is that they also make promises observable and suspendable. You will use `observe` with components to register any signal access from any store to the component as it renders. This avoids having to manually select and optimise state in components. Consume signals from any store and the component reconciles based on what you access from those stores.
 
 ### Emitter
 
