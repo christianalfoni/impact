@@ -62,7 +62,10 @@ export class SignalTracker {
     this.contexts.delete(context);
   }
   notify() {
-    this.contexts.forEach((context) => context.notify());
+    // A context can be synchronously added back to this signal related to firing the signal, which
+    // could cause a loop. We only want to notify the current contexts
+    const contexts = Array.from(this.contexts);
+    contexts.forEach((context) => context.notify());
   }
 }
 
@@ -342,9 +345,7 @@ export function useObserve(cb: () => void) {
       const context = new ObserverContext();
       cb();
       context[Symbol.dispose]();
-      currentSubscriptionDisposer = context.subscribe(() =>
-        Promise.resolve().then(updater),
-      );
+      currentSubscriptionDisposer = context.subscribe(updater);
     };
 
     useCleanup(() => {
@@ -360,9 +361,7 @@ export function useObserve(cb: () => void) {
         const context = new ObserverContext();
         cb();
         context[Symbol.dispose]();
-        currentSubscriptionDisposer = context.subscribe(() =>
-          Promise.resolve().then(updater),
-        );
+        currentSubscriptionDisposer = context.subscribe(updater);
       };
 
       updater();
