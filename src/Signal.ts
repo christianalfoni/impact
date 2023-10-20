@@ -1,5 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
+import { getActiveStoresContainer, useCleanup } from "./stores";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -328,4 +329,47 @@ export function observe(cb?: any) {
   );
 
   return context;
+}
+
+export function useObserve(cb: () => void) {
+  const activeStoresContainer = getActiveStoresContainer();
+
+  if (activeStoresContainer) {
+    let currentSubscriptionDisposer: (() => void) | undefined;
+
+    const updater = () => {
+      currentSubscriptionDisposer?.();
+      const context = new ObserverContext();
+      cb();
+      context[Symbol.dispose]();
+      currentSubscriptionDisposer = context.subscribe(() =>
+        Promise.resolve().then(updater),
+      );
+    };
+
+    useCleanup(() => {
+      currentSubscriptionDisposer?.();
+    });
+
+    updater();
+  } else {
+    useEffect(() => {
+      let currentSubscriptionDisposer: (() => void) | undefined = undefined;
+      const updater = () => {
+        currentSubscriptionDisposer?.();
+        const context = new ObserverContext();
+        cb();
+        context[Symbol.dispose]();
+        currentSubscriptionDisposer = context.subscribe(() =>
+          Promise.resolve().then(updater),
+        );
+      };
+
+      updater();
+
+      return () => {
+        currentSubscriptionDisposer?.();
+      };
+    }, []);
+  }
 }

@@ -6,6 +6,7 @@
 - [signal](#signal)
 - [derive](#derive)
 - [observe](#observe)
+- [useObserve](#useobserve)
 - [use](#use)
 - [debugging signals](#debugging-signals)
 - [emitter](#emitter)
@@ -252,6 +253,24 @@ yarn add @babel/plugin-proposal-explicit-resource-management -D
 ```
 
 This is a **Stage 3** proposal and is coming to JavaScript.
+
+## useObserve
+
+An effect that will run whenever the signals accessed changes. Can be used both in stores and components.
+
+```ts
+function SomeStore() {
+    const someOtherStore = useSomeOtherStore()
+
+    useObserve(() => {
+        if (someOtherStore.someSignalValue === 'foo') {
+            console.log("HEY")
+        }
+    })
+
+    return {}
+}
+```
 
 ## use
 
