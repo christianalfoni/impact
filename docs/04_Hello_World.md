@@ -2,7 +2,7 @@
 
 This example is a *silly* example, but it shows:
 
-- Stores are just functions
+- Stores are just functions that run once
 - You can define variables
 - You can safely run a side effect when the store initialises
 - You can define reactive state to be consumed by components and other stores
@@ -10,7 +10,7 @@ This example is a *silly* example, but it shows:
 - You can use getters to consume signals as readonly state
 
 ```ts
-import { signal, useCleanup } from 'impact-app'
+import { signal, useCleanup, useStore } from 'impact-app'
 
 export function TimerStore() {
   // This function runs once, so you can initialize variables
@@ -20,7 +20,7 @@ export function TimerStore() {
   // Use signals to expose reactive state
   const count = signal(0)
 
-  // When this store unmounts it will stop the interval
+  // When the scope this store is exposed through unmounts, it will stop the interval
   useCleanup(stopInterval)
 
   // You can also safely start side effects
@@ -52,23 +52,25 @@ export function TimerStore() {
     }
   }
 }
+
+export const useTimer = () => useStore(TimerStore)
 ```
 
 ```tsx
 import { observe, useStore } from 'impact-app'
-import { TimerStore } from './stores/TimerStore'
+import { useTimer } from './stores/TimerStore'
 
 function App() {
     /*
       By default all stores are global and can be used in any component
     */
-    const timerStore = useStore(TimerStore)
+    const timer = useTimer()
     
     return (
       <div>
-        <h1>{timerStore.count}</h1>
-        <button onClick={() => timerStore.start()}>Start</button>
-        <button onClick={() => timerStore.stop()}>Stop</button>
+        <h1>{timer.count}</h1>
+        <button onClick={() => timer.start()}>Start</button>
+        <button onClick={() => timer.stop()}>Stop</button>
       </div>
     )
 }

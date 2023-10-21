@@ -2,6 +2,10 @@ import { Component, ReactNode, createContext, useContext } from "react";
 
 const currentStoresContainer: StoresContainer[] = [];
 
+export function getActiveStoresContainer() {
+  return currentStoresContainer[currentStoresContainer.length - 1];
+}
+
 export type Store<T, A extends any[]> = (...args: A) => T;
 
 export type StoreState =
@@ -177,8 +181,7 @@ export function createScopeProvider<
 }
 
 export function useCleanup(cleaner: () => void) {
-  const activeStoresContainer =
-    currentStoresContainer[currentStoresContainer.length - 1];
+  const activeStoresContainer = getActiveStoresContainer();
 
   if (!activeStoresContainer) {
     throw new Error("You are cleaning up in an invalid context");
@@ -188,8 +191,7 @@ export function useCleanup(cleaner: () => void) {
 }
 
 export function useStore<T, A extends any[]>(store: Store<T, A>) {
-  const activeStoresContainer =
-    currentStoresContainer[currentStoresContainer.length - 1];
+  const activeStoresContainer = getActiveStoresContainer();
 
   if (!activeStoresContainer) {
     const hookContainer = useContext(context) || globalStoresContainer;

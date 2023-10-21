@@ -1,6 +1,6 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
-import { produce } from "immer";
+import { getActiveStoresContainer, useCleanup } from "./stores";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -62,30 +62,59 @@ export class SignalTracker {
     this.contexts.delete(context);
   }
   notify() {
-    this.contexts.forEach((context) => context.notify());
+    // A context can be synchronously added back to this signal related to firing the signal, which
+    // could cause a loop. We only want to notify the current contexts
+    const contexts = Array.from(this.contexts);
+    contexts.forEach((context) => context.notify());
   }
 }
 
-export type Signal<T> = {
-  onChange(listener: (newValue: T, prevValue: T) => void): () => void;
-  get value(): T;
-  set value(newValue: T | ((draft: T) => T | void));
-};
+export type Signal<T> = T extends Promise<infer V>
+  ? {
+      get value(): SignalPromise<V>;
+      set value(promise: T);
+    }
+  : {
+      value: T;
+    };
 
-export function signal<T>(value: T): Signal<T> {
+export function signal<T>(): Signal<T | undefined>;
+export function signal<T>(initialValue: T): Signal<T>;
+export function signal<T>(initialValue?: T) {
+  let value =
+    initialValue && initialValue instanceof Promise
+      ? createPromise(initialValue)
+      : initialValue;
+
   const signal = new SignalTracker(() => value);
-  let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
+
+  function createPromise(promise: Promise<any>): SignalPromise<T> {
+    return createPendingPromise(
+      promise
+        .then(function (resolvedValue) {
+          value = createFulfilledPromise(
+            Promise.resolve(resolvedValue),
+            resolvedValue,
+          );
+
+          signal.notify();
+
+          return resolvedValue;
+        })
+        .catch((rejectedReason) => {
+          value = createRejectedPromise(
+            Promise.reject(rejectedReason),
+            rejectedReason,
+          );
+
+          signal.notify();
+
+          throw rejectedReason;
+        }),
+    );
+  }
 
   return {
-    onChange(listener) {
-      listeners = listeners || new Set();
-
-      listeners.add(listener);
-
-      return () => {
-        listeners?.delete(listener);
-      };
-    },
     get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerSignal(signal);
@@ -112,12 +141,13 @@ export function signal<T>(value: T): Signal<T> {
         return;
       }
 
+      if (newValue instanceof Promise) {
+        newValue = createPromise(newValue);
+      }
+
       const prevValue = value;
 
-      value =
-        typeof newValue === "function"
-          ? produce(value, newValue as (draft: T) => T | void)
-          : newValue;
+      value = newValue;
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
@@ -127,11 +157,82 @@ export function signal<T>(value: T): Signal<T> {
         return;
       }
 
-      signal.notify();
-
-      listeners?.forEach((listener) => listener(value, prevValue));
+      if (value instanceof Promise) {
+        // We might set a Promise.resolve, in which case we do not want to notify as the micro task has
+        // already done it in "createPromise". So we run our own micro task to check if the promise
+        // is still pending, where we do want to notify
+        Promise.resolve().then(() => {
+          if (value instanceof Promise && value.status === "pending") {
+            signal.notify();
+          }
+        });
+      } else {
+        signal.notify();
+      }
     },
   };
+}
+
+type PendingPromise<T> = Promise<T> & {
+  status: "pending";
+};
+
+type FulfilledPromise<T> = Promise<T> & {
+  status: "fulfilled";
+  value: T;
+};
+
+type RejectedPromise<T> = Promise<T> & {
+  status: "rejected";
+  reason: unknown;
+};
+
+type SignalPromise<T> =
+  | PendingPromise<T>
+  | FulfilledPromise<T>
+  | RejectedPromise<T>;
+
+export interface AsyncSignal<T> {
+  set value(value: T | Promise<T>);
+  get value(): T;
+}
+
+function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
+  return Object.assign(promise, {
+    status: "pending" as const,
+  });
+}
+
+function createFulfilledPromise<T>(
+  promise: Promise<T>,
+  value: T,
+): FulfilledPromise<T> {
+  return Object.assign(promise, {
+    status: "fulfilled" as const,
+    value,
+  });
+}
+
+function createRejectedPromise<T>(
+  promise: Promise<T>,
+  reason: unknown,
+): RejectedPromise<T> {
+  return Object.assign(promise, {
+    status: "rejected" as const,
+    reason,
+  });
+}
+
+export function use<T>(promise: SignalPromise<T>): T {
+  if (promise.status === "pending") {
+    throw promise;
+  }
+
+  if (promise.status === "rejected") {
+    throw promise.reason;
+  }
+
+  return promise.value;
 }
 
 export function derive<T>(cb: () => T) {
@@ -231,4 +332,43 @@ export function observe(cb?: any) {
   );
 
   return context;
+}
+
+export function useObserve(cb: () => void) {
+  const activeStoresContainer = getActiveStoresContainer();
+
+  if (activeStoresContainer) {
+    let currentSubscriptionDisposer: (() => void) | undefined;
+
+    const updater = () => {
+      currentSubscriptionDisposer?.();
+      const context = new ObserverContext();
+      cb();
+      context[Symbol.dispose]();
+      currentSubscriptionDisposer = context.subscribe(updater);
+    };
+
+    useCleanup(() => {
+      currentSubscriptionDisposer?.();
+    });
+
+    updater();
+  } else {
+    useEffect(() => {
+      let currentSubscriptionDisposer: (() => void) | undefined = undefined;
+      const updater = () => {
+        currentSubscriptionDisposer?.();
+        const context = new ObserverContext();
+        cb();
+        context[Symbol.dispose]();
+        currentSubscriptionDisposer = context.subscribe(updater);
+      };
+
+      updater();
+
+      return () => {
+        currentSubscriptionDisposer?.();
+      };
+    }, []);
+  }
 }
