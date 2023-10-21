@@ -81,6 +81,8 @@ export type Signal<T> = T extends Promise<infer V>
 export function signal<T>(): Signal<T | undefined>;
 export function signal<T>(initialValue: T): Signal<T>;
 export function signal<T>(initialValue?: T) {
+  let currentAbortController: AbortController | undefined;
+
   let value =
     initialValue && initialValue instanceof Promise
       ? createPromise(initialValue)
@@ -89,9 +91,17 @@ export function signal<T>(initialValue?: T) {
   const signal = new SignalTracker(() => value);
 
   function createPromise(promise: Promise<any>): SignalPromise<T> {
+    currentAbortController?.abort();
+
+    const abortController = (currentAbortController = new AbortController());
+
     return createPendingPromise(
       promise
         .then(function (resolvedValue) {
+          if (abortController.signal.aborted) {
+            return;
+          }
+
           value = createFulfilledPromise(
             Promise.resolve(resolvedValue),
             resolvedValue,
@@ -102,6 +112,10 @@ export function signal<T>(initialValue?: T) {
           return resolvedValue;
         })
         .catch((rejectedReason) => {
+          if (abortController.signal.aborted) {
+            return;
+          }
+
           value = createRejectedPromise(
             Promise.reject(rejectedReason),
             rejectedReason,
