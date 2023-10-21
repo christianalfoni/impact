@@ -153,7 +153,7 @@ export class ScopeProvider<
   }
 }
 
-export function scopeProvider<
+export function scope<
   T extends {
     [name: string]: Store<any, any>;
   },
