@@ -1,6 +1,6 @@
-import { useEffect, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
-import { getActiveStoresContainer, useCleanup } from "./stores";
+import { cleanup, getActiveStoresContainer } from "./stores";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -235,7 +235,7 @@ export function use<T>(promise: SignalPromise<T>): T {
   return promise.value;
 }
 
-export function derive<T>(cb: () => T) {
+export function derived<T>(cb: () => T) {
   let value: T;
   let disposer: () => void;
   let isDirty = true;
@@ -243,15 +243,6 @@ export function derive<T>(cb: () => T) {
   let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
   return {
-    onChange: (listener: (newValue: T, prevValue: T) => void) => {
-      listeners = listeners || new Set();
-
-      listeners.add(listener);
-
-      return () => {
-        listeners?.delete(listener);
-      };
-    },
     get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerSignal(signal);
@@ -297,9 +288,33 @@ export function derive<T>(cb: () => T) {
   };
 }
 
-export function observe(): ObserverContext;
-export function observe<T extends (...args: any[]) => any>(cb: T): T;
-export function observe(cb?: any) {
+export function observe(cb: () => void) {
+  const activeStoresContainer = getActiveStoresContainer();
+
+  if (!activeStoresContainer) {
+    throw new Error("You are using onObserve in the wrong context");
+  }
+
+  let currentSubscriptionDisposer: (() => void) | undefined;
+
+  const updater = () => {
+    currentSubscriptionDisposer?.();
+    const context = new ObserverContext();
+    cb();
+    context[Symbol.dispose]();
+    currentSubscriptionDisposer = context.subscribe(updater);
+  };
+
+  cleanup(() => {
+    currentSubscriptionDisposer?.();
+  });
+
+  updater();
+}
+
+export function observer(): ObserverContext;
+export function observer<T extends (...args: any[]) => any>(cb: T): T;
+export function observer(cb?: any) {
   if (cb) {
     return (...args: any[]) => {
       const context = new ObserverContext();
@@ -332,43 +347,4 @@ export function observe(cb?: any) {
   );
 
   return context;
-}
-
-export function useObserve(cb: () => void) {
-  const activeStoresContainer = getActiveStoresContainer();
-
-  if (activeStoresContainer) {
-    let currentSubscriptionDisposer: (() => void) | undefined;
-
-    const updater = () => {
-      currentSubscriptionDisposer?.();
-      const context = new ObserverContext();
-      cb();
-      context[Symbol.dispose]();
-      currentSubscriptionDisposer = context.subscribe(updater);
-    };
-
-    useCleanup(() => {
-      currentSubscriptionDisposer?.();
-    });
-
-    updater();
-  } else {
-    useEffect(() => {
-      let currentSubscriptionDisposer: (() => void) | undefined = undefined;
-      const updater = () => {
-        currentSubscriptionDisposer?.();
-        const context = new ObserverContext();
-        cb();
-        context[Symbol.dispose]();
-        currentSubscriptionDisposer = context.subscribe(updater);
-      };
-
-      updater();
-
-      return () => {
-        currentSubscriptionDisposer?.();
-      };
-    }, []);
-  }
 }

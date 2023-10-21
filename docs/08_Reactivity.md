@@ -5,7 +5,7 @@ By default it can be a good idea to use the reactive state primitives shipped wi
 You could use a state machine from [XState](https://xstate.js.org/):
 
 ```ts
-import {  signal, useCleanup } from 'impact-app'
+import {  signal, cleanup } from 'impact-app'
 import { createMachine, interpret, assign } from 'xstate';
 
 const increment = (context) => context.count + 1;
@@ -32,7 +32,7 @@ export function CounterStore() {
 
     counterService.onChange(onContextChange);
 
-    useCleanup(() => counterService.off(onContextChange));
+    cleanup(() => counterService.off(onContextChange));
 
     function onContextChange(newContext) {
         context.value = newContext;

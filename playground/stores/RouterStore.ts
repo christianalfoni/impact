@@ -1,5 +1,5 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
-import { useCleanup, signal } from "impact-app";
+import { cleanup, signal, store } from "impact-app";
 
 export const routes = {
   main: "/",
@@ -28,7 +28,7 @@ export function RouterStore() {
   const currentRoute = signal(router.current);
   const disposeRouterListener = router.listen(onRoute);
 
-  useCleanup(disposeRouterListener);
+  cleanup(disposeRouterListener);
 
   function onRoute(route?: Routes) {
     if (route) {
@@ -48,3 +48,5 @@ export function RouterStore() {
     },
   };
 }
+
+export const useRouter = () => store(RouterStore);

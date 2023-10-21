@@ -10,30 +10,24 @@ This example is a *silly* example, but it shows:
 - You can use getters to consume signals as readonly state
 
 ```ts
-import { signal, useCleanup, useStore } from 'impact-app'
+import { signal, store, cleanup } from 'impact-app'
 
-export function TimerStore() {
-  // This function runs once, so you can initialize variables
-  let interval: number
-  let isRunning = false
-
+export function CounterStore() {
+  // The store body runs once, so you can define variables as private state
+  let counterInterval
+  
   // Use signals to expose reactive state
   const count = signal(0)
 
   // When the scope this store is exposed through unmounts, it will stop the interval
-  useCleanup(stopInterval)
+  cleanup(stopCounter)
 
-  // You can also safely start side effects
-  startInterval()
-
-  function startInterval() {
-    interval = setInterval(() => count.value++, 1000)
-    isRunning = true
+  function startCounter() {
+    counterInterval = setInterval(() => count.value++, 1000)
   }
 
-  function stopInterval() {
-    clearInterval(interval)
-    isRunning = false
+  function stopCounter() {
+    clearInterval(counterInterval)
   }
 
   return {
@@ -41,44 +35,41 @@ export function TimerStore() {
       return count.value
     },
     start() {
-      if (!isRunning) {
-        startInterval()
-      }
+      stopCounter()
+      startCounter()
     },
     stop() {
-      if (isRunning) {
-        stopInterval()
-      }
+      stopCounter()
     }
   }
 }
 
-export const useTimer = () => useStore(TimerStore)
+export const useCounter = () => store(CounterStore)
 ```
 
 ```tsx
-import { observe, useStore } from 'impact-app'
-import { useTimer } from './stores/TimerStore'
+import { observer } from 'impact-app'
+import { useCounter } from '../stores/CounterStore'
 
 function App() {
     /*
       By default all stores are global and can be used in any component
     */
-    const timer = useTimer()
+    const { count, start, stop } = useCounter()
     
     return (
       <div>
-        <h1>{timer.count}</h1>
-        <button onClick={() => timer.start()}>Start</button>
-        <button onClick={() => timer.stop()}>Stop</button>
+        <h1>{count}</h1>
+        <button onClick={() => start()}>Start</button>
+        <button onClick={() => stop()}>Stop</button>
       </div>
     )
 }
 
 /*
   To enable reactivity the component needs to be observed.
-  NOTE! You can alternatively use "observe" with the "using"
+  NOTE! You can alternatively use "observer" with the "using"
   keyword to avoid wrapping components this way
 */
-export default observe(App)
+export default observer(App)
 ```

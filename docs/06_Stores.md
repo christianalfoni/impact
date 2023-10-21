@@ -15,34 +15,39 @@ export function SomeStore() {
 By default all stores are global and you can just start consuming them within components and other stores. They will all share a single instance of any store consumed.
 
 ```tsx
-import { useStore } from 'impact-app'
+import { store } from 'impact-app'
 
 function SomeStore() {
     return {}
 }
 
+const useSomeStore = () => store(SomeStore)
+
 function SomeComponent() {
-    const someStore = useStore(SomeStore)
+    const someStore = useSomeStore()
 }
+
 ```
 
-The `ScopeProvider` allows you to scope your stores to a component tree. The components in the component tree consuming the stores from a `ScopeProvider` will all consume the same instance of stores. When a store is being resolved in a `ScopeProvider` and can not be found the resolvement will propagate up the component tree, all the way up to the global stores. When a `ScopeProvider` unmounts any `useCleanup` callbacks will be called on the resolved stores.
+The `ScopeProvider` allows you to scope your stores to a component tree. The components in the component tree consuming the stores from a `ScopeProvider` will all consume the same instance of stores. When a store is being resolved in a `ScopeProvider` and can not be found the resolvement will propagate up the component tree, all the way up to the global stores. When a `ScopeProvider` unmounts any `cleanup` callbacks will be called on the resolved stores.
 
 ```tsx
-import { createScopeProvider, useStore, useCleanup } from 'impact-app'
+import { scope, store, cleanup } from 'impact-app'
 
-function SomeStore() {
-    useCleanup(() => {
+function FooStore() {
+    cleanup(() => {
         console.log("My scope was unmounted")
     })
 
     return {}
 }
 
-const SomeScopeProvider = createScopeProvider({ SomeStore })
+const useFoo = () => store(FooStore)
+
+const SomeScopeProvider = scope({ FooStore })
 
 function SomeComponent() {
-    const someStore = useStore(SomeStore)
+    const foo = useFoo()
 }
 
 function SomeOtherComponent() {
@@ -50,13 +55,13 @@ function SomeOtherComponent() {
       This will get the same instance of the store as
       "SomeComponent" because they use the same ScopeProvider
     */
-    const someStore = useStore(SomeStore)
+    const foo = useFoo()
 }
 
 const App = () => (
     /*
         The store is now registered and can be consumed by the component tree. When this
-        App component unmounts it will trigger the "useCleanup" callback in "SomeStore"
+        App component unmounts it will trigger the "cleanup" callback in "FooStore"
     */
     <SomeScopeProvider>
       <SomeComponent />
@@ -70,11 +75,10 @@ const App = () => (
 The stores can be used by any other store, any traditional React hook or in a component.
 
 ```ts
-import { useStore } from 'impact-app'
-import { ApiStore } from './stores/ApiStore'
+import { useApi } from './stores/ApiStore'
 
 export function SomeStore() {
-    const apiStore = useStore(ApiStore)
+    const api = useApi()
 
     return {}
 }
@@ -82,19 +86,19 @@ export function SomeStore() {
 
 ## Disposing
 
-When a `ScopeProvider` is unmounted it will be disposed. Any resolved stores will also be disposed. The `useCleanup` hook registers a callback that will be called when this disposal occurs.
+When a `ScopeProvider` is unmounted it will be disposed. Any resolved stores will also be disposed. The `cleanup` hook registers a callback that will be called when this disposal occurs.
 
 ```ts
-import { useStore, useCleanup } from 'impact-app'
-import { ApiStore } from './useApi'
+import { store, cleanup } from 'impact-app'
+import { useApi } from '../stores/ApiStore'
 
 export function SomeSubscribingStore() {
-    const apiStore = useStore(ApiStore)
-    const disposeSubscription = apiStore.subscribeSomething(() => {
+    const api = useApi()
+    const disposeSubscription = api.subscribeSomething(() => {
         // Update a signal or whatever    
     })
 
-    useCleanup(disposeSubscription)
+    cleanup(disposeSubscription)
 
     return {}
 }
@@ -105,18 +109,18 @@ export function SomeSubscribingStore() {
 By default your stores are global and not scoped explicitly to a component tree, so there is no way to give them values from "the outside" when they resolve. But with the use of a `ScopeProvider` you will be able to resolve them with initial values coming from React.
 
 ```tsx
-import { createScopeProvider, createStore } from 'impact-app'
+import { scope } from 'impact-app'
 
-function SomeStore(id: string) {
+function FooStore(id: string) {
     return {}
 }
 
-const SomeScopeProvider = createScopeProvider({ SomeStore })
+const SomeScopeProvider = scope({ FooStore })
 
 const App = ({ id }: { id: string }) => {
     return (
         // SomeScopeProvider is now typed to ensure you pass the argument
-        <SomeScopeProvider SomeStore={id}>
+        <SomeScopeProvider FooStore={id}>
             <Content />
         </SomeScopeProvider>
     )
@@ -169,12 +173,12 @@ The `/global-stores` at the root represents stores across the entire project. Th
 The `features/project/stores/index.ts` could organise the stores like this:
 
 ```ts 
-import { createScopeProvider } from 'impact-app'
+import { scope } from 'impact-app'
 import { ProjectStore } from './ProjectStore'
 import { SomethingElseStore } from './SomethingElseStore'
 
 
-export const ProjectScopeProvider = createScopeProvider({
+export const ProjectScopeProvider = scope({
     ProjectStore,
     SomethingElseStore
 })
@@ -183,16 +187,16 @@ export const ProjectScopeProvider = createScopeProvider({
 The `index.tsx` file would be responsible for exposing the related stores and composing your components.
 
 ```tsx
-import { useStore } from 'impact-app'
-import { ApiStore } from '../global-stores/ApiStore'
+import { use } from 'impact-app'
+import { useApi } from '../global-stores/ApiStore'
 import { ProjectScopeProvider } from './stores'
 import { Layout } from './components/Layout'
 import { ProjectOverview } from './components/ProjectOverview'
 import { ConfigureProject } from './components/ConfigureProject'
 
 export function Project({ id }: { id: string }) {
-    const apiStore = useStore(ApiStore)
-    const projectData = apiStore.projects.suspend(id)
+    const api = useApi()
+    const projectData = use(api.projects.fetch(id))
 
     return (
         <ProjectScopeProvider key={id} ProjectStore={projectData}>
