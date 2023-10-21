@@ -1,13 +1,13 @@
 # Queries And Mutations
 
-One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises, but React is not well suited for consuming promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) for React allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to data fetching than consuming a promise in a component.
+One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises, but React is not well suited for consuming promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to data fetching than consuming a promise in a component.
 
 There are several data fetching solutions for React, like [useQuery](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [useSWR](https://swr.vercel.app/), but these are tied to your React components. That means you can not access and manage this data in an external state management layer. They also have strong opinions about caching, refetching mechanisms etc.
 
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. That makes them a very good candidate for data fetching and mutations.
 
 ```ts
-import { query, Query } from 'impact-app'
+import { signal } from 'impact-app'
 
 export function ApiStore() {
     const postQueries: Record<string, Signal<Promise<PostDTO>>> = {}
@@ -62,72 +62,74 @@ const Post = ({ id }: { id: string }) => {
 }
 ```
 
-And then in some store you might also need access to the promise directly, which you can as it is still just a promise. So there are different tools for different scenarios.
+And then in some store you might also need access to the promise directly, which you can as it is still just a promise.
 
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of doing mutations.
 
 ```ts
-import { signal, Signal, useStore } from 'impact-app'
+import { signal, store } from 'impact-app'
 
-export function ApiStore() {
-    const postQueries: Record<string, Signal<Promise<PostDTO>>> = {}
-    const changingPostTitle = signal<Promise<PostDTO>>()
+export function ProjectStore(projectData: ProjectDTO) {
+    const project = signal(projectData)
+    const changingTitle = signal<Promise<ProjectDTO>>()
 
     return {
-        fetchPost(id: string) {
-            let postQuery = postQueries[id]
-
-            if (!postQuery) {
-                postQuery = postQueries[id] = signal(fetch('/posts/' + id).then((response) => response.json()))
+        get id() {
+            return project.value.id
+        },
+        get title() {
+            return project.value.title
+        },
+        get changingTitle() {
+            return changingTitle.value
+        },
+        changeTitle(id: string, newTitle: string) {
+            project.value = {
+                ...project.value,
+                title: newTitle
             }
 
-            return postQuery.value
-        },
-        get changingPostTitle() {
-            return changingPostTitle.value
-        },
-        changePostTitle(id: string, newTitle: string) {
-            const request = fetch({
+            changingTitle.value = fetch({
                 method: 'PUT',
-                url: '/posts/' + id,
+                url: '/posts/' + project.value.id,
                 data: {
                     title: newTitle
                 }
             })
 
-            changingPostTitle.value = request
-
-            return request
+            return changingTitle.value
         }
     }
 }
 
-export const useApi = () => useStore(ApiStore)
+export const useProject = () => store(ProjectStore)
 ```
 
 ```tsx
-import { observe } from 'impact-app'
-import { useApi } from '../stores/ApiStore'
+import { observer } from 'impact-app'
+import { useProject } from '../stores/ProjectStore'
 
-const Post = ({ id }: { id: string }) => {
-    const { changingPostTile, changePostTitle } = useApi()
-    const [title, setTitle] = useState('')
+function ProjectTitle() {
+    const { changingTitle, changeTitle, title } = useProject()
+    const [newTitle, setNewTitle] = useState(title)
 
     return (
         <div>
             <input
-                disabled={changingPostTile?.status === 'pending' ?? false}
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                disabled={changingTitle?.status === 'pending' ?? false}
+                value={newTitle}
+                onChange={(event) => setNewTitle(event.target.value)}
                 onKeyDown={(event) => {
                     if (event.key === 'ENTER') {
-                        changePostTitle(id, title)
+                        changeTitle(id, newTitle)
                     }
                 }}
             />
         </div>
     )
 }
+
+export default observer(Post)
 ```
 
 **Impact** allows you to manage your data fetching across its stores, your React hooks and components seamlessly.

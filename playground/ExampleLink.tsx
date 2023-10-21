@@ -1,7 +1,6 @@
-import { useStore } from "impact-app";
-import { observe } from "../src/Signal";
+import { observer } from "impact-app";
 import { Link } from "@radix-ui/themes";
-import { RouterStore, Routes } from "./stores/RouterStore";
+import { Routes, useRouter } from "./stores/RouterStore";
 
 export function ExampleLink({
   name,
@@ -10,9 +9,9 @@ export function ExampleLink({
 }: Routes & {
   children: string;
 }) {
-  using _ = observe();
+  using _ = observer();
 
-  const router = useStore(RouterStore);
+  const router = useRouter();
 
   return (
     <Link

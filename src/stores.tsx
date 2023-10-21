@@ -124,7 +124,11 @@ export class ScopeProvider<
 > extends Component<StoresProviderProps<T>> {
   static contextType = context;
   container!: StoresContainer;
-
+  shouldComponentUpdate(): boolean {
+    // This component should never reconcile because of its parent. Not that it matters,
+    // but just unncessary
+    return false;
+  }
   componentWillUnmount(): void {
     this.container.dispose();
   }
@@ -149,7 +153,7 @@ export class ScopeProvider<
   }
 }
 
-export function createScopeProvider<
+export function scopeProvider<
   T extends {
     [name: string]: Store<any, any>;
   },
@@ -180,7 +184,7 @@ export function createScopeProvider<
   };
 }
 
-export function useCleanup(cleaner: () => void) {
+export function cleanup(cleaner: () => void) {
   const activeStoresContainer = getActiveStoresContainer();
 
   if (!activeStoresContainer) {
@@ -190,7 +194,7 @@ export function useCleanup(cleaner: () => void) {
   activeStoresContainer.registerCleanup(cleaner);
 }
 
-export function useStore<T, A extends any[]>(store: Store<T, A>) {
+export function store<T, A extends any[]>(store: Store<T, A>) {
   const activeStoresContainer = getActiveStoresContainer();
 
   if (!activeStoresContainer) {
