@@ -10,7 +10,7 @@ import { LearnStores } from "./learn/stores";
 import { LearnSignals } from "./learn/signals";
 import { LearnQueries } from "./learn/queries";
 import { LearnMutations } from "./learn/mutations";
-import { useRouter } from "./stores/RouterStore";
+import { useRouter } from "./Router";
 
 export function App() {
   using _ = observer();

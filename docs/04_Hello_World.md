@@ -1,18 +1,9 @@
 # Hello World
 
-This example is a *silly* example, but it shows:
-
-- Stores are just functions that run once
-- You can define variables
-- You can safely run a side effect when the store initialises
-- You can define reactive state to be consumed by components and other stores
-- You can dispose when the store unmounts
-- You can use getters to consume signals as readonly state
-
 ```ts
-import { signal, store, cleanup } from 'impact-app'
+import { signal, context, cleanup } from 'impact-app'
 
-export function CounterStore() {
+export const useCounter = context(() => {
   // The store body runs once, so you can define variables as private state
   let counterInterval
   
@@ -42,19 +33,14 @@ export function CounterStore() {
       stopCounter()
     }
   }
-}
-
-export const useCounter = () => store(CounterStore)
+})
 ```
 
 ```tsx
 import { observer } from 'impact-app'
 import { useCounter } from '../stores/CounterStore'
 
-function App() {
-    /*
-      By default all stores are global and can be used in any component
-    */
+const Counter = observer(() => {
     const { count, start, stop } = useCounter()
     
     return (
@@ -64,12 +50,13 @@ function App() {
         <button onClick={() => stop()}>Stop</button>
       </div>
     )
-}
+})
 
-/*
-  To enable reactivity the component needs to be observed.
-  NOTE! You can alternatively use "observer" with the "using"
-  keyword to avoid wrapping components this way
-*/
-export default observer(App)
+export default function App() {
+  return (
+    <useCounter.Provider>
+      <Counter />
+    </useCounter.Provider>
+  )
+}
 ```

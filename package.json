@@ -1,7 +1,7 @@
 {
   "name": "impact-app",
-  "version": "0.36.2",
-  "description": "Composable Stores for React",
+  "version": "0.37.0",
+  "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
