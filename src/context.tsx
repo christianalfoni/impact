@@ -94,7 +94,7 @@ ${String(e)}`);
 const reactContext = createContext<ContextContainer | null>(null);
 
 export class ContextProvider<
-  T extends Record<string, unknown>,
+  T extends Record<string, unknown> | void,
 > extends Component<{
   context: Context<any, any>;
   props: T;
@@ -143,38 +143,43 @@ export function cleanup(cleaner: () => void) {
 }
 
 export function context<T, A extends Record<string, unknown> | void>(
-  store: Context<T, A>,
+  context: Context<T, A>,
 ): (() => T) & {
   Provider: React.FC<A & { children: React.ReactNode }>;
 } {
   const useReactiveContext = () => {
-    const activeStoresContainer = getActiveContextContainer();
+    const activeContextContainer = getActiveContextContainer();
 
-    if (!activeStoresContainer) {
-      const storeContainer = useContext(reactContext);
+    if (!activeContextContainer) {
+      const contextContainer = useContext(reactContext);
 
-      if (!storeContainer) {
+      if (!contextContainer) {
         throw new Error("You are using a store outside its provider");
       }
 
-      return storeContainer.resolve<T, A>(store);
+      return contextContainer.resolve<T, A>(context);
     }
 
-    return activeStoresContainer.resolve(store);
+    return activeContextContainer.resolve(context);
   };
 
-  useReactiveContext.Provider = ({
-    children,
-    ...props
-  }: A & { children: React.ReactNode }) => (
-    <ContextProvider props={props} context={store}>
-      {children}
-    </ContextProvider>
-  );
+  useReactiveContext.Provider = (props: A & { children: React.ReactNode }) => {
+    // To avoid TSLIB
+    const propsCopy = Object.assign({}, props);
+    const children = propsCopy.children;
+
+    delete propsCopy.children;
+
+    return (
+      <ContextProvider props={propsCopy as A} context={context}>
+        {children}
+      </ContextProvider>
+    );
+  };
 
   // @ts-ignore
   useReactiveContext.Provider.displayName =
-    store.name || "ReactiveContextProvider";
+    context.name || "ReactiveContextProvider";
 
   return useReactiveContext as any;
 }
