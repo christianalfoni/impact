@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
-import { cleanup, getActiveStoresContainer } from "./stores";
+import { cleanup, getActiveContextContainer } from "./context";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -303,9 +303,9 @@ export function derived<T>(cb: () => T) {
 }
 
 export function observe(cb: () => void) {
-  const activeStoresContainer = getActiveStoresContainer();
+  const activeContextContainer = getActiveContextContainer();
 
-  if (!activeStoresContainer) {
+  if (!activeContextContainer) {
     throw new Error("You are using onObserve in the wrong context");
   }
 

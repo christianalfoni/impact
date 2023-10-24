@@ -172,7 +172,9 @@ export function context<T, A extends Record<string, unknown> | void>(
     </ContextProvider>
   );
 
-  useReactiveContext.Provider.displayName = "ReactiveContextProvider";
+  // @ts-ignore
+  useReactiveContext.Provider.displayName =
+    store.name || "ReactiveContextProvider";
 
   return useReactiveContext as any;
 }
