@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Composable Stores for React</b>
+  <b>Reactive contexts for React</b>
 </p>
 
 <br />
@@ -11,14 +11,6 @@
 <p align="center">
 ⚠️ <b>This is still a work in progress</b> ⚠️
 </p>
-
-<br />
-
-🗄️ Global and scoped stores
-
-🏗️ Compose stores using the hooks pattern
-
-🔋 Reactive state primitives included
 
 <br/>
 
@@ -60,9 +52,7 @@
 - [Understanding The Design](./docs/03_Understanding_The_Design.md)
 - [Hello World](./docs/04_Hello_World.md)
 - [API](./docs/05_API.md)
-- [Stores](./docs/06_Stores.md)
-- [Scopes](./docs/07_Scopes.md)
-- [Reactivity](./docs/08_Reactivity.md)
-- [Queries And Mutations](./docs/09_Queries_And_Mutations.md)
-- [Events](./docs/10_Events.md)
+- [Contexts](./docs/06_Contexts.md)
+- [Reactivity](./docs/07_Reactivity.md)
+- [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
 

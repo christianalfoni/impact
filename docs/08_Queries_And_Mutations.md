@@ -7,34 +7,36 @@ There are several data fetching solutions for React, like [useQuery](https://tan
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. That makes them a very good candidate for data fetching and mutations.
 
 ```ts
-import { signal } from 'impact-app'
+import { signal, context } from 'impact-app'
 
-export function ApiStore() {
-    const postQueries: Record<string, Signal<Promise<PostDTO>>> = {}
+export const useSessionContext = context(() => {
+    const posts: Record<string, Signal<Promise<PostDTO>>> = {}
 
     return {
         fetchPost(id: string) {
-            let postQuery = postQueries[id]
+            let post = posts[id]
 
             if (!postQuery) {
-                postQuery = postQueries[id] = signal(fetch('/posts/' + id).then((response) => response.json()))
+                post = posts[id] = signal(
+                    fetch('/posts/' + id).then((response) => response.json())
+                )
             }
 
-            return postQuery.value
+            return post.value
         }
     }
-}
+})
 ```
 
 When a signal receives a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook.
 
 ```tsx
 import { use } from 'impact-app'
-import { useApi } from '../stores/ApiStore'
+import { useSessionContext } from '../useSessionContext'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
-    const post = use(api.fetchPost(id))
+    const { fetchPost } = useSessionContext()
+    const post = use(fetchPost(id))
 }
 ```
 
@@ -42,11 +44,11 @@ But maybe you do not want to use suspense, you just want to deal with the status
 
 ```tsx
 import { useStore } from 'impact-app'
-import { useApi } from '../stores/ApiStore'
+import { useSessionContext } from '../useSessionContext'
 
 const Post = ({ id }: { id: string }) => {
-    const api = useApi()
-    const postPromise = api.fetchPost(id)
+    const { fetchPost } = useSessionContext()
+    const postPromise = fetchPost(id)
 
     if (postPromise.status === 'pending') {
         return <div>Loading...</div>
@@ -62,14 +64,14 @@ const Post = ({ id }: { id: string }) => {
 }
 ```
 
-And then in some store you might also need access to the promise directly, which you can as it is still just a promise.
+And then in some nested context you might also need access to the promise directly, which you can as it is still just a promise.
 
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of doing mutations.
 
 ```ts
-import { signal, store } from 'impact-app'
+import { signal, context } from 'impact-app'
 
-export function ProjectStore(projectData: ProjectDTO) {
+export const useProject = context(({ projectData }: { projectData: ProjectDTO }) => {
     const project = signal(projectData)
     const changingTitle = signal<Promise<ProjectDTO>>()
 
@@ -100,17 +102,15 @@ export function ProjectStore(projectData: ProjectDTO) {
             return changingTitle.value
         }
     }
-}
-
-export const useProject = () => store(ProjectStore)
+})
 ```
 
 ```tsx
 import { observer } from 'impact-app'
-import { useProject } from '../stores/ProjectStore'
+import { useProjectContext } from '../useProjectContext'
 
 function ProjectTitle() {
-    const { changingTitle, changeTitle, title } = useProject()
+    const { changingTitle, changeTitle, title } = useProjectContext()
     const [newTitle, setNewTitle] = useState(title)
 
     return (

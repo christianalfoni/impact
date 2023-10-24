@@ -1,5 +1,5 @@
 import { TRoutes, TRouter, createRouter } from "typed-client-router";
-import { cleanup, signal, store } from "impact-app";
+import { cleanup, signal, context } from "impact-app";
 
 export const routes = {
   main: "/",
@@ -17,7 +17,7 @@ export type Routes = TRoutes<typeof routes>;
 
 export type Router = TRouter<typeof routes>;
 
-export function RouterStore() {
+export const useRouter = context(() => {
   const router = createRouter(routes);
 
   // We'll immediately redirect to the first example when on root
@@ -47,6 +47,4 @@ export function RouterStore() {
       return router.url(route.name, route.params);
     },
   };
-}
-
-export const useRouter = () => store(RouterStore);
+});

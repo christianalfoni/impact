@@ -1,41 +1,40 @@
 # API
 
 - [store](#store)
+- [cleanup](#cleanup)
 - [signal](#signal)
 - [derived](#derived)
 - [observe](#observe)
 - [observer](#observer)
 - [use](#use)
-- [scope](#scope)
-- [cleanup](#cleanup)
-- [emitter](#emitter)
 - [debugging signals](#debugging-signals)
 
 ## store
 
-By default you stores are automatically resolved globally and is shared by all components and other stores.
+Creating a store returns the hook to consume it. This hook can be used in components, but also in other stores. You need to provide the store to a component tree to start consuming it. You can optionally take in props to the store, which is passed by the provider.
 
 ```tsx
 import { store } from 'impact-app'
 
-function OtherStore () {
-    return {}
-}
-
-function MessageStore() {
-    // Use it in a store to resolve an other store
-    const otherStore = store(OtherStore)
-    
+const useHelloWorld = store(() => {
     return {
         message: 'Hello World'
     }
+})
+
+function HelloWorld() {
+    // Or use it in a component
+    const { message } = useHelloWorld()
+
+    return <div>{message}</div>
 }
 
-function MessageComponent() {
-    // Or use it in a component
-    const messageStore = store(MessageStore)
-
-    return <div>{messageStore.message}</div>
+export default function App() {
+    return (
+        <useHelloWorld.Provider>
+            <HelloWorld />
+        </useHelloWorld.Provider>
+    )
 }
 ```
 
@@ -48,7 +47,7 @@ Creates a value that can be observed by React. Signals are expected to be treate
 ```ts
 import { signal, store } from 'impact-app'
 
-export function HelloWorldStore() {
+export const useHelloWorld = store(() => {
     const message = signal('Hello World')
 
     return {
@@ -59,9 +58,7 @@ export function HelloWorldStore() {
             message.value = newMessage
         }
     }
-}
-
-export const useHelloWorld = () => store(HelloWorldStore)
+})
 ```
 
 Signals has first class support for promises. That means when you add a promise to a signal, the promise becomes a `SignalPromise`. This is the same promise as you passed in, only it is populated with some additional properties. These properties are the same React looks for when using the `use` hook to suspend a promise. The signal will automatically update as the promise resolves.
@@ -69,7 +66,7 @@ Signals has first class support for promises. That means when you add a promise 
 ```ts
 import { signal, store } from 'impact-app'
 
-export function AsyncHelloWorldStore() {
+export const useAsyncHelloWorld = store(() => {
     const message = signal(new Promise<string>((resolve) => {
         setTimeout(() => resolve('Hello World!'), 2000)
     }))
@@ -83,16 +80,14 @@ export function AsyncHelloWorldStore() {
             message.value = Promise.resolve(newMessage)
         }
     }
-}
-
-export const useAsyncHelloWorld = () => store(AsyncHelloWorldStore)
+})
 ```
 
 ```tsx
 import { observer } from 'impact-app'
-import { useAsyncHelloWorld } from '../stores/AsyncHelloWorldStore'
+import { useAsyncHelloWorld } from '../store'
 
-function SomeComponent() {
+const SomeComponent = observer(() => {
     const { message } = useAsyncHelloWorld()
 
     if (message.status === 'pending') {
@@ -105,9 +100,7 @@ function SomeComponent() {
 
 
     return <h1>{message.value}</h1>
-}
-
-export default observer(SomeComponent)
+})
 ```
 
 Or you could suspend it:
@@ -115,16 +108,14 @@ Or you could suspend it:
 
 ```tsx
 import { observer, use } from 'impact-app'
-import { useAsyncHelloWorld } from '../stores/AsyncHelloWorldStore'
+import { useAsyncHelloWorld } from '../store'
 
-function SomeComponent() {
+const SomeComponent = observer(() => {
     const { message } = useAsyncHelloWorld()
     const messageValue = use(message)
 
     return <h1>{messageValue}</h1>
-}
-
-export default observer(SomeComponent)
+})
 ```
 
 ## derived
@@ -134,7 +125,7 @@ Creates a signal that lazily recomputes whenever any accessed signals within the
 ```ts
 import { signal, derived, store } from 'impact-app'
 
-export function HelloWorldStore() {
+export const useHelloWorld = store(() => {
     const message = signal('Hello World')
     const shoutingMessage = derived(() => message.value + '!!!')
     
@@ -146,9 +137,7 @@ export function HelloWorldStore() {
             return shoutingMessage.value
         }
     }
-}
-
-export const useHelloWorld = () => store(HelloWorldStore)
+})
 ```
 
 ## observe
@@ -156,7 +145,7 @@ export const useHelloWorld = () => store(HelloWorldStore)
 An effect that can be used in stores. It will run whenever the signals accessed changes. It has an equivalent `useObserve` for components.
 
 ```ts
-function SomeStore() {
+const useSomeStore = store(() => {
     const someOtherStore = useSomeOtherStore()
 
     observe(() => {
@@ -164,7 +153,7 @@ function SomeStore() {
     })
 
     return {}
-}
+})
 ```
 
 ## observer
@@ -173,22 +162,20 @@ To observe signals, and "rerender" the components, they need to bound to an `Obs
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorld } from '../stores/HelloWorldStore'
+import { useHelloWorld } from '../store'
 
-function HelloWorld() {
+const HelloWorld = observer(() => {
     const { message } = useHelloWorld()
 
     return <div>{message}</div>
-}
-
-export default observer(HelloWorld)
+})
 ```
 
 But the approach above can result in anonymous component names and dictates to some extent how you can define and export components. Another approach, given you do a little bit of configuration is:
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorld } from '../stores/HelloWorldStore'
+import { useHelloWorld } from '../store'
 
 export function HelloWorld() {
     using _ = observer()
@@ -221,25 +208,23 @@ This is a **Stage 3** proposal and is coming to JavaScript.
 
 ## use
 
-React is experimenting with a new hook called [use](https://blixtdev.com/all-about-reacts-new-use-hook) and until it becomes official you can use the one from Impact to suspend your queries.
+React is experimenting with a new hook called [use](https://blixtdev.com/all-about-reacts-new-use-hook) and until it becomes official you can use the one from Impact to suspend your signal promises.
 
 ```tsx
-import { observe } from 'impact-app'
-import { useApi } from '../stores/ApiStore'
+import { observer } from 'impact-app'
+import { useGlobalStore } from '../globalStore'
 
-function Data() {
-    const api = useApi()
-    const data = use(api.data)
+const DataComponent = observer(() => {
+    const { api } = useGlobalStore()
+    const data = use(api.fetchData())
 
     return <div>{data}</div>
-}
-
-export default observe(Status)
+})
 ```
 
-## scope
+## Providing a value to a store
 
-Creating a `ScopeProvider` allows you to define what stores are shared by what components and other stores.
+Stores can be provided with an initial value
 
 ```tsx
 import { scope } from 'impact-app'
@@ -277,40 +262,21 @@ function SomeComponent() {
 Used in combination with store providers. When the `ScopeProvider` unmounts it will call this function for any stores resolved within the provider.
 
 ```ts
-import { signal, onScopeDisposed } from 'impact-app'
+import { signal, cleanup, store } from 'impact-app'
 
-export function CounterStore() {
+export const useCounter = store(() => {
     const count = signal(0)
 
     const interval = setInterval(() => count.value++, 1000)
 
-    onScopeDisposed(() => clearInterval(interval))
+    cleanup(() => clearInterval(interval))
 
     return {
         get count() {
             return count.value
         }
     }
-}
-```
-
-## emitter
-
-A typed event emitter which enables accessor pattern and disposal.
-
-```ts
-import { emitter } from 'impact-app'
-
-export function SomeStore() {
-    const fooEmitter = emitter<string>()
-
-    return {
-        onFoo: fooEmitter.on,
-        trigger() {
-            fooEmitter.emit('WOOP!')
-        }
-    }
-}
+})
 ```
 
 ## debugging signals

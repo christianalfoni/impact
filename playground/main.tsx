@@ -1,7 +1,7 @@
 import "@radix-ui/themes/styles.css";
 import React from "react";
 import ReactDOM from "react-dom/client";
-
+import { useRouter } from "./Router";
 import { Box, Container, Theme } from "@radix-ui/themes";
 import { App } from "./App";
 
@@ -17,7 +17,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     >
       <Box p="8" style={{ backgroundColor: "var(--gray-1)" }} height="100%">
         <Container>
-          <App />
+          <useRouter.Provider>
+            <App />
+          </useRouter.Provider>
         </Container>
       </Box>
     </Theme>

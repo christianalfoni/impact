@@ -1,6 +1,6 @@
 import { observer } from "impact-app";
 import { Link } from "@radix-ui/themes";
-import { Routes, useRouter } from "./stores/RouterStore";
+import { Routes, useRouter } from "./Router";
 
 export function ExampleLink({
   name,

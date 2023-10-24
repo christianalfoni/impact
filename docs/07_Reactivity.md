@@ -1,15 +1,15 @@
 # Reactivity
 
-By default it can be a good idea to use the reactive state primitives shipped with **Impact**. This is a very straight wayforward way to define state and and consume them optimally in React and other stores. That said, these stores can expose any state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
+By default it can be a good idea to use the reactive state primitive shipped with **Impact**. This is a very straight forward way to define state and and consume them optimally in React and other stores. That said, these contexts can expose any state primitive and you can even make combine state tools with the reactive primitives of Impact to optimally consume them in components.
 
 You could use a state machine from [XState](https://xstate.js.org/):
 
 ```ts
-import {  signal, cleanup } from 'impact-app'
+import {  signal, cleanup, context } from 'impact-app'
 import { createMachine, interpret, assign } from 'xstate';
 
-const increment = (context) => context.count + 1;
-const decrement = (context) => context.count - 1;
+const increment = (state) => state.count + 1;
+const decrement = (state) => state.count - 1;
 
 const counterMachine = createMachine({
   initial: "active",
@@ -26,21 +26,21 @@ const counterMachine = createMachine({
   },
 });
 
-export function CounterStore() {
+const useSomePageContext = context(() => {
     const counterService = interpret(counterMachine).start();
-    const context = signal(counterService.getSnapshot().context);
+    const state = signal(counterService.getSnapshot().context);
 
     counterService.onChange(onContextChange);
 
     cleanup(() => counterService.off(onContextChange));
 
-    function onContextChange(newContext) {
-        context.value = newContext;
+    function onContextChange(newState) {
+        state.value = newState;
     }
 
     return {
         get count() {
-            return context.value.count;
+            return state.value.count;
         },
         increaseCount() {
           counterService.send("INC");
@@ -49,15 +49,15 @@ export function CounterStore() {
           counterService.send("DEC");
         }
     };
-}
+})
 ```
 
 Or you could even replace signals with `observables` from [Mobx](https://mobx.js.org/README.html):
 
 ```ts
-import { observable } from 'mobx'
+import { context, observable } from 'mobx'
 
-export function MessageStore() {
+export const useSomePageContext = context(() => {
     const messages = observable<string[]>([])
 
     return {
@@ -66,5 +66,5 @@ export function MessageStore() {
             messages.push(message)
         }
     }
-}
+})
 ```
