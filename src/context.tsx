@@ -106,11 +106,6 @@ export class ContextProvider<
 }> {
   static contextType = reactContext;
   container!: ContextContainer;
-  shouldComponentUpdate(): boolean {
-    // This component should never reconcile because of its parent. Not that it matters,
-    // but just unncessary
-    return false;
-  }
   componentWillUnmount(): void {
     this.container.dispose();
   }
