@@ -3,7 +3,7 @@ import { Box, Flex, Heading } from "@radix-ui/themes";
 import { DataFetchingExample } from "./examples/dataFetching";
 import { ExampleLink } from "./ExampleLink";
 import { VisibilityExample } from "./examples/visibility";
-import { observer } from "../src/Signal";
+import { observer } from "impact-app";
 import { RoutingExample } from "./examples/routing";
 import { XStateExample } from "./examples/xstate";
 import { LearnStores } from "./learn/stores";
