@@ -49,36 +49,40 @@ class ContextContainer {
     this._disposers.add(cleaner);
   }
   resolve<T, A extends Record<string, unknown> | void>(
-    store: Context<T, A>,
+    context: Context<T, A>,
   ): T {
     if (this._resolvementError) {
       throw this._resolvementError;
     }
 
-    if (this._state.isResolved && store === this._state.ref) {
+    if (this._state.isResolved && context === this._state.ref) {
       return this._state.value;
     }
 
-    if (!this._state.isResolved && this._state.ref === store) {
+    if (!this._state.isResolved && this._state.ref === context) {
       try {
         currentContextContainer.push(this);
         this._state = {
           isResolved: true,
           value: this._state.constr(),
-          ref: store,
+          ref: context,
         };
         currentContextContainer.pop();
 
         return this._state.value;
       } catch (e) {
         this._resolvementError =
-          new Error(`Could not initialize store "${store?.name}":
+          new Error(`Could not initialize context "${context?.name}":
 ${String(e)}`);
         throw this._resolvementError;
       }
     }
 
-    return this.resolve(store);
+    if (!this._parent) {
+      throw new Error(`The context "${context.name}" is not provided`);
+    }
+
+    return this._parent.resolve(context);
   }
   clear() {
     this._disposers.forEach((cleaner) => {
