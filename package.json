@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.37.3",
+  "version": "0.37.4",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

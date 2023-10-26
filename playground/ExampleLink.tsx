@@ -1,6 +1,6 @@
 import { observer } from "impact-app";
 import { Link } from "@radix-ui/themes";
-import { Routes, useRouter } from "./Router";
+import { Routes, useGlobalContext } from "./useGlobalContext";
 
 export function ExampleLink({
   name,
@@ -11,7 +11,7 @@ export function ExampleLink({
 }) {
   using _ = observer();
 
-  const router = useRouter();
+  const { router } = useGlobalContext();
 
   return (
     <Link

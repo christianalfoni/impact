@@ -10,7 +10,8 @@ export class ObserverContext {
   static get current() {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
-  private _signals = new Set<SignalTracker>();
+  private _getters = new Set<SignalTracker>();
+  private _setters = new Set<SignalTracker>();
   private _onUpdate?: () => void;
   private _snapshot: { signals: unknown[] } = {
     signals: [],
@@ -21,22 +22,35 @@ export class ObserverContext {
   constructor() {
     ObserverContext.stack.push(this);
   }
-  registerSignal(signal: SignalTracker) {
-    this._signals.add(signal);
-
+  registerGetter(signal: SignalTracker) {
+    if (this._setters.has(signal)) {
+      throw new Error(
+        "You are creating an infinite loop by getting a signal value that is already being set in an observer context",
+      );
+    }
+    this._getters.add(signal);
     this._snapshot.signals.push(signal.getValue());
+  }
+  registerSetter(signal: SignalTracker) {
+    if (this._getters.has(signal)) {
+      throw new Error(
+        "You are creating an infinite loop by setting a signal that is already being observed in an observer context",
+      );
+    }
+
+    this._setters.add(signal);
   }
   /**
    * There is only a single subscriber to any ObserverContext
    */
   subscribe(onUpdate: () => void) {
     this._onUpdate = onUpdate;
-    this._signals.forEach((signal) => {
+    this._getters.forEach((signal) => {
       signal.addContext(this);
     });
 
     return () => {
-      this._signals.forEach((signal) => {
+      this._getters.forEach((signal) => {
         signal.removeContext(this);
       });
     };
@@ -131,7 +145,7 @@ export function signal<T>(initialValue?: T) {
   return {
     get value() {
       if (ObserverContext.current) {
-        ObserverContext.current.registerSignal(signal);
+        ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
           createObserveDebugEntry(signal);
         }
@@ -165,6 +179,7 @@ export function signal<T>(initialValue?: T) {
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
+        ObserverContext.current.registerSetter(signal);
       }
 
       if (value === prevValue) {
@@ -205,11 +220,6 @@ type SignalPromise<T> =
   | PendingPromise<T>
   | FulfilledPromise<T>
   | RejectedPromise<T>;
-
-export interface AsyncSignal<T> {
-  set value(value: T | Promise<T>);
-  get value(): T;
-}
 
 function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
   return Object.assign(promise, {
@@ -259,7 +269,7 @@ export function derived<T>(cb: () => T) {
   return {
     get value() {
       if (ObserverContext.current) {
-        ObserverContext.current.registerSignal(signal);
+        ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
           createObserveDebugEntry(signal);
         }
