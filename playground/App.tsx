@@ -10,12 +10,12 @@ import { LearnStores } from "./learn/stores";
 import { LearnSignals } from "./learn/signals";
 import { LearnQueries } from "./learn/queries";
 import { LearnMutations } from "./learn/mutations";
-import { useRouter } from "./Router";
+import { useGlobalContext } from "./useGlobalContext";
 
 export function App() {
   using _ = observer();
 
-  const router = useRouter();
+  const { router } = useGlobalContext();
 
   let content;
 
