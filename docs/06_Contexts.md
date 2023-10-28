@@ -7,9 +7,11 @@ A context is just a function that returns state and/or management of state, just
 ```ts
 import { context } from 'impact-app'
 
-const useSomeContext = context(() => { 
+function SomeContext() {
     return {}
-})
+}
+
+const useSomeContext = context(SomeContext)
 ```
 
 ## Providing and consuming contexts
@@ -19,9 +21,11 @@ The `context` function returns a hook that can be used in components and other I
 ```tsx
 import { context } from 'impact-app'
 
-const useSomeContext = context(() => { 
+function SomeContext() {
     return {}
-})
+}
+
+const useSomeContext = context(SomeContext)
 
 function SomeComponent() {
     const someContext = useSomeContext()
@@ -42,13 +46,15 @@ A great thing about React contexts is that you can consume other contexts higher
 
 ```ts
 import { context } from 'impact-app'
-import { useGlobalContext } from './useGlobalContext'
+import { useGlobalContext } from '../useGlobalContext'
 
-const useSomePageContext = context(() => {
+function SomePageContext() {
     const { api } = useGlobalContext()
 
     return {}
-})
+}
+
+return useSomePageContext = context(SomePageContext)
 ```
 
 ## Disposing
@@ -57,10 +63,10 @@ When a context provider is unmounted it will be disposed. The `cleanup` function
 
 ```ts
 import { context, cleanup } from 'impact-app'
-import { useApi } from '../stores/ApiStore'
+import { useGlobalContext } from '../useGlobalContext'
 
-const useSomePageContext = context(() => {
-    const api = useApi()
+function SomePageContext() {
+    const { api } = useGlobalContext()
     const disposeSubscription = api.subscribeSomething(() => {
         // Update a signal or whatever    
     })
@@ -68,24 +74,28 @@ const useSomePageContext = context(() => {
     cleanup(disposeSubscription)
 
     return {}
-})
+}
+
+export const useSomePageContext = context(SomePageContext)
 ```
 
 ## Passing props to contexts
 
-When your context is provided to a React component tree, just like normal contexts you can give them props.
+When your context is provided to a React component tree you can provide its the props of the Provider.
 
 ```tsx
 import { context } from 'impact-app'
 
-const useSomePageContext = context(({ id }: { id: string }) => {
-    return {}
-})
+function SomePageContext({ id }: { id: string }) {
+  return {}
+}
+
+const useSomePageContext = context(SomePageContext)
 
 const App = ({ id }: { id: string }) => {
     return (
-        <useSomePageContext.Provider id={id}>
-            <Content />
+        <useSomePageContext.Provider key={id} id={id}>
+            <SomePage />
         </useSomePageContext.Provider>
     )
 }
@@ -110,23 +120,29 @@ const Layout = () => {
 
 ## Organising contexts
 
-It can be a good idea to structure your application as a set of pages and/or features as that enables more controlled lazy loading. So for example:
+It can be a good idea to structure your application the way your components are nested. Instead of of creating directories of flat components, hooks etc. you rather start with the root component and create a nested structure. Now your file structure reflects you UI composition, but also your contexts shows in the file tree what components can consume them.
 
 ```bash
-/features
-  /project
-    /components
-    useProjectContext.ts
+/pages
+  /PageA
     index.tsx
+    usePageAContext.ts
+  /PageB
+    /Sidebar
+        index.tsx
+        useSidebarContext.ts
+    index.tsx
+    usePageBContext.ts
+index.tsx
 useGlobalContext.ts
 ```
 
-The `useGlobalContext` at the root represents the context across the entire application. The context within `/features/project` is a context initialized to be available to the project feature and the components and hooks within it.
-
-The `index.tsx` file would be responsible for exposing the related context and composing your components.
+The `index.tsx` entry points is responsible for providing the related context to the component tree. What is great about this is that your pages/features does not only get a context, but you can use the same entry to provide any initial data for the context, suspense and an error boundary to handle errors within that page/feature.
 
 ```tsx
+import { Suspense } from 'react'
 import { use } from 'impact-app'
+import { Errorboundary } from 'react-error-boundary'
 import { useGlobalContext } from '../useGlobalContext'
 import { useProjectContext } from './useProjectContext'
 import { Layout } from './components/Layout'
@@ -138,14 +154,23 @@ export function Project({ id }: { id: string }) {
     const projectData = use(api.projects.fetch(id))
 
     return (
-        <useProjectContext.Provider key={id} data={projectData}>
-            <Layout>
-                <ProjectOverview />
-                <ConfigureProject />
-            </Layout>
-        </useProjectContext.Provider>
+        <ErrorBoundary>
+            <Suspense>
+                <useProjectContext.Provider key={id} data={projectData}>
+                    <Layout>
+                        <ProjectOverview />
+                        <ConfigureProject />
+                    </Layout>
+                </useProjectContext.Provider>
+            </Suspense>
+        </ErrorBoundary>
     )
 }
 ```
+This pattern gives you a lot of insight about the application just looking at the files and folders in your project:
 
-
+- It tells you how your components are composed
+- It tells you what contexts are available to what component trees
+- It tells your where data fetching boundaries are
+- It tells you where your error boundaries are
+- It tells you where your suspense boundaries are

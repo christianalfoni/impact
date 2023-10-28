@@ -26,30 +26,32 @@ const counterMachine = createMachine({
   },
 });
 
-const useSomePageContext = context(() => {
-    const counterService = interpret(counterMachine).start();
-    const state = signal(counterService.getSnapshot().context);
+function SomePageContext() {
+  const counterService = interpret(counterMachine).start();
+  const state = signal(counterService.getSnapshot().context);
 
-    counterService.onChange(onContextChange);
+  counterService.onChange(onContextChange);
 
-    cleanup(() => counterService.off(onContextChange));
+  cleanup(() => counterService.off(onContextChange));
 
-    function onContextChange(newState) {
-        state.value = newState;
-    }
+  function onContextChange(newState) {
+      state.value = newState;
+  }
 
-    return {
-        get count() {
-            return state.value.count;
-        },
-        increaseCount() {
-          counterService.send("INC");
-        },
-        decreaseCount() {
-          counterService.send("DEC");
-        }
-    };
-})
+  return {
+      get count() {
+          return state.value.count;
+      },
+      increaseCount() {
+        counterService.send("INC");
+      },
+      decreaseCount() {
+        counterService.send("DEC");
+      }
+  };
+}
+
+const useSomePageContext = context(SomePageContext)
 ```
 
 Or you could even replace signals with `observables` from [Mobx](https://mobx.js.org/README.html):
@@ -57,14 +59,16 @@ Or you could even replace signals with `observables` from [Mobx](https://mobx.js
 ```ts
 import { context, observable } from 'mobx'
 
-export const useSomePageContext = context(() => {
-    const messages = observable<string[]>([])
+function SomePageContext() {
+  const messages = observable<string[]>([])
 
-    return {
-        messages,
-        addMessage(message: string) {
-            messages.push(message)
-        }
-    }
-})
+  return {
+      messages,
+      addMessage(message: string) {
+          messages.push(message)
+      }
+  }
+}
+
+export const useSomePageContext = context(SomePageContext)
 ```

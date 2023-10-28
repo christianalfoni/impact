@@ -2,14 +2,14 @@
 
 One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises, but React is not well suited for consuming promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to data fetching than consuming a promise in a component.
 
-There are several data fetching solutions for React, like [useQuery](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [useSWR](https://swr.vercel.app/), but these are tied to your React components. That means you can not access and manage this data in an external state management layer. They also have strong opinions about caching, refetching mechanisms etc.
+There are several data fetching solutions for React, like [useQuery](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [useSWR](https://swr.vercel.app/), but these are tied to your React and its reconciliation loop. That means you are forced to combine your data with Reacts state primitives and the reconciliation loop. They also have strong opinions about caching, refetching mechanisms etc. which is great for common data fetching patterns, but productivity apps typically needs lower level access to how data is managed.
 
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. That makes them a very good candidate for data fetching and mutations.
 
 ```ts
 import { signal, context } from 'impact-app'
 
-export const useSessionContext = context(() => {
+function SessionContext() {
     const posts: Record<string, Signal<Promise<PostDTO>>> = {}
 
     return {
@@ -25,7 +25,9 @@ export const useSessionContext = context(() => {
             return post.value
         }
     }
-})
+}
+
+export const useSessionContext = context(SessionContext)
 ```
 
 When a signal receives a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook.
@@ -71,7 +73,7 @@ But data fetching is not only about getting and displaying data, it is also abou
 ```ts
 import { signal, context } from 'impact-app'
 
-export const useProject = context(({ projectData }: { projectData: ProjectDTO }) => {
+function ProjectContext({ projectData }: { projectData: ProjectDTO }) {
     const project = signal(projectData)
     const changingTitle = signal<Promise<ProjectDTO>>()
 
@@ -102,7 +104,9 @@ export const useProject = context(({ projectData }: { projectData: ProjectDTO })
             return changingTitle.value
         }
     }
-})
+}
+
+export const useProjectContext = context(ProjectContext)
 ```
 
 ```tsx
@@ -132,4 +136,4 @@ function ProjectTitle() {
 export default observer(Post)
 ```
 
-**Impact** allows you to manage your data fetching across its stores, your React hooks and components seamlessly.
+**Impact** allows you to manage your data fetching across its contexts, your React hooks and components seamlessly.
