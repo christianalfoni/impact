@@ -1,6 +1,6 @@
 # API
 
-- [store](#store)
+- [context](#context)
 - [cleanup](#cleanup)
 - [signal](#signal)
 - [derived](#derived)
@@ -9,31 +9,33 @@
 - [use](#use)
 - [debugging signals](#debugging-signals)
 
-## store
+## context
 
-Creating a store returns the hook to consume it. This hook can be used in components, but also in other stores. You need to provide the store to a component tree to start consuming it. You can optionally take in props to the store, which is passed by the provider.
+Creating a context returns the hook to consume it. This hook can be used in components, but also in other contexts. You need to provide the context to a component tree to start consuming it. You can optionally take in props to the store, which is passed by the Provider component used to expose the context.
 
 ```tsx
-import { store } from 'impact-app'
+import { context } from 'impact-app'
 
-const useHelloWorld = store(() => {
+function HelloWorldContext() {
     return {
         message: 'Hello World'
     }
-})
+}
+
+const useHelloWorldContext = context(HelloWorldContext)
 
 function HelloWorld() {
     // Or use it in a component
-    const { message } = useHelloWorld()
+    const { message } = useHelloWorldContext()
 
     return <div>{message}</div>
 }
 
 export default function App() {
     return (
-        <useHelloWorld.Provider>
+        <useHelloWorldContext.Provider>
             <HelloWorld />
-        </useHelloWorld.Provider>
+        </useHelloWorldContext.Provider>
     )
 }
 ```
@@ -45,9 +47,9 @@ export default function App() {
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { signal, store } from 'impact-app'
+import { signal, context } from 'impact-app'
 
-export const useHelloWorld = store(() => {
+function HelloWorldContext() {
     const message = signal('Hello World')
 
     return {
@@ -58,15 +60,17 @@ export const useHelloWorld = store(() => {
             message.value = newMessage
         }
     }
-})
+}
+
+export const useHelloWorldContext = context(HelloWorldContext)
 ```
 
 Signals has first class support for promises. That means when you add a promise to a signal, the promise becomes a `SignalPromise`. This is the same promise as you passed in, only it is populated with some additional properties. These properties are the same React looks for when using the `use` hook to suspend a promise. The signal will automatically update as the promise resolves.
 
 ```ts
-import { signal, store } from 'impact-app'
+import { signal, context } from 'impact-app'
 
-export const useAsyncHelloWorld = store(() => {
+function AsyncHelloWorldContext() {
     const message = signal(new Promise<string>((resolve) => {
         setTimeout(() => resolve('Hello World!'), 2000)
     }))
@@ -80,12 +84,14 @@ export const useAsyncHelloWorld = store(() => {
             message.value = Promise.resolve(newMessage)
         }
     }
-})
+}
+
+export const useAsyncHelloWorldContext = store(AsyncHelloWorldContext)
 ```
 
 ```tsx
 import { observer } from 'impact-app'
-import { useAsyncHelloWorld } from '../store'
+import { useAsyncHelloWorldContext } from './useAsyncHelloWorldContext'
 
 const SomeComponent = observer(() => {
     const { message } = useAsyncHelloWorld()
@@ -108,10 +114,10 @@ Or you could suspend it:
 
 ```tsx
 import { observer, use } from 'impact-app'
-import { useAsyncHelloWorld } from '../store'
+import { useAsyncHelloWorldContext } from './useAsyncHelloWorldContext'
 
 const SomeComponent = observer(() => {
-    const { message } = useAsyncHelloWorld()
+    const { message } = useAsyncHelloWorldContext()
     const messageValue = use(message)
 
     return <h1>{messageValue}</h1>
@@ -123,9 +129,9 @@ const SomeComponent = observer(() => {
 Creates a signal that lazily recomputes whenever any accessed signals within the derived callback changes. Also signals with promises are supported here.
 
 ```ts
-import { signal, derived, store } from 'impact-app'
+import { signal, derived, context } from 'impact-app'
 
-export const useHelloWorld = store(() => {
+function HelloWorldContext() {
     const message = signal('Hello World')
     const shoutingMessage = derived(() => message.value + '!!!')
     
@@ -137,23 +143,25 @@ export const useHelloWorld = store(() => {
             return shoutingMessage.value
         }
     }
-})
+}
+
+export const useHelloWorldContext = context(HelloWorldContext)
 ```
 
 ## observe
 
-An effect that can be used in stores. It will run whenever the signals accessed changes. It has an equivalent `useObserve` for components.
+An effect that can be used in contexts. It will run whenever the signals accessed changes.
 
 ```ts
-const useSomeStore = store(() => {
-    const someOtherStore = useSomeOtherStore()
+function SomeContext() {
+    const someOtherContext = useSomeOtherContext()
 
     observe(() => {
-        console.log(someOtherStore.value)
+        console.log(someOtherContext.signalValue)
     })
 
     return {}
-})
+}
 ```
 
 ## observer
@@ -162,10 +170,10 @@ To observe signals, and "rerender" the components, they need to bound to an `Obs
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorld } from '../store'
+import { useHelloWorldContext } from '../useHelloWorldContext'
 
 const HelloWorld = observer(() => {
-    const { message } = useHelloWorld()
+    const { message } = useHelloWorldContext()
 
     return <div>{message}</div>
 })
@@ -175,12 +183,12 @@ But the approach above can result in anonymous component names and dictates to s
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorld } from '../store'
+import { useHelloWorldContext } from '../useHelloWorldContext'
 
 export function HelloWorld() {
     using _ = observer()
 
-    const { message } = useHelloWorld()
+    const { message } = useHelloWorldContext()
 
     return <div>{message}</div>
 }
@@ -212,47 +220,45 @@ React is experimenting with a new hook called [use](https://blixtdev.com/all-abo
 
 ```tsx
 import { observer } from 'impact-app'
-import { useGlobalStore } from '../globalStore'
+import { useGlobalContext } from '../useGlobalContext'
 
 const DataComponent = observer(() => {
-    const { api } = useGlobalStore()
+    const { api } = useGlobalContext()
     const data = use(api.fetchData())
 
     return <div>{data}</div>
 })
 ```
 
-## Providing a value to a store
+## Providing props to a context
 
-Stores can be provided with an initial value
+The provider of a context passes its props to the context.
 
 ```tsx
-import { scope } from 'impact-app'
-import { StoreA } from './StoreA'
-import { StoreB } from './StoreB'
-import { StoreC } from './StoreC'
+import { context } from 'impact-app'
 
-export const SomeScopeProvider = scope({
-    StoreA,
-    StoreB,
-    StoreC
-})
+function SomeContext({ foo }: { foo: string }) {
+    return {}
+}
+
+export const useSomeContext = context(SomeContext)
 ```
 
 ```tsx
-import { SomeScopeProvider } from './stores'
+import { useSomeContext } from './useSomeContext'
 
 function SomeComponent() {
     return (
         /*
-            If a store takes an argument, you will pass it here. Typed so that you will not miss it.
-            The value is only used when resolving the store, which means if you expect to "remount"
-            the store with a new initial value you will need to remount the provider
+            If a context takes props, you will pass it here in the Provider. Typed so that you will not miss it.
+            The props is only used when resolving the context, which means if you expect to "remount"
+            the context with a new props you will need to remount the provider. Providers should normally
+            use a key prop to determine its uniquness
         */
-        <SomeScopeProvider StoreB={100}>
+        <useSomeContext.Provider foo="bar">
             <SomeComponent />
             <SomeOtherComponent />
-        </SomeScopeProvider>
+        </useSomeContext.Provider>
     )
 }
 ```
@@ -262,9 +268,9 @@ function SomeComponent() {
 Used in combination with store providers. When the `ScopeProvider` unmounts it will call this function for any stores resolved within the provider.
 
 ```ts
-import { signal, cleanup, store } from 'impact-app'
+import { signal, cleanup } from 'impact-app'
 
-export const useCounter = store(() => {
+function CounterContext() {
     const count = signal(0)
 
     const interval = setInterval(() => count.value++, 1000)
@@ -276,7 +282,7 @@ export const useCounter = store(() => {
             return count.value
         }
     }
-})
+}
 ```
 
 ## debugging signals

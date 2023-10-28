@@ -3,14 +3,14 @@
 ```ts
 import { signal, context, cleanup } from 'impact-app'
 
-export const useCounter = context(() => {
+function CounterContext() {
   // The store body runs once, so you can define variables as private state
   let counterInterval
   
   // Use signals to expose reactive state
   const count = signal(0)
 
-  // When the scope this store is exposed through unmounts, it will stop the interval
+  // When the provider for this context unmounts, it will stop the interval
   cleanup(stopCounter)
 
   function startCounter() {
@@ -22,6 +22,8 @@ export const useCounter = context(() => {
   }
 
   return {
+    // Using a getter makes the state "readonly", only allow you to change it from within the context and
+    // still tracks access to the value for observability
     get count() {
       return count.value
     },
@@ -33,7 +35,9 @@ export const useCounter = context(() => {
       stopCounter()
     }
   }
-})
+}
+
+export const useCounter = context(CounterContext)
 ```
 
 ```tsx
