@@ -37,15 +37,15 @@ function CounterContext() {
   }
 }
 
-export const useCounter = context(CounterContext)
+export const useCounterContext = context(CounterContext)
 ```
 
 ```tsx
 import { observer } from 'impact-app'
-import { useCounter } from '../stores/CounterStore'
+import { useCounterContext } from './useCounterContext'
 
 const Counter = observer(() => {
-    const { count, start, stop } = useCounter()
+    const { count, start, stop } = useCounterContext()
     
     return (
       <div>
@@ -58,9 +58,9 @@ const Counter = observer(() => {
 
 export default function App() {
   return (
-    <useCounter.Provider>
+    <useCounterContext.Provider>
       <Counter />
-    </useCounter.Provider>
+    </useCounterContext.Provider>
   )
 }
 ```

@@ -16,7 +16,7 @@ const useSomeContext = context(SomeContext)
 
 ## Providing and consuming contexts
 
-The `context` function returns a hook that can be used in components and other Impact contexts. The hook has a property called `Provider` which you use to expose the context to React. 
+The `context` function returns a hook that can be used in components and other Impact contexts. The hook has a property called `Provider` which is a context provider component that exposes the context to React. 
 
 ```tsx
 import { context } from 'impact-app'
@@ -81,7 +81,7 @@ export const useSomePageContext = context(SomePageContext)
 
 ## Passing props to contexts
 
-When your context is provided to a React component tree you can provide its the props of the Provider.
+When your context is exposed through its `Provider` any props are passed to the context.
 
 ```tsx
 import { context } from 'impact-app'
@@ -94,7 +94,7 @@ const useSomePageContext = context(SomePageContext)
 
 const App = ({ id }: { id: string }) => {
     return (
-        <useSomePageContext.Provider key={id} id={id}>
+        <useSomePageContext.Provider id={id}>
             <SomePage />
         </useSomePageContext.Provider>
     )
@@ -120,7 +120,7 @@ const Layout = () => {
 
 ## Organising contexts
 
-It can be a good idea to structure your application the way your components are nested. Instead of of creating directories of flat components, hooks etc. you rather start with the root component and create a nested structure. Now your file structure reflects you UI composition, but also your contexts shows in the file tree what components can consume them.
+It can be a good idea to structure your application the way your components are nested. Instead of of creating directories of flat components, hooks etc. you rather start with the root component and create a nested structure. Now your file structure reflects you UI composition, but also your file tree also shows what components can consume what contexts.
 
 ```bash
 /pages
@@ -155,7 +155,7 @@ export function Project({ id }: { id: string }) {
 
     return (
         <ErrorBoundary>
-            <Suspense>
+            <Suspense fallback={<h4>Loading...</h4>}>
                 <useProjectContext.Provider key={id} data={projectData}>
                     <Layout>
                         <ProjectOverview />

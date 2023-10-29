@@ -71,9 +71,10 @@ Signals has first class support for promises. That means when you add a promise 
 import { signal, context } from 'impact-app'
 
 function AsyncHelloWorldContext() {
-    const message = signal(new Promise<string>((resolve) => {
+    const helloWorldPromise = new Promise<string>((resolve) => {
         setTimeout(() => resolve('Hello World!'), 2000)
-    }))
+    })
+    const message = signal(helloWorldPromise)
 
     return {
         get message() {
@@ -94,7 +95,7 @@ import { observer } from 'impact-app'
 import { useAsyncHelloWorldContext } from './useAsyncHelloWorldContext'
 
 const SomeComponent = observer(() => {
-    const { message } = useAsyncHelloWorld()
+    const { message } = useAsyncHelloWorldContext()
 
     if (message.status === 'pending') {
         return <div>Loading message...</div>
@@ -170,7 +171,7 @@ To observe signals, and "rerender" the components, they need to bound to an `Obs
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorldContext } from '../useHelloWorldContext'
+import { useHelloWorldContext } from './useHelloWorldContext'
 
 const HelloWorld = observer(() => {
     const { message } = useHelloWorldContext()
@@ -183,7 +184,7 @@ But the approach above can result in anonymous component names and dictates to s
 
 ```tsx
 import { observer } from 'impact-app'
-import { useHelloWorldContext } from '../useHelloWorldContext'
+import { useHelloWorldContext } from './useHelloWorldContext'
 
 export function HelloWorld() {
     using _ = observer()
@@ -228,39 +229,6 @@ const DataComponent = observer(() => {
 
     return <div>{data}</div>
 })
-```
-
-## Providing props to a context
-
-The provider of a context passes its props to the context.
-
-```tsx
-import { context } from 'impact-app'
-
-function SomeContext({ foo }: { foo: string }) {
-    return {}
-}
-
-export const useSomeContext = context(SomeContext)
-```
-
-```tsx
-import { useSomeContext } from './useSomeContext'
-
-function SomeComponent() {
-    return (
-        /*
-            If a context takes props, you will pass it here in the Provider. Typed so that you will not miss it.
-            The props is only used when resolving the context, which means if you expect to "remount"
-            the context with a new props you will need to remount the provider. Providers should normally
-            use a key prop to determine its uniquness
-        */
-        <useSomeContext.Provider foo="bar">
-            <SomeComponent />
-            <SomeOtherComponent />
-        </useSomeContext.Provider>
-    )
-}
 ```
 
 ## cleanup
