@@ -30,11 +30,11 @@ function SomePageContext() {
   const counterService = interpret(counterMachine).start();
   const state = signal(counterService.getSnapshot().context);
 
-  counterService.onChange(onContextChange);
+  counterService.onChange(onCounterChange);
 
-  cleanup(() => counterService.off(onContextChange));
+  cleanup(() => counterService.off(onCounterChange));
 
-  function onContextChange(newState) {
+  function onCounterChange(newState) {
       state.value = newState;
   }
 

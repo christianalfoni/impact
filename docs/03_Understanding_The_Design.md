@@ -10,7 +10,7 @@ Reacts responsibility is to compose dynamic user interfaces and doing so across 
 
 ## The fundamental building block
 
-State management is not only about what kind of state primitive you use to store state, it is also how you organise and interact with that state in your code. The management of the state. Traditionally when you manage state outside of React you do so in a global context using a state store, but that is not ideal. You might initialize your application with global state, but a lot of your state and management of that state is only related to certain pages, feature or even a complex component.
+State management is not only about what kind of state primitive you use, it is also how you organise and interact with that state in your code. The management of the state. Traditionally when you manage state outside of React you do so in a global context using a state store, but that is not ideal. You might initialize your application with global state, but a lot of your state and management of that state is only related to certain pages, feature or even a complex component.
 
 Impact is not mainly about its state primitive, **signals**, it is about how you organise and interact with state primitives in general. You can actually choose completely different state primitives than what Impact offers and still get the core value out of **Impact**.
 
