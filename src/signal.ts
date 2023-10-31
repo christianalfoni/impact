@@ -7,7 +7,7 @@ Symbol.dispose ??= Symbol("Symbol.dispose");
 
 export class ObserverContext {
   static stack: ObserverContext[] = [];
-  static get current() {
+  static get current(): ObserverContext | undefined {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
   private _getters = new Set<SignalTracker>();
@@ -179,7 +179,7 @@ export function signal<T>(initialValue?: T) {
 
       if (process.env.NODE_ENV === "development") {
         createSetterDebugEntry(signal, value);
-        ObserverContext.current.registerSetter(signal);
+        ObserverContext.current?.registerSetter(signal);
       }
 
       if (value === prevValue) {
