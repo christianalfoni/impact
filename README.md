@@ -3,7 +3,7 @@
   <img align="center" width="200" src="https://github.com/christianalfoni/impact/assets/3956929/5279b512-e4d9-4474-92cf-7d06b356e23c" />
 </p>
 <p align="center">
-  <b>Reactive contexts for React</b>
+  <b>Bringing reactivity to React</b>
 </p>
 
 <br />
@@ -24,35 +24,15 @@
 >
 > *Engineering Zen Master, Christian Alfoni*
 
-
-
 <br/>
 
-## Concept introduction
+## Understanding The Design
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Understanding what you are building](https://youtu.be/6HoiA7W65k4) 06:34
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and management of that state between components. A common misconception about React is that its primitives is designed to manage state, but they are really more about synchronising state. It quite quickly becomes cumbersome to use Reacts primitives to share state and state management across components in a way that performs and scales. Expressing state management with the mental overhead of the reconciliation loop also creates friction.
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Shared state and shared management of state](https://www.youtube.com/watch?v=uadE4LVC3LI) 11:25
+**The first principle** of **Impact** is to allow developers to write state and manage state state without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> [Optimising share ability and context awareness](https://youtu.be/mgu1dxx9Ttk) 15:42
+**The second principle** of **Impact** is to allow scoping state and management of the state to component trees, as opposed to using only a global scope.
 
-<img align="center" src="https://www.youtube.com/s/desktop/18a472b7/img/favicon_144x144.png" width="25" /> A composition model for any state primitive (WIP) --:--
-
-## Playground
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open playground on CodeSandbox](https://t79hzw-5173.csb.app)
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/11ee4851-4ebf-474f-a2d3-3b65ebf856a1" width="25" /> [Open repo with playground on CodeSandbox](https://codesandbox.io/p/github/christianalfoni/impact/main)
-
-
-## Documentation
-
-- [Getting Started](./docs/01_Getting_Started.md)
-- [The Primitives](./docs/02_The_Primitives.md)
-- [Understanding The Design](./docs/03_Understanding_The_Design.md)
-- [Hello World](./docs/04_Hello_World.md)
-- [API](./docs/05_API.md)
-- [Contexts](./docs/06_Contexts.md)
-- [Reactivity](./docs/07_Reactivity.md)
-- [Queries And Mutations](./docs/08_Queries_And_Mutations.md)
+**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single intellisense click away from finding the origin of state and the related management of that state.
 

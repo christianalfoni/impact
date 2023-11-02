@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.build-cjs.json",
+  "compilerOptions": {
+    "outDir": "./dist/cjs",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

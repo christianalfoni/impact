@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
-import { cleanup, getActiveContextContainer } from "./context";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -313,12 +312,6 @@ export function derived<T>(cb: () => T) {
 }
 
 export function observe(cb: () => void) {
-  const activeContextContainer = getActiveContextContainer();
-
-  if (!activeContextContainer) {
-    throw new Error("You are using onObserve in the wrong context");
-  }
-
   let currentSubscriptionDisposer: (() => void) | undefined;
 
   const updater = () => {
@@ -329,39 +322,12 @@ export function observe(cb: () => void) {
     currentSubscriptionDisposer = context.subscribe(updater);
   };
 
-  cleanup(() => {
+  return () => {
     currentSubscriptionDisposer?.();
-  });
-
-  updater();
+  };
 }
 
-export function observer(): ObserverContext;
-export function observer<T extends (...args: any[]) => any>(cb: T): T;
-export function observer(cb?: any) {
-  if (cb) {
-    return (...args: any[]) => {
-      const context = new ObserverContext();
-
-      useSyncExternalStore(
-        (update) => context.subscribe(update),
-        () => context.snapshot,
-        () => context.snapshot,
-      );
-
-      try {
-        const result = cb(...args);
-        context[Symbol.dispose]();
-
-        return result;
-      } catch (error) {
-        context[Symbol.dispose]();
-
-        throw error;
-      }
-    };
-  }
-
+export function observer() {
   const context = new ObserverContext();
 
   useSyncExternalStore(
