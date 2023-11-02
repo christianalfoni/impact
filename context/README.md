@@ -1,9 +1,9 @@
-# @impact/context
+# impact-context
 
 ## Install
 
 ```bash
-yarn add @impact/context
+yarn add impact-context
 ```
 
 ## Description
@@ -27,7 +27,7 @@ But that actually does not completely solve the challenge. React might call `com
 A context is just a function that returns state and/or management of state, just like any other traditional React context. We call it a context for familiarity, but you will learn that Impact contexts has benefits over traditional React contexts.
 
 ```ts
-import { context } from '@impact/context'
+import { context } from 'impact-context'
 
 function SomeContext() {
     return {}
@@ -41,7 +41,7 @@ const useSomeContext = context(SomeContext)
 The `context` function returns a hook that can be used in components and other Impact contexts. The hook has a property called `Provider` which is a context provider component that exposes the context to React. 
 
 ```tsx
-import { context } from '@impact/context'
+import { context } from 'impact-context'
 
 function SomeContext() {
     return {}
@@ -67,7 +67,7 @@ function App() {
 A great thing about React contexts is that you can consume other contexts higher up in the component tree. Impact contexts allows the same. The hook returned from a context can be used in both components and other Impact contexts.
 
 ```ts
-import { context } from '@impact/context'
+import { context } from 'impact-context'
 import { useGlobalContext } from '../useGlobalContext'
 
 function SomePageContext() {
@@ -84,7 +84,7 @@ return useSomePageContext = context(SomePageContext)
 When a context provider is unmounted it will be disposed. The `cleanup` function registers a callback that will be called when this disposal occurs. Since Impact contexts runs outside the reconciliation loop this function is guaranteed to run only when the provider is unmounted.
 
 ```ts
-import { context, cleanup } from '@impact/context'
+import { context, cleanup } from 'impact-context'
 import { useGlobalContext } from '../useGlobalContext'
 
 function SomePageContext() {
@@ -106,7 +106,7 @@ export const useSomePageContext = context(SomePageContext)
 When your context is exposed through its `Provider` any props are passed to the context.
 
 ```tsx
-import { context } from '@impact/context'
+import { context } from 'impact-context'
 
 function SomePageContext({ id }: { id: string }) {
   return {}
