@@ -15,16 +15,8 @@
     "module": "ESNext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "isolatedModules": true,
-    "paths": {
-      "impact-app": ["./src"]
-    }
+    "isolatedModules": true
   },
-  "include": ["src", "playground"],
-  "exclude": ["node_modules", "dist", "tests"],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
-    }
-  ]
+  "include": ["context/src", "signal/src"],
+  "exclude": ["node_modules", "context/dist", "signals/dist", "tests"]
 }
