@@ -1,5 +1,5 @@
 {
-  "name": "@impact/signal",
+  "name": "impact-signal",
   "version": "0.1.0",
   "description": "Reactive signals for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",

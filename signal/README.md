@@ -1,9 +1,9 @@
-# @impact/signal
+# impact-signal
 
 ## Install
 
 ```bash
-yarn add @impact/signal
+yarn add impact-signal
 ```
 
 ## Description
@@ -18,7 +18,7 @@ A signal is just a way to create an observable value. What makes Impact signals 
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { signal, observer } from '@impact/signal'
+import { signal, observer } from 'impact-signal'
 
 const message = signal('Hello World')
 
@@ -32,7 +32,7 @@ function SomeComponent() {
 Signals has first class support for promises. That means when you add a promise to a signal, the promise becomes a `SignalPromise`. This is the same promise as you passed in, only it is populated with some additional properties and made observable. These properties are also the same React looks for when using the `use` hook to suspend a promise.
 
 ```tsx
-import { signal, observer } from '@impact/signal'
+import { signal, observer } from 'impact-signal'
 
 const helloWorldPromise = new Promise<string>((resolve) => {
     setTimeout(() => resolve('Hello World!'), 2000)
@@ -62,7 +62,7 @@ Or you could suspend it:
 
 
 ```tsx
-import { signal, observer, use } from '@impact/signal'
+import { signal, observer, use } from 'impact-signal'
 
 const helloWorldPromise = new Promise<string>((resolve) => {
     setTimeout(() => resolve('Hello World!'), 2000)
@@ -84,7 +84,7 @@ function SomeComponent() {
 Creates a signal that lazily recomputes whenever any accessed signals within the derived callback changes. Also signals with promises are supported here.
 
 ```ts
-import { signal, derived } from '@impact/signal'
+import { signal, derived } from 'impact-signal'
 
 const message = signal('Hello World')
 const shoutingMessage = derived(() => message.value + '!!!')
@@ -95,7 +95,7 @@ const shoutingMessage = derived(() => message.value + '!!!')
 It will run whenever the signals accessed changes.
 
 ```ts
-import { signal, observe } from '@impact/signal'
+import { signal, observe } from 'impact-signal'
 
 const message = signal('Hello World')
 
@@ -121,7 +121,7 @@ const HelloWorld = observer(() => {
 But the approach above can result in anonymous component names and dictates to some extent how you can define and export components. Impact signals improves this using a new language feature called [explicit resource management](https://github.com/tc39/proposal-explicit-resource-management). This is in its last phase and ready to be shipped with JavaScript, and already available in TypeScript.
 
 ```tsx
-import { observer, signal } from '@impact/signal'
+import { observer, signal } from 'impact-signal'
 
 const message = signal('Hello World')
 
@@ -175,7 +175,7 @@ There are several data fetching solutions for React, like [useQuery](https://tan
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. That makes them a very good candidate for data fetching and mutations.
 
 ```ts
-import { signal } from '@impact/signal'
+import { signal } from 'impact-signal'
 
 const posts: Record<string, Signal<Promise<PostDTO>>> = {}
 
@@ -195,7 +195,7 @@ export function fetchPost(id: string) {
 When a signal receives a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook. The React `use` hook is not available yet, so you can use the one from Impact.
 
 ```tsx
-import { observer, use } from '@impact/signal'
+import { observer, use } from 'impact-signal'
 import { fetchPost } from '../posts'
 
 const Post = ({ id }: { id: string }) => {
@@ -208,7 +208,7 @@ const Post = ({ id }: { id: string }) => {
 But maybe you do not want to use suspense, you just want to deal with the status of the promise directly in the component:
 
 ```tsx
-import { observer } from '@impact/signal'
+import { observer } from 'impact-signal'
 import { fetchPost } from '../posts'
 
 const Post = ({ id }: { id: string }) => {
@@ -233,7 +233,7 @@ const Post = ({ id }: { id: string }) => {
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of doing mutations.
 
 ```ts
-import { signal } from '@impact/signal'
+import { signal } from 'impact-signal'
 
 export const changingTitle = signal<Promise<void>>()
 
@@ -252,7 +252,7 @@ function changeTitle(id: string, newTitle: string) {
 ```
 
 ```tsx
-import { observer } from '@impact/signal'
+import { observer } from 'impact-signal'
 import { changeTitle, changingTitle } from '../posts'
 
 function ProjectTitle({ title }: { title: string }) {

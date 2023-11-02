@@ -22,19 +22,20 @@ export class ObserverContext {
     ObserverContext.stack.push(this);
   }
   registerGetter(signal: SignalTracker) {
+    // We do not allow having getters when setting a signal, the reason is to ensure
+    // no infinite loops
     if (this._setters.has(signal)) {
-      throw new Error(
-        "You are creating an infinite loop by getting a signal value that is already being set in an observer context",
-      );
+      return;
     }
+
     this._getters.add(signal);
     this._snapshot.signals.push(signal.getValue());
   }
   registerSetter(signal: SignalTracker) {
+    // We do not allow having getters when setting a signal, the reason is to ensure
+    // no infinite loops
     if (this._getters.has(signal)) {
-      throw new Error(
-        "You are creating an infinite loop by setting a signal that is already being observed in an observer context",
-      );
+      this._getters.delete(signal);
     }
 
     this._setters.add(signal);
