@@ -130,14 +130,13 @@ export function signal<T>(initialValue?: T) {
             return;
           }
 
-          value = createRejectedPromise(
-            Promise.reject(rejectedReason),
-            rejectedReason,
-          );
+          const rejectedPromise = Promise.reject(rejectedReason);
+
+          value = createRejectedPromise(rejectedPromise, rejectedReason);
 
           signal.notify();
 
-          throw rejectedReason;
+          return rejectedPromise;
         }),
     );
   }
@@ -339,3 +338,7 @@ export function observer() {
 
   return context;
 }
+
+/*
+  - 
+*/
