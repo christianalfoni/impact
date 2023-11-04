@@ -85,7 +85,7 @@ export class SignalTracker {
 
 export type Signal<T> = T extends Promise<infer V>
   ? {
-      get value(): SignalPromise<V>;
+      get value(): PromiseSignal<V>;
       set value(promise: T);
     }
   : {
@@ -104,7 +104,7 @@ export function signal<T>(initialValue?: T) {
 
   const signal = new SignalTracker(() => value);
 
-  function createPromise(promise: Promise<any>): SignalPromise<T> {
+  function createPromise(promise: Promise<any>): PromiseSignal<T> {
     currentAbortController?.abort();
 
     const abortController = (currentAbortController = new AbortController());
@@ -215,7 +215,7 @@ type RejectedPromise<T> = Promise<T> & {
   reason: unknown;
 };
 
-type SignalPromise<T> =
+type PromiseSignal<T> =
   | PendingPromise<T>
   | FulfilledPromise<T>
   | RejectedPromise<T>;
@@ -246,7 +246,7 @@ function createRejectedPromise<T>(
   });
 }
 
-export function use<T>(promise: SignalPromise<T>): T {
+export function use<T>(promise: PromiseSignal<T>): T {
   if (promise.status === "pending") {
     throw promise;
   }
