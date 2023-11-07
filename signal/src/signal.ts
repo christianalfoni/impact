@@ -322,6 +322,8 @@ export function observe(cb: () => void) {
     currentSubscriptionDisposer = context.subscribe(updater);
   };
 
+  updater();
+
   return () => {
     currentSubscriptionDisposer?.();
   };
