@@ -10,16 +10,6 @@ yarn add impact-context
 
 You probably already know contexts from React. Contexts is the primitive you use to share and manage state scoped to a component tree. Impact contexts are also just React contexts, but they have a reactive implementation. That means you use reactive state primitives instead of the state primitives tied to the reconciliation loop of React. You are freed from the performance challenges and the mental overhead of sharing state and management of state through React contexts.
 
-## Concurrent mode
-
-With concurrent mode React fully embraces the fact that components needs to be pure. That means you can not use `useRef` or `useState` to instantiate something with side effects, as you can not reliably dispose of them. The reason is that the concurrent mode could run the component body several times without running `useEffect` to clean things up.
-
-For **Impact** to work the `ReactiveContextProvider` creates a `ContextContainer` which needs to be disposed on unmount. This is exactly what is not possible to achieve with concurrent mode. The great thing though is that a `ContextContainer` by itself is not a side effect, there is nothing in there, just references to what "can be there". It is only when the provider is mounted and children components starts consuming the context that it is "instantiated".
-
-That does not solve disposal completely though, cause a `useEffect` might also run multiple times. That is why the `ReactiveContextProvider` uses a component class with `componentDidUmount` to trigger disposal. This lifecycle method only runs when the component actually unmounts.
-
-But that actually does not completely solve the challenge. React might call `componentDidUnmount`, but still keep reference to the component and mount it again. This happens for example during suspense. Impact solves this by making the `ReactiveContextProvider` and create the `ContextContainer` during its render. If there is no existing `ContextContainer`, or it has been disposed, it will create a new one. This changes the context value and guarantees consuming components will resolve it again. The final event on this component is a `componentDidUnmount` which will guarantee disposing of the context.
-
 ## Learn
 
 ### Creating a context
@@ -195,3 +185,14 @@ This pattern gives you a lot of insight about the application just looking at th
 - It tells your where data fetching boundaries are
 - It tells you where your error boundaries are
 - It tells you where your suspense boundaries are
+
+## Concurrent mode
+
+With concurrent mode React fully embraces the fact that components needs to be pure. That means you can not use `useRef` or `useState` to instantiate something with side effects, as you can not reliably dispose of them. The reason is that the concurrent mode could run the component body several times without running `useEffect` to clean things up.
+
+For **Impact** to work the `ReactiveContextProvider` creates a `ContextContainer` which needs to be disposed on unmount. This is exactly what is not possible to achieve with concurrent mode. The great thing though is that a `ContextContainer` by itself is not a side effect, there is nothing in there, just references to what "can be there". It is only when the provider is mounted and children components starts consuming the context that it is "instantiated".
+
+That does not solve disposal completely though, cause a `useEffect` might also run multiple times. That is why the `ReactiveContextProvider` uses a component class with `componentDidUmount` to trigger disposal. This lifecycle method only runs when the component actually unmounts.
+
+But that actually does not completely solve the challenge. React might call `componentDidUnmount`, but still keep reference to the component and mount it again. This happens for example during suspense. Impact solves this by making the `ReactiveContextProvider` and create the `ContextContainer` during its render. If there is no existing `ContextContainer`, or it has been disposed, it will create a new one. This changes the context value and guarantees consuming components will resolve it again. The final event on this component is a `componentDidUnmount` which will guarantee disposing of the context.
+
