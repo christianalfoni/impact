@@ -311,7 +311,7 @@ export function derived<T>(cb: () => T) {
   };
 }
 
-export function observe(cb: () => void) {
+export function effect(cb: () => void) {
   let currentSubscriptionDisposer: (() => void) | undefined;
 
   const updater = () => {
