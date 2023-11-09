@@ -90,16 +90,16 @@ const message = signal('Hello World')
 const shoutingMessage = derived(() => message.value + '!!!')
 ```
 
-### observe
+### effect
 
 It will run whenever the signals accessed changes.
 
 ```ts
-import { signal, observe } from 'impact-signal'
+import { signal, effect } from 'impact-signal'
 
 const message = signal('Hello World')
 
-const dispose = observe(() => {
+const dispose = effect(() => {
     console.log(message.value)
 })
 ```
