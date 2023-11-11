@@ -1,4 +1,12 @@
-import { Component, ReactNode, createContext, useContext } from "react";
+import {
+  Component,
+  ReactNode,
+  createContext,
+  useContext,
+  // @ts-ignore-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as ReactInternals,
+} from "react";
 
 const currentContextContainer: ContextContainer[] = [];
 
@@ -141,6 +149,12 @@ export function cleanup(cleaner: () => void) {
   activeContextContainer.registerCleanup(cleaner);
 }
 
+export const componentConsumptionHooks = {
+  isConsuming: false,
+  onConsume: () => {},
+  onConsumed: () => {},
+};
+
 export function context<T, A extends Record<string, unknown> | void>(
   context: Context<T, A>,
 ): (() => T) & {
@@ -150,6 +164,11 @@ export function context<T, A extends Record<string, unknown> | void>(
     const activeContextContainer = getActiveContextContainer();
 
     if (!activeContextContainer) {
+      if (!componentConsumptionHooks.isConsuming) {
+        componentConsumptionHooks.isConsuming = true;
+        componentConsumptionHooks.onConsume();
+      }
+
       const contextContainer = useContext(reactContext);
 
       if (!contextContainer) {
@@ -181,4 +200,29 @@ export function context<T, A extends Record<string, unknown> | void>(
     context.name || "ReactiveContextProvider";
 
   return useReactiveContext as any;
+}
+
+interface ReactDispatcher {
+  useContext: typeof useContext;
+}
+
+if (typeof window !== "undefined") {
+  let currentDispatcher: ReactDispatcher | null = null;
+
+  Object.defineProperty(ReactInternals.ReactCurrentDispatcher, "current", {
+    get() {
+      return currentDispatcher;
+    },
+    set(nextDispatcher: ReactDispatcher) {
+      currentDispatcher = nextDispatcher;
+
+      if (
+        currentDispatcher.useContext.name === "throwInvalidHookError" &&
+        componentConsumptionHooks.isConsuming
+      ) {
+        componentConsumptionHooks.isConsuming = false;
+        componentConsumptionHooks.onConsumed();
+      }
+    },
+  });
 }

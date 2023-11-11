@@ -17,6 +17,6 @@
     "experimentalDecorators": true,
     "isolatedModules": true
   },
-  "include": ["context/src", "signal/src"],
+  "include": ["context/src", "signal/src", "app/src"],
   "exclude": ["node_modules", "context/dist", "signals/dist", "tests"]
 }
