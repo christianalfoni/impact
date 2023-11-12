@@ -1,6 +1,6 @@
 import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
-import { SignalTracker } from "./signal";
+import { SignalTracker } from "./";
 
 const cache: {
   [url: string]: Promise<StackFrame>;
