@@ -1,19 +1,19 @@
 {
   "name": "impact-signal",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Reactive signals for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
-  "module": "./dist/esm/signal.js",
-  "main": "./dist/esm/signal.js",
+  "module": "./dist/esm/index.js",
+  "main": "./dist/esm/index.js",
   "exports": {
     ".": {
-      "import": "./dist/esm/signal.js",
-      "types": "./dist/esm/signal.d.ts"
+      "import": "./dist/esm/index.js",
+      "types": "./dist/esm/index.d.ts"
     }
   },
-  "types": "./dist/esm/signal.d.ts",
+  "types": "./dist/esm/index.d.ts",
   "scripts": {
     "dev": "vite",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
