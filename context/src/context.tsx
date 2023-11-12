@@ -217,8 +217,8 @@ if (typeof window !== "undefined") {
       currentDispatcher = nextDispatcher;
 
       if (
-        currentDispatcher.useContext.name === "throwInvalidHookError" &&
-        componentConsumptionHooks.isConsuming
+        componentConsumptionHooks.isConsuming &&
+        currentDispatcher.useContext.name === "throwInvalidHookError"
       ) {
         componentConsumptionHooks.isConsuming = false;
         componentConsumptionHooks.onConsumed();
