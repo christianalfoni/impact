@@ -1,6 +1,6 @@
 {
   "name": "impact-signal",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Reactive signals for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
