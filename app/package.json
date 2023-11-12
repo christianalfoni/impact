@@ -1,7 +1,7 @@
 {
-  "name": "impact-context",
-  "version": "0.1.2",
-  "description": "Reactive contexts for React",
+  "name": "impact-app",
+  "version": "0.38.0",
+  "description": "Reactive applications for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
@@ -32,6 +32,10 @@
   "files": [
     "dist"
   ],
+  "dependencies": {
+    "impact-signal": "latest",
+    "impact-context": "latest"
+  },
   "peerDependencies": {
     "react": "*"
   }

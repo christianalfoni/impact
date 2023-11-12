@@ -24,7 +24,8 @@
 >
 > *Engineering Zen Master, Christian Alfoni*
 
-<br/>
+### [impact-app](./app/README.md)
+Reactive applications for React. Combines impact-context and impact-signal with automatic observability and documented with opinionated patterns.
 
 ### [impact-context](./context/README.md)
 Reactive context provider for React. Use it with any reactive primitives.
@@ -33,7 +34,7 @@ Reactive context provider for React. Use it with any reactive primitives.
 ### [impact-signal](./signal/README.md)
 A reactive state primitive which has first class support for promises.
 
-<br/>
+
 
 ## Understanding The Design
 

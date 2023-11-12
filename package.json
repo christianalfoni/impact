@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "context",
-    "signal"
+    "signal",
+    "app"
   ],
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
