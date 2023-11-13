@@ -7,6 +7,7 @@ import {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as ReactInternals,
 } from "react";
+import type { useReducer, useEffect } from "react";
 
 const currentContextContainer: ContextContainer[] = [];
 
@@ -203,7 +204,8 @@ export function context<T, A extends Record<string, unknown> | void>(
 }
 
 interface ReactDispatcher {
-  useContext: typeof useContext;
+  useReducer: typeof useReducer;
+  useEffect: typeof useEffect;
 }
 
 if (typeof window !== "undefined") {
@@ -218,7 +220,9 @@ if (typeof window !== "undefined") {
 
       if (
         componentConsumptionHooks.isConsuming &&
-        currentDispatcher.useContext.name === "throwInvalidHookError"
+        // When the hooks has the same implementation, it is to throw an error, meaning
+        // we are done consuming a hooks context
+        currentDispatcher.useReducer === currentDispatcher.useEffect
       ) {
         componentConsumptionHooks.isConsuming = false;
         componentConsumptionHooks.onConsumed();
