@@ -11,6 +11,14 @@ Combines `impact-app` and `impact-signal` and enhances the developer experience 
 - Components consuming a context automatically observes any signals accessed. There is no need to control any observability in components
 - Using the `effect` will automatically clean it up when the context unmounts
 
+## Example application
+
+**FamilyScrum** is an open source application following the patterns and guidelines described here. It gives you insight into how an application can take advantage of contexts, how to solve async data resolvement, suspense, derived async state, optimistic updates etc.
+
+[Open on CodeSandbox](https://codesandbox.io/p/devbox/github/christianalfoni/family-scrum-v2?file=%2FREADME.md%3A1%2C1)
+
+**Note!** You can not currently sign in to the app without a registered family.
+
 ## Learn
 
 ### Files and folders
