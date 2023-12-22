@@ -2,10 +2,12 @@
   "name": "impact-monorepo",
   "private": true,
   "workspaces": [
-    "context",
-    "signal",
+    "website",
     "app"
   ],
+  "scripts": {
+    "website:dev": "yarn workspace website start"
+  },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

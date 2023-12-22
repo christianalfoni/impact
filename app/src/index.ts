@@ -1,18 +1,10 @@
-import { cleanup, componentConsumptionHooks } from "impact-context";
-import {
-  ObserverContext,
-  observer,
-  effect as signalEffect,
-} from "impact-signal";
+import { componentConsumptionHooks } from "./context";
+import { ObserverContext, observer } from "./signal";
 
-export * from "impact-context";
-export * from "impact-signal";
+export * from "./signal";
+export * from "./context";
 
 componentConsumptionHooks.onConsume = observer;
 componentConsumptionHooks.onConsumed = () => {
   ObserverContext.current?.[Symbol.dispose]();
 };
-
-export function effect(cb: () => void) {
-  return cleanup(signalEffect(cb));
-}

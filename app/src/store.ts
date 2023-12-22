@@ -1,27 +1,50 @@
-import { Signal, signal } from "impact-signal";
+import { Signal, effect, signal } from "./signal";
 
-export function store<T extends Record<string, unknown>>(config: T) {
+export function store<S extends Record<string, unknown>>(
+  initialStore: S,
+  effects: Record<string, (state: S) => (() => void) | void> = {},
+) {
+  /**
+   * STATE
+   */
   const signals: Record<string, Signal<unknown>> = {};
-  const proxy: Record<any, unknown> = {};
+  const readonlyStore: Record<string, unknown> = {};
+  const store: Record<string, unknown> = {};
 
-  for (const key in config) {
-    const value = config[key];
+  for (const key in initialStore) {
+    const value = initialStore[key];
 
     if (typeof value === "function") {
-      proxy[key] = value.bind(proxy);
+      readonlyStore[key] = (...params: any[]) => value.apply(store, params);
+      store[key] = readonlyStore[key];
     } else {
       signals[key] = signal(value);
-      Object.defineProperty(proxy, key, {
+      Object.defineProperty(readonlyStore, key, {
         get() {
           return signals[key].value;
+        },
+      });
+      Object.defineProperty(store, key, {
+        get() {
+          return signals[key].value;
+        },
+        set(v) {
+          return (signals[key].value = v);
         },
       });
     }
   }
 
-  return proxy as {
-    readonly [K in keyof T]: T[K] extends (...params: any[]) => any
-      ? T[K]
-      : Signal<T[K]>["value"];
+  /**
+   * EFFECTS
+   */
+  for (const key in effects) {
+    effect(() => effects[key](store as S));
+  }
+
+  return readonlyStore as unknown as {
+    readonly [K in keyof S]: S[K] extends (...params: any[]) => any
+      ? (this: S, ...params: Parameters<S[K]>) => ReturnType<S[K]>
+      : Signal<S[K]>["value"];
   };
 }

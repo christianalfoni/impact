@@ -9,6 +9,11 @@
 
   // These tasks can be run from CodeSandbox. Running one will open a log in the app.
   "tasks": {
+    "website:dev": {
+      "name": "website:dev",
+      "command": "yarn website:dev",
+      "runAtStart": true
+    },
     "build": {
       "name": "build",
       "command": "yarn build",

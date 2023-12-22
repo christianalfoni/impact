@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
+import { cleanup } from "./context";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -324,9 +325,9 @@ export function effect(cb: () => void) {
 
   updater();
 
-  return () => {
+  return cleanup(() => {
     currentSubscriptionDisposer?.();
-  };
+  });
 }
 
 export function observer() {
