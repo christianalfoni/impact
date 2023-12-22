@@ -1,9 +1,6 @@
-import { Signal, effect, signal } from "./signal";
+import { Signal, signal } from "./signal";
 
-export function store<S extends Record<string, unknown>>(
-  initialStore: S,
-  effects: Record<string, (state: S) => (() => void) | void> = {},
-) {
+export function store<S extends Record<string, unknown>>(initialStore: S) {
   /**
    * STATE
    */
@@ -33,13 +30,6 @@ export function store<S extends Record<string, unknown>>(
         },
       });
     }
-  }
-
-  /**
-   * EFFECTS
-   */
-  for (const key in effects) {
-    effect(() => effects[key](store as S));
   }
 
   return readonlyStore as unknown as {
