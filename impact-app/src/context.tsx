@@ -156,6 +156,30 @@ export const componentConsumptionHooks = {
   onConsumed: () => {},
 };
 
+const globalContexts = new Map<Context<any, void>, any>();
+
+export function globalContext<T>(context: Context<T, void>): () => T {
+  return () => {
+    const activeContextContainer = getActiveContextContainer();
+
+    if (!activeContextContainer) {
+      if (!componentConsumptionHooks.isConsuming) {
+        componentConsumptionHooks.isConsuming = true;
+        componentConsumptionHooks.onConsume();
+      }
+    }
+
+    let contextContainer = globalContexts.get(context);
+
+    if (!contextContainer) {
+      contextContainer = context();
+      globalContexts.set(context, contextContainer);
+    }
+
+    return contextContainer;
+  };
+}
+
 export function context<T, A extends Record<string, unknown> | void>(
   context: Context<T, A>,
 ): (() => T) & {
