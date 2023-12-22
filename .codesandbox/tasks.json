@@ -12,37 +12,34 @@
     "website:dev": {
       "name": "website:dev",
       "command": "yarn website:dev",
-      "runAtStart": true
+      "runAtStart": true,
+      "preview": {
+        "port": 3000
+      }
     },
     "build": {
       "name": "build",
-      "command": "yarn build",
-      "runAtStart": false
+      "command": "yarn build"
     },
     "build:cjs": {
       "name": "build:cjs",
-      "command": "yarn build:cjs",
-      "runAtStart": false
+      "command": "yarn build:cjs"
     },
     "build:esm": {
       "name": "build:esm",
-      "command": "yarn build:esm",
-      "runAtStart": false
+      "command": "yarn build:esm"
     },
     "clean": {
       "name": "clean",
-      "command": "yarn clean",
-      "runAtStart": false
+      "command": "yarn clean"
     },
     "typecheck": {
       "name": "typecheck",
-      "command": "yarn typecheck",
-      "runAtStart": false
+      "command": "yarn typecheck"
     },
     "prepublish": {
       "name": "prepublish",
-      "command": "yarn prepublish",
-      "runAtStart": false
+      "command": "yarn prepublish"
     }
   }
 }

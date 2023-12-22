@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import { createObserveDebugEntry, createSetterDebugEntry } from "./debugger";
 import { cleanup } from "./context";
 
 // @ts-ignore
@@ -147,7 +146,7 @@ export function signal<T>(initialValue?: T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
-          createObserveDebugEntry(signal);
+          // createObserveDebugEntry(signal);
         }
       }
 
@@ -178,7 +177,7 @@ export function signal<T>(initialValue?: T) {
       value = newValue;
 
       if (process.env.NODE_ENV === "development") {
-        createSetterDebugEntry(signal, value);
+        // createSetterDebugEntry(signal, value);
         ObserverContext.current?.registerSetter(signal);
       }
 
@@ -271,7 +270,7 @@ export function derived<T>(cb: () => T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
-          createObserveDebugEntry(signal);
+          // createObserveDebugEntry(signal);
         }
       }
 
@@ -303,7 +302,7 @@ export function derived<T>(cb: () => T) {
         isDirty = false;
 
         if (process.env.NODE_ENV === "development") {
-          createSetterDebugEntry(signal, value, true);
+          // createSetterDebugEntry(signal, value, true);
         }
       }
 
