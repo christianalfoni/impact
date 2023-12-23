@@ -1,4 +1,11 @@
-import { Signal, signal } from "./signal";
+import { globalContext } from "./context";
+import { Signal, derived, signal } from "./signal";
+
+export function globalStore<S extends Record<string, unknown>>(
+  initialStore: S,
+) {
+  return globalContext(() => store(initialStore));
+}
 
 export function store<S extends Record<string, unknown>>(initialStore: S) {
   /**
@@ -7,15 +14,16 @@ export function store<S extends Record<string, unknown>>(initialStore: S) {
   const signals: Record<string, Signal<unknown>> = {};
   const readonlyStore: Record<string, unknown> = {};
   const store: Record<string, unknown> = {};
+  const descriptors = Object.getOwnPropertyDescriptors(initialStore);
+  for (const key in descriptors) {
+    const descriptor = Object.getOwnPropertyDescriptor(initialStore, key)!;
 
-  for (const key in initialStore) {
-    const value = initialStore[key];
-
-    if (typeof value === "function") {
-      readonlyStore[key] = (...params: any[]) => value.apply(store, params);
+    if ("value" in descriptor && typeof descriptor.value === "function") {
+      readonlyStore[key] = (...params: any[]) =>
+        descriptor.value.apply(store, params);
       store[key] = readonlyStore[key];
-    } else {
-      signals[key] = signal(value);
+    } else if ("value" in descriptor) {
+      signals[key] = signal(descriptor.value);
       Object.defineProperty(readonlyStore, key, {
         get() {
           return signals[key].value;
@@ -29,6 +37,23 @@ export function store<S extends Record<string, unknown>>(initialStore: S) {
           return (signals[key].value = v);
         },
       });
+    } else if ("get" in descriptor && typeof descriptor.get === "function") {
+      signals[key] = derived(descriptor.get.bind(readonlyStore));
+      Object.defineProperty(readonlyStore, key, {
+        get() {
+          return signals[key].value;
+        },
+      });
+      Object.defineProperty(store, key, {
+        get() {
+          return signals[key].value;
+        },
+      });
+    } else {
+      console.warn(
+        `Not able to signalify the key "${key}" in store`,
+        initialStore,
+      );
     }
   }
 

@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "moduleResolution": "node",
     "skipLibCheck": true,
     "importHelpers": true,
@@ -17,6 +16,11 @@
     "experimentalDecorators": true,
     "isolatedModules": true
   },
-  "include": ["context/src", "signal/src", "app/src"],
-  "exclude": ["node_modules", "context/dist", "signals/dist", "tests"]
+  "include": ["impact-app/src", "impact-debugger/src"],
+  "exclude": [
+    "node_modules",
+    "impact-app/dist",
+    "impact-debugger/dist",
+    "tests"
+  ]
 }

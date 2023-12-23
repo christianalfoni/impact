@@ -9,7 +9,7 @@
 <br />
 
 <p align="center">
-⚠️ <b>This is still a work in progress</b> ⚠️
+⚠️ <b>Release candidate</b> ⚠️
 </p>
 
 <br/>
@@ -24,11 +24,26 @@
 >
 > *Engineering Zen Master, Christian Alfoni*
 
-## !DOCS ARE COMING SOON!
+## Get started
+
+Install Impact to your project:
+
+```sh
+npm install impact-app
+```
+
+Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-template-fp6gd9)
+
+## Docs
+
+- [Tutorial]()
+- [Stores]()
+- [Contexts]()
+- [Signals]()
 
 ## Understanding The Design
 
-Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and management of that state between components. A common misconception about React is that its primitives is designed to manage state, but they are really more about synchronising state. It quite quickly becomes cumbersome to use Reacts primitives to share state and state management across components in a way that performs and scales. Expressing state management with the mental overhead of the reconciliation loop also creates friction.
+Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and management of that state between components. A common misconception about React is that its primitives is designed to manage state, but they are really about synchronising state. It quite quickly becomes cumbersome to use Reacts primitives to share state and state management across components in a way that performs and scales. Expressing state management with the mental overhead of the reconciliation loop also creates friction.
 
 **The first principle** of **Impact** is to allow developers to write state and manage state state without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
 
