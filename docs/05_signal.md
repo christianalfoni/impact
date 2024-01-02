@@ -36,7 +36,7 @@ Signals has first class support for promises. That means when you add a promise 
 import { signal, observer, globalContext } from 'impact-app'
 
 const useGlobalContext = globalContext(() => {
-    const helloWorldPromise = new Promise<string>((resolve) => {
+    const helloWorldPromise = new Promise((resolve) => {
         setTimeout(() => resolve('Hello World!'), 2000)
     })
 
@@ -72,7 +72,7 @@ Or you could suspend it:
 import { signal, observer, use } from 'impact-app'
 
 const useGlobalContext = globalContext(() => {
-    const helloWorldPromise = new Promise<string>((resolve) => {
+    const helloWorldPromise = new Promise((resolve) => {
         setTimeout(() => resolve('Hello World!'), 2000)
     })
 

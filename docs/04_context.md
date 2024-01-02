@@ -16,7 +16,7 @@ import { globalContext } from 'impact-app'
 const useGlobalContext = globalContext(() => {})
 ```
 
-There is not need to provide this context to the React application, it will just work. By using `context` you will need to provide it to the React component tree, but it gives you more control and opportunities for managing the state of your application.
+There is no need to provide this context to the React application, it will just work. By using `context` you will need to provide it to the React component tree, but it gives you more control and opportunities for managing the state of your application.
 
 ### Creating a scoped context
 

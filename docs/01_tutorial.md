@@ -1,6 +1,6 @@
 # Tutorial
 
-This tutorial is divided into three levels of state management complexity. This will help you reason about **state management complexity** and how different abstractions fits with dealing with different levels of complexity.
+This tutorial is divided into three levels. This will help you reason about **state management complexity** and how different abstractions fits with dealing with different levels of complexity.
 
 How exactly to evaluate **state management complexity** of an application is difficult, especially before hand. You want to get started quickly and efficiently, but as your application grows and you learn more about its nature, the tool needs to provide lower level and flexible APIs.
 
@@ -70,7 +70,7 @@ const useNotifications = () => store({
     }
 })
 
-// Pass any dependencies the store might need. This being other stores
+// Pass any dependencies the store might need. This being stores
 // or other references
 const useTodos = (notifications, api) => {
     const todos = store({
@@ -135,7 +135,8 @@ At this point you can still use the `store` API, but you will more likely embrac
 ```tsx
 import { context, signal, cleanup } from 'impact-app'
 
-// The page receives props from its Provider, maybe data from a router
+// The page context receives props from its Provider, maybe data from a router
+// used with React
 const usePage = context(({ initialCount }) => {
     const initialCount = signal(initialCount)
 

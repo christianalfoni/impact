@@ -90,6 +90,8 @@ But data fetching is not only about getting and displaying data, it is also abou
 ```ts
 import { context, signal } from 'impact-app'
 
+// We create a context for the Post displayed on the page and
+// pass it the fetched data
 const usePostContext = context((postData) => {
     const post = signal(postData)
     // The value of the mutation signal starts out as undefined
@@ -117,12 +119,14 @@ const usePostContext = context((postData) => {
 })
 ```
 
+We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
+
 ```tsx
 import { usePostContext } from './'
 
 function PostTitle() {
     const { post, changingTitle, changeTitle } = usePostContext()
-    const [newTitle, setNewTitle] = useState(title)
+    const [newTitle, setNewTitle] = useState(post.title)
 
     return (
         <div>
