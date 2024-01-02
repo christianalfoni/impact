@@ -11,43 +11,57 @@ A signal is just a way to create an observable value. What makes Impact signals 
 Creates a value that can be observed by React. Signals are expected to be treated as immutable values, meaning you always need to assign a new value when changing them.
 
 ```ts
-import { signal, observer } from 'impact-app'
+import { signal, globalContext } from 'impact-app'
 
-const message = signal('Hello World')
+const useGlobalContext = globalContext(() => {
+    const message = signal('Hello World')
+
+    return {
+        get message() {
+            return message.value
+        }
+    }
+})
 
 function SomeComponent() {
-    using _ = observer()
+    const { message } = useGlobalContext()
 
-    return <h1>{message.value}</h1>
+    return <h1>{message}</h1>
 }
 ```
 
 Signals has first class support for promises. That means when you add a promise to a signal, the promise becomes a `SignalPromise`. This is the same promise as you passed in, only it is populated with some additional properties and made observable. These properties are also the same React looks for when using the `use` hook to suspend a promise.
 
 ```tsx
-import { signal, observer } from 'impact-app'
+import { signal, observer, globalContext } from 'impact-app'
 
-const helloWorldPromise = new Promise<string>((resolve) => {
-    setTimeout(() => resolve('Hello World!'), 2000)
+const useGlobalContext = globalContext(() => {
+    const helloWorldPromise = new Promise<string>((resolve) => {
+        setTimeout(() => resolve('Hello World!'), 2000)
+    })
+
+    const message = signal(helloWorldPromise)
+
+    return {
+        get message() {
+            return message.value
+        }
+     }
 })
 
-const message = signal(helloWorldPromise)
-
 function SomeComponent() {
-    using _ = observer()
+    const { message } = useGlobalContext()
 
-    const promisedMessage = message.value
-
-    if (promisedMessage.status === 'pending') {
+    if (message.status === 'pending') {
         return <div>Loading message...</div>
     }
 
-    if (promisedMessage.status === 'rejected') {
-        return <div>Error: {promisedMessage.reason}</div>
+    if (message.status === 'rejected') {
+        return <div>Error: {message.reason}</div>
     }
 
 
-    return <h1>{promisedMessage.value}</h1>
+    return <h1>{message.value}</h1>
 })
 ```
 
@@ -57,16 +71,24 @@ Or you could suspend it:
 ```tsx
 import { signal, observer, use } from 'impact-app'
 
-const helloWorldPromise = new Promise<string>((resolve) => {
-    setTimeout(() => resolve('Hello World!'), 2000)
+const useGlobalContext = globalContext(() => {
+    const helloWorldPromise = new Promise<string>((resolve) => {
+        setTimeout(() => resolve('Hello World!'), 2000)
+    })
+
+    const message = signal(helloWorldPromise)
+
+    return {
+        get message() {
+            return message.value
+        }
+    }
 })
 
-const message = signal(helloWorldPromise)
-
 function SomeComponent() {
-    using _ = observer()
+    const { message } = useGlobalContext()
 
-    const messageValue = use(message.value)
+    const messageValue = use(message)
 
     return <h1>{messageValue}</h1>
 })
@@ -77,10 +99,21 @@ function SomeComponent() {
 Creates a signal that lazily recomputes whenever any accessed signals within the derived callback changes. Also signals with promises are supported here.
 
 ```ts
-import { signal, derived } from 'impact-app'
+import { signal, derived, globalContext } from 'impact-app'
 
-const message = signal('Hello World')
-const shoutingMessage = derived(() => message.value + '!!!')
+const useGlobalContext = globalContext(() => {
+    const message = signal('Hello World')
+    const shoutingMessage = derived(() => message.value + '!!!')
+
+    return {
+        get message() {
+            return message.value
+        },
+        get shoutingMessage() {
+            return shoutingMessage.value
+        }
+    }
+})
 ```
 
 ### effect
@@ -88,59 +121,21 @@ const shoutingMessage = derived(() => message.value + '!!!')
 It will run whenever the signals accessed changes.
 
 ```ts
-import { signal, effect } from 'impact-signal'
+import { signal, effect, globalContext } from 'impact-signal'
 
-const message = signal('Hello World')
+const useGlobalContext = globalContext(() => {
+    const message = signal('Hello World')
+    
+    effect(() => {
+        console.log(message.value)
+    })
 
-const dispose = effect(() => {
-    console.log(message.value)
+    return {
+        get message() {
+            return message.value
+        }
+    }
 })
-```
-
-### observer
-
-To observe signals, and "rerender" the components, they need to bound to an `ObserverContext`. There are two ways you can achieve this. The traditional way to approach this is using an `observer` higher order component. 
-
-```tsx
-import { observer, signal } from 'impact-app'
-
-const message = signal('Hello World')
-
-const HelloWorld = observer(() => {
-    return <h1>{message.value}</h1>
-})
-```
-
-But the approach above can result in anonymous component names and dictates to some extent how you can define and export components. Impact signals improves this using a new language feature called [explicit resource management](https://github.com/tc39/proposal-explicit-resource-management). This is in its last phase and ready to be shipped with JavaScript, and already available in TypeScript.
-
-```tsx
-import { observer, signal } from 'impact-app'
-
-const message = signal('Hello World')
-
-export function HelloWorld() {
-    using _ = observer()    
-
-    return <div>{message.value}</div>
-}
-```
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/5c4a8b43-27a2-4553-a710-146d94fbc612" width="25"/> **TypeScript 5.2**
-
-<br />
-
-<img align="center" src="https://github.com/christianalfoni/signalit/assets/3956929/eb74b1ea-0ff1-4d18-9ba5-97150408ae86" width="25"/> **Babel**
-
-```bash
-yarn add @babel/plugin-proposal-explicit-resource-management -D
-```
-
-```json
-{
-    "plugins": [
-        "@babel/plugin-proposal-explicit-resource-management"
-    ]
-}
 ```
 
 ### use

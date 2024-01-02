@@ -6,7 +6,19 @@ You probably already know contexts from React. Contexts is the primitive you use
 
 ## Learn
 
-### Creating a context
+### Global or scoped
+
+Some applications might be fine using the `globalContext` factory function, where the rest of this documentation becomes irrelevant.
+
+```ts
+import { globalContext } from 'impact-app'
+
+const useGlobalContext = globalContext(() => {})
+```
+
+There is not need to provide this context to the React application, it will just work. By using `context` you will need to provide it to the React component tree, but it gives you more control and opportunities for managing the state of your application.
+
+### Creating a scoped context
 
 A context is just a function that returns state and/or management of state, just like any other traditional React context. We call it a context for familiarity, but you will learn that Impact contexts has benefits over traditional React contexts.
 

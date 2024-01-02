@@ -1,27 +1,37 @@
 # Tutorial
 
-This tutorial is divided into three levels of state management complexity. How exactly to determine "state complexity" of an application is difficult, especially before hand. You want to get started quickly and efficiently, but as your application grows and you learn more about its nature, you want a tool that is prepared to deal with any state complexity.
+This tutorial is divided into three levels of state management complexity. This will help you reason about **state management complexity** and how different abstractions fits with dealing with different levels of complexity.
 
-We think a good way to look at **state complexity** is to evaluate the component tree size and depth in relation to consumption of shared state across these component trees. In other words, the more complex UI and the more state shared across that complex UI, the more **state complexity** you have.
+How exactly to evaluate **state management complexity** of an application is difficult, especially before hand. You want to get started quickly and efficiently, but as your application grows and you learn more about its nature, the tool needs to provide lower level and flexible APIs.
+
+A good way to evaluate **state management complexity** is to use the component tree size and depth in relation to consumption of across these component trees. So called "shared state". In other words, the more complex UI and the more state shared across that complex UI, the more **state management complexity** you have.
+
+Enough theory, let's look at it from a practical perspective.
 
 ## Level 1: Just give me some global state
 
-Declarative global state stores is a popular approach to managing shared state between components. They are straight forward and solve the immediate problem of sharing state. In **Impact** you would use `globalStore` to create such a store:
+Declarative global state stores is a popular abstraction managing shared state across components. They are straight forward and solve the immediate problem of sharing state. In **Impact** you would use `globalStore` to create a reactive store:
 
 ```tsx
 import { globalStore } from 'impact-app'
 
 const useAppStore = globalStore({
+    // Each key is a signal
     count: 0,
+    // A getter is a lazily evaluated derived signal
     get double() {
         return this.count * 2
     },
+    // Methods runs in the context of the store and
+    // can change signal values, also asynchronously
     increment() {
         this.count++
     }
 })
 
 function App() {
+    // Use the store in any component and it will only reconcile
+    // when any accessed signals change
     const appStore = useAppStore()
 
     return (
@@ -36,15 +46,20 @@ function App() {
 }
 ```
 
-At the core of **Impact** you have [signals](./05_signal.md). The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `globalContext`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
+The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `globalContext`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
+
+This level of managing state is close to libraries like [jotai](https://jotai.org/) and [zustand](https://github.com/pmndrs/zustand).
+
+The `globalStore` might be all you need for your application, but as the store itself grows you will benefit from moving to the next level.
 
 ## Level 2: I need to compose multiple stores
 
-As the complexity of your state increases you will want to split it up into different domains or namespaces. With **Impact** you can continue using the declarative store API, but rather compose them in a `globalContext` as opposed to a single `globalStore`.
+As the complexity of your state store increases you will want to split it up into different domains or namespaces. With **Impact** you can continue using the declarative store definition, but rather compose them in a `globalContext` using the `store` API.
 
 ```ts
 import { globalContext, store, effect } from 'impact-app'
 
+// Compose the stores together using the hooks pattern
 const useNotifications = () => store({
     stack: [],
     add(newNotification) {
@@ -55,7 +70,9 @@ const useNotifications = () => store({
     }
 })
 
-const useTodos = (api, notifications) => {
+// Pass any dependencies the store might need. This being other stores
+// or other references
+const useTodos = (notifications, api) => {
     const todos = store({
         all: [],
         get completed() {
@@ -78,6 +95,8 @@ const useTodos = (api, notifications) => {
         }
     })
 
+    // The effect runs immediately and tracks any signals you access. When
+    // the signal changes, the effect runs again
     effect(() => {
         if (todos.remaining === 10) {
             notifications.add({ type: 'warning', text: "Oh oh, make sure you keep sane!" })
@@ -87,10 +106,12 @@ const useTodos = (api, notifications) => {
     return todos
 }
 
+// Use "globalContext" to compose together stores and related logic into a single
+// global context to be consumed by any components
 const useAppStore = globalContext(() => {
     const api = new Api()
     const notifications = useNotifications()
-    const todos = useTodos(api, notifications)
+    const todos = useTodos(notifications, api)
         
     return {
         todos,
@@ -99,21 +120,28 @@ const useAppStore = globalContext(() => {
 })
 ```
 
-With `globalContext` you still consume a single global store, but it is composed together using the `store` API, which is the same accessible declarative API over signals. The function scope of `globalContext` is used to compose together the stores however you want and you can start taking advantage of `effect` and whatever else you want to initialise and manage within your global context.
+With `globalContext` you still consume a single global store, but it is composed together using the `store` API, which is the same accessible declarative API over signals as `globalStore`. The function scope of `globalContext` is used to compose together the stores however you want and you can start taking advantage of `effect` and whatever else you want to initialise and manage within your global context.
 
-## Level 3: Granular control
+This level of managing state is close to what you know from [redux](https://redux.js.org/), [mobx](https://mobx.js.org/README.html), [overmind](https://overmindjs.org/) and the likes.
 
-In extremely complex web applications you might have multiple pages and features that has some shared state across pages/features and some state scoped to the page/feature, but still with a complex component tree to consume that state. This is where **Impact** gives you `context`. Unlike Reacts context this is, like `globalContext`, a reactive context. The only difference is that it needs to be provided to a component tree.
+You get very far with this level of abstraction, but there is another level giving you even more control.
+
+## Level 3: Scoped state management
+
+In extremely complex web applications you might have multiple pages and features that has some shared state across those pages/features and some state scoped to the page/feature. This is where **Impact** gives you `context`. Unlike Reacts context this is, like `globalContext`, a reactive context. The only difference from `globalContext` is that it needs to be provided to a component tree.
 
 At this point you can still use the `store` API, but you will more likely embrace raw signals.
 
 ```tsx
 import { context, signal, cleanup } from 'impact-app'
 
+// The page receives props from its Provider, maybe data from a router
 const usePage = context(({ initialCount }) => {
     const initialCount = signal(initialCount)
 
     return {
+        // We use getters to expose the signal value. This makes it readonly and
+        // more accessible
         get initialCount() {
             return initialCount.value
         }
@@ -125,10 +153,13 @@ const useFeature = context(() => {
 
     const count = signal(initialCount)
 
+    // The context scope is reactive, which means it will only run once. You are free to define variables,
+    // and side effects
     const interval = setInterval(() => {
         count.value++
     }, 1000)
 
+    // When the provider of this context unmounts you can clean up
     cleanup(() => clearInterval(interval))
 
     return {
@@ -163,7 +194,7 @@ function App() {
 
 Reading this example you see that you gain even more control of your state managent. First of all you can mount your state management with the related component tree. This simplifies lazy loading. You can also pass props to the reactive contexts, initializing state with information coming from your React application. You will also be able to consume contexts from other contexts, in this case the feature context consumes the page context.
 
-At this level of managing complexity new possibilities open up. Things like cleaning up state management as the related component tree unmounts. You can optimise consumption of data in components by giving each nested piece of data its own signal. Now that your state management is fused with React itself you can also start taking advantage of new patterns to manage data fetching.
+At this level of managing complexity new possibilities open up. Things like disposing of state management as the related component tree unmounts. You can optimise consumption of data in components by giving each nested piece of data its own signal. Now that your state management is fused with React itself you can also start taking advantage of new patterns to manage data fetching.
 
 
 

@@ -6,6 +6,8 @@ There are several data fetching solutions for React, like [useQuery](https://tan
 
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a much lower abstraction than the above mentioned tools, but that makes them flexible and they can be used for all kinds of async state management, also queries and mutations.
 
+Traditionally with global state management you would do the data fetching inside your stores, but with **Impact** you have the choice to embrace React to do declarative data fetching. 
+
 ```ts
 import { context, signal } from 'impact-app'
 
@@ -14,10 +16,10 @@ import { context, signal } from 'impact-app'
 export const usePostsContext = context(() => {
     // We cache any posts using a record of the post id
     // and the promise of the post as a signal
-    const posts: Record<string, Signal<Promise<PostDTO>>> = {}
+    const posts = {}
 
     return {
-        fetchPost(id: string) {
+        fetchPost(id) {
             let post = posts[id]
 
             if (!postQuery) {
@@ -27,6 +29,7 @@ export const usePostsContext = context(() => {
                 )
             }
 
+            // We return the signal value, which is now an enhanced promise
             return post.value
         }
     }
@@ -41,7 +44,7 @@ When a signal initialises with a promise it will enhance it with status details.
 import { use } from 'impact-app'
 import { usePostsContext } from './usePostsContext'
 
-function PostComponent({ id }: { id: string }) {
+function PostComponent({ id }) {
     const postsContext = usePostsContext()
 
     const post = use(postsContext.fetchPost(id))
@@ -63,7 +66,7 @@ But maybe you do not want to use suspense, you just want to deal with the status
 import { observer } from 'impact-signal'
 import { usePostsContext } from './usePostsContext'
 
-const Post = ({ id }: { id: string }) => {
+const Post = ({ id }) => {
     const postsContext = usePostsContext()
 
     const postPromise = postsContext.fetchPost(id)
@@ -87,9 +90,10 @@ But data fetching is not only about getting and displaying data, it is also abou
 ```ts
 import { context, signal } from 'impact-app'
 
-const usePostContext = context((postData: PostDTO) => {
+const usePostContext = context((postData) => {
     const post = signal(postData)
-    const changingTitle = signal<Promise<void>>()
+    // The value of the mutation signal starts out as undefined
+    const changingTitle = signal()
 
     return {
         get post() {
@@ -99,6 +103,8 @@ const usePostContext = context((postData: PostDTO) => {
             return changingTitle.value
         },
         changeTitle(id: string, newTitle: string) {
+            // We assign a new value to our changingTitle mutation, which is
+            // the promise of changing the title
             changingTitle.value = fetch({
                 method: 'PUT',
                 url: '/posts/' + id,
@@ -121,6 +127,7 @@ function PostTitle() {
     return (
         <div>
             <input
+                // Now we can just check if we have a pending changing title
                 disabled={changingTitle?.status === 'pending' ?? false}
                 value={newTitle}
                 onChange={(event) => setNewTitle(event.target.value)}
