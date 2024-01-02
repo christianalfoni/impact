@@ -8,36 +8,5 @@
   ],
 
   // These tasks can be run from CodeSandbox. Running one will open a log in the app.
-  "tasks": {
-    "build": {
-      "name": "build",
-      "command": "yarn build",
-      "runAtStart": false
-    },
-    "build:cjs": {
-      "name": "build:cjs",
-      "command": "yarn build:cjs",
-      "runAtStart": false
-    },
-    "build:esm": {
-      "name": "build:esm",
-      "command": "yarn build:esm",
-      "runAtStart": false
-    },
-    "clean": {
-      "name": "clean",
-      "command": "yarn clean",
-      "runAtStart": false
-    },
-    "typecheck": {
-      "name": "typecheck",
-      "command": "yarn typecheck",
-      "runAtStart": false
-    },
-    "prepublish": {
-      "name": "prepublish",
-      "command": "yarn prepublish",
-      "runAtStart": false
-    }
-  }
+  "tasks": {}
 }

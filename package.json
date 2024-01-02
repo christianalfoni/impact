@@ -2,28 +2,29 @@
   "name": "impact-monorepo",
   "private": true,
   "workspaces": [
-    "context",
-    "signal",
-    "app"
+    "website",
+    "impact-app"
   ],
+  "scripts": {
+    "website:dev": "yarn workspace website start",
+    "app:publish": "yarn workspace impact-app publish"
+  },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
   "devDependencies": {
-    "@types/jest": "^29.5.0",
+    "@types/node": "^20.10.5",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.2.6",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",
     "eslint": "^8.48.0",
     "eslint-plugin-react": "^7.33.2",
-    "jest": "^29.5.0",
     "prettier": "^3.0.3",
     "react": "*",
     "rimraf": "^2.6.1",
-    "ts-jest": "^29.0.5",
     "tslib": "^2.6.2",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.3"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.39.0",
+  "version": "0.43.0",
   "description": "Reactive applications for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -27,15 +27,14 @@
     "typescript",
     "react",
     "context",
-    "reacive"
+    "reactive",
+    "signals",
+    "state",
+    "global"
   ],
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "impact-signal": "^0.1.5",
-    "impact-context": "^0.1.4"
-  },
   "peerDependencies": {
     "react": "*"
   }
