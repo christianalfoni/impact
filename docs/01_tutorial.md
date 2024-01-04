@@ -4,7 +4,7 @@ This tutorial is divided into three levels. This will help you reason about **st
 
 How exactly to evaluate **state management complexity** of an application is difficult, especially before hand. You want to get started quickly and efficiently, but as your application grows and you learn more about its nature, the tool needs to provide lower level and flexible APIs.
 
-A good way to evaluate **state management complexity** is to use the component tree size and depth in relation to consumption of across these component trees. So called "shared state". In other words, the more complex UI and the more state shared across that complex UI, the more **state management complexity** you have.
+A good way to evaluate **state management complexity** is to use the component tree size and depth in relation to consumption of state across these component trees. So called "shared state". In other words, the more complex UI and the more state shared across that complex UI, the more **state management complexity** you have.
 
 Enough theory, let's look at it from a practical perspective.
 
