@@ -44,6 +44,10 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
   - [Context](./docs/04_context.md)
   - [Signal](./docs/05_signal.md)
 
+## Reference projects
+
+**[FamilyScrum](https://github.com/christianalfoni/family-scrum-v2)** is an application I built which has been the test bed for any state management ideas I've had. It does manage a lot of complexity and is a good example of how you can take advantage of contexts, React data fetching patterns and other fun stuff 😄
+
 ## Understanding The Design
 
 Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and management of that state between components. A common misconception about React is that its primitives is designed to manage state, but they are really about synchronising state. It quite quickly becomes cumbersome to use Reacts primitives to share state and state management across components in a way that performs and scales. Expressing state management with the mental overhead of the reconciliation loop also creates friction.
