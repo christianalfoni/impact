@@ -46,7 +46,7 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
 
 ## Reference projects
 
-**[FamilyScrum](https://github.com/christianalfoni/family-scrum-v2)** is an application I built which has been the test bed for any state management ideas I've had. It does manage a lot of complexity and is a good example of how you can take advantage of contexts, React data fetching patterns and other fun stuff 😄
+**[FamilyScrum](https://codesandbox.io/p/github/christianalfoni/family-scrum-v2/main)** is an application I built which has been the test bed for any state management ideas I've had. It does manage a lot of complexity and is a good example of how you can take advantage of contexts, React data fetching patterns and other fun stuff 😄
 
 ## Understanding The Design
 
