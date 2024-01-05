@@ -22,7 +22,7 @@ export const usePostsContext = context(() => {
         fetchPost(id) {
             let post = posts[id]
 
-            if (!postQuery) {
+            if (!post) {
                 // If we have no post, we grab it and store it in a signal
                 post = posts[id] = signal(
                     fetch('/posts/' + id).then((response) => response.json())
