@@ -1,4 +1,4 @@
-import { Component, Suspense } from "react";
+import { Component, Suspense, createElement } from "react";
 
 export type BoundaryErrorProps<T extends Record<string, unknown>> = T & {
   error: Error;
@@ -42,15 +42,15 @@ export class ErrorBoundary<
   }
   render() {
     if (this.state.status === "ERROR") {
-      const { fallback: _, ...props } = this.props;
-      return (
-        // @ts-ignore
-        <this.props.fallback
-          {...props}
-          error={this.state.error}
-          reset={() => this.reset()}
-        />
-      );
+      const props = Object.assign({}, this.props, {
+        error: this.state.error,
+        reset: () => this.reset(),
+      });
+
+      // @ts-ignore
+      delete props.fallback;
+
+      return createElement(this.props.fallback, props);
     } else {
       return this.props.children;
     }
@@ -77,28 +77,44 @@ export function boundary<T extends Record<string, unknown>>(
 ) {
   function BoundaryComponent(props: T) {
     if ("suspend" in options && "error" in options) {
-      return (
-        <ErrorBoundary {...props} fallback={options.error}>
-          <Suspense fallback={<options.suspend {...props} />}>
-            <options.component {...props} />
-          </Suspense>
-        </ErrorBoundary>
+      const extendedProps = Object.assign({}, props, {
+        fallback: options.error,
+      });
+
+      return createElement(
+        ErrorBoundary,
+        // @ts-ignore
+        extendedProps,
+        createElement(
+          Suspense,
+          {
+            fallback: createElement(options.suspend, props),
+          },
+          createElement(options.component, props),
+        ),
       );
     }
 
     if ("suspend" in options) {
-      return (
-        <Suspense fallback={<options.suspend {...props} />}>
-          <options.component {...props} />
-        </Suspense>
+      return createElement(
+        Suspense,
+        {
+          fallback: createElement(options.suspend, props),
+        },
+        createElement(options.component, props),
       );
     }
 
     if ("error" in options) {
-      return (
-        <ErrorBoundary {...props} fallback={options.error}>
-          <options.component {...props} />
-        </ErrorBoundary>
+      const extendedProps = Object.assign({}, props, {
+        fallback: options.error,
+      });
+
+      return createElement(
+        ErrorBoundary,
+        // @ts-ignore
+        extendedProps,
+        createElement(options.component, props),
       );
     }
 

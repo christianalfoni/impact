@@ -1,12 +1,34 @@
 import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
-import { SignalTracker } from "./";
+import { SignalTracker, signalDebugHooks } from "impact-app";
+
+console.log("The Impact debugger is initialized, hit SHIFT twice to activate");
 
 const cache: {
   [url: string]: Promise<StackFrame>;
 } = {};
 
 const observedSignals = new WeakMap<SignalTracker, Set<string>>();
+
+let lastShiftPress = Date.now();
+let isActive = false;
+document.addEventListener("keydown", (event) => {
+  if (!event.shiftKey) {
+    return;
+  }
+  const now = Date.now();
+
+  if (now - lastShiftPress < 750) {
+    isActive = !isActive;
+    console.log(
+      isActive
+        ? "Signal debugging is active"
+        : "Signal debugging is deactivated",
+    );
+  } else {
+    lastShiftPress = now;
+  }
+});
 
 class SerialQueue {
   private queue: Array<() => Promise<void>> = [];
@@ -35,8 +57,6 @@ const queue = new SerialQueue();
 
 function createStackFrameData(stack: string) {
   if (window.navigator.userAgent.includes("Chrome")) {
-    const isDemo = "IS_SIGNALIT_DEMO" in window && window.IS_SIGNALIT_DEMO;
-
     const callSites = stack
       .split("\n")
       .slice(1)
@@ -44,7 +64,8 @@ function createStackFrameData(stack: string) {
         (line) =>
           !line.includes("node_modules") &&
           line.includes(window.location.origin) &&
-          (isDemo ? !line.includes("/src") : true),
+          !line.includes("createSetterDebugEntry") &&
+          !line.includes("createGetterDebugEntry"),
       );
 
     const stackFrameData: Array<{
@@ -74,7 +95,9 @@ function createStackFrameData(stack: string) {
         file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
 
         stackFrameData.push({ file, line, column, functionName });
-      } catch {}
+      } catch {
+        // Do not care
+      }
     }
 
     return stackFrameData;
@@ -105,7 +128,10 @@ function createSourceMappedStackFrame(
   });
 }
 
-export function createObserveDebugEntry(signal: SignalTracker) {
+export function createGetterDebugEntry(signal: SignalTracker) {
+  if (!isActive) {
+    return;
+  }
   const stack = new Error().stack!;
 
   const stackFrameData = createStackFrameData(stack).pop();
@@ -140,8 +166,12 @@ export function createObserveDebugEntry(signal: SignalTracker) {
 export function createSetterDebugEntry(
   signal: SignalTracker,
   value: unknown,
-  isComputed = false,
+  isDerived = false,
 ) {
+  if (!isActive) {
+    return;
+  }
+
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
@@ -197,15 +227,15 @@ export function createSetterDebugEntry(
             return setterPromise.then((targetFrame) => {
               console.groupCollapsed(
                 `%c# ${
-                  isComputed ? "COMPUTE" : "SET"
+                  isDerived ? "COMPUTE" : "SET"
                 } SIGNAL at ${functionName}:`,
-                isComputed
+                isDerived
                   ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
                   : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
                 value,
               );
 
-              if (isComputed) {
+              if (isDerived) {
                 const computedFrame = targetFrame || {
                   functionName,
                   fileName,
@@ -266,3 +296,6 @@ export function createSetterDebugEntry(
     ),
   );
 }
+
+signalDebugHooks.onGetValue = createGetterDebugEntry;
+signalDebugHooks.onSetValue = createSetterDebugEntry;
