@@ -38,7 +38,7 @@ function App() {
         <div>
             <h1>{appStore.count}</h1>
             <h4>{appStore.double}</h4>
-            <button onClick={appStore.increase}>
+            <button onClick={appStore.increment}>
                 Increase
             </button>
         </div>
