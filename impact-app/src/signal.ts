@@ -4,6 +4,21 @@ import { cleanup } from "./context";
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
 
+// Use for memory leak debugging
+// const registry = new FinalizationRegistry((message) => console.log(message));
+
+export const signalDebugHooks: {
+  onGetValue: (signal: SignalTracker) => void;
+  onSetValue: (
+    signal: SignalTracker,
+    value: unknown,
+    derived?: boolean,
+  ) => void;
+} = {
+  onGetValue: () => {},
+  onSetValue: () => {},
+};
+
 export class ObserverContext {
   static stack: ObserverContext[] = [];
   static get current(): ObserverContext | undefined {
@@ -20,6 +35,8 @@ export class ObserverContext {
   }
   constructor() {
     ObserverContext.stack.push(this);
+    // Use for memory leak debugging
+    // registry.register(this, this.id + " has been collected");
   }
   registerGetter(signal: SignalTracker) {
     // We do not allow having getters when setting a signal, the reason is to ensure
@@ -146,7 +163,7 @@ export function signal<T>(initialValue?: T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
-          // createObserveDebugEntry(signal);
+          signalDebugHooks.onGetValue(signal);
         }
       }
 
@@ -177,7 +194,7 @@ export function signal<T>(initialValue?: T) {
       value = newValue;
 
       if (process.env.NODE_ENV === "development") {
-        // createSetterDebugEntry(signal, value);
+        signalDebugHooks.onSetValue(signal, value);
         ObserverContext.current?.registerSetter(signal);
       }
 
@@ -270,7 +287,7 @@ export function derived<T>(cb: () => T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (process.env.NODE_ENV === "development") {
-          // createObserveDebugEntry(signal);
+          signalDebugHooks.onGetValue(signal);
         }
       }
 
@@ -302,7 +319,7 @@ export function derived<T>(cb: () => T) {
         isDirty = false;
 
         if (process.env.NODE_ENV === "development") {
-          // createSetterDebugEntry(signal, value, true);
+          signalDebugHooks.onSetValue(signal, value, true);
         }
       }
 
@@ -312,21 +329,23 @@ export function derived<T>(cb: () => T) {
 }
 
 export function effect(cb: () => void) {
-  let currentSubscriptionDisposer: (() => void) | undefined;
+  let currentSubscriptionDisposer: () => void;
 
   const updater = () => {
-    currentSubscriptionDisposer?.();
     const context = new ObserverContext();
+
     cb();
     context[Symbol.dispose]();
-    currentSubscriptionDisposer = context.subscribe(updater);
+
+    return context.subscribe(() => {
+      currentSubscriptionDisposer();
+      currentSubscriptionDisposer = updater();
+    });
   };
 
-  updater();
+  currentSubscriptionDisposer = updater();
 
-  return cleanup(() => {
-    currentSubscriptionDisposer?.();
-  });
+  return cleanup(currentSubscriptionDisposer);
 }
 
 export function observer() {
@@ -340,7 +359,3 @@ export function observer() {
 
   return context;
 }
-
-/*
-  - 
-*/
