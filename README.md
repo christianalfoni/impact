@@ -43,6 +43,7 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
   - [Store](./docs/03_store.md)
   - [Context](./docs/04_context.md)
   - [Signal](./docs/05_signal.md)
+- [Debugger](./docs/06_debugger.md)
 
 ## Reference projects
 

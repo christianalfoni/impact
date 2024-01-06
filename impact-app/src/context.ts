@@ -6,6 +6,7 @@ import {
   // @ts-ignore-next-line
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as ReactInternals,
+  createElement,
 } from "react";
 import type { useReducer, useEffect } from "react";
 
@@ -132,10 +133,12 @@ export class ContextProvider<
       );
     }
 
-    return (
-      <reactContext.Provider value={this.container}>
-        {this.props.children}
-      </reactContext.Provider>
+    return createElement(
+      reactContext.Provider,
+      {
+        value: this.container,
+      },
+      this.props.children,
     );
   }
 }
@@ -208,16 +211,15 @@ export function context<T, A extends Record<string, unknown> | void>(
 
   useReactiveContext.Provider = (props: A & { children: React.ReactNode }) => {
     // To avoid TSLIB
-    const propsCopy = Object.assign({}, props);
-    const children = propsCopy.children;
+    const extendedProps = Object.assign({}, props, {
+      context,
+    });
+    const children = extendedProps.children;
 
-    delete propsCopy.children;
+    delete extendedProps.children;
 
-    return (
-      <ContextProvider props={propsCopy as A} context={context}>
-        {children}
-      </ContextProvider>
-    );
+    // @ts-ignore
+    return createElement(ContextProvider, extendedProps, children);
   };
 
   // @ts-ignore

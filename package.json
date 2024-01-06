@@ -3,11 +3,13 @@
   "private": true,
   "workspaces": [
     "website",
-    "impact-app"
+    "impact-app",
+    "impact-debugger"
   ],
   "scripts": {
     "website:dev": "yarn workspace website start",
-    "app:publish": "yarn workspace impact-app publish"
+    "app:publish": "yarn workspace impact-app publish",
+    "debugger:publish": "yarn workspace impact-debugger publish"
   },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
