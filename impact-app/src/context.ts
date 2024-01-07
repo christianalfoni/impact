@@ -211,15 +211,20 @@ export function context<T, A extends Record<string, unknown> | void>(
 
   useReactiveContext.Provider = (props: A & { children: React.ReactNode }) => {
     // To avoid TSLIB
-    const extendedProps = Object.assign({}, props, {
-      context,
-    });
+    const extendedProps = Object.assign({}, props);
     const children = extendedProps.children;
 
     delete extendedProps.children;
 
-    // @ts-ignore
-    return createElement(ContextProvider, extendedProps, children);
+    return createElement(
+      ContextProvider,
+      // @ts-ignore
+      {
+        props: extendedProps,
+        context,
+      },
+      children,
+    );
   };
 
   // @ts-ignore
