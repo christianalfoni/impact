@@ -8,16 +8,13 @@ Symbol.dispose ??= Symbol("Symbol.dispose");
 // const registry = new FinalizationRegistry((message) => console.log(message));
 
 export const signalDebugHooks: {
-  onGetValue: (signal: SignalTracker) => void;
-  onSetValue: (
+  onGetValue?: (signal: SignalTracker) => void;
+  onSetValue?: (
     signal: SignalTracker,
     value: unknown,
     derived?: boolean,
   ) => void;
-} = {
-  onGetValue: () => {},
-  onSetValue: () => {},
-};
+} = {};
 
 export class ObserverContext {
   static stack: ObserverContext[] = [];
@@ -162,7 +159,7 @@ export function signal<T>(initialValue?: T) {
     get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
-        if (process.env.NODE_ENV === "development") {
+        if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(signal);
         }
       }
@@ -193,7 +190,7 @@ export function signal<T>(initialValue?: T) {
 
       value = newValue;
 
-      if (process.env.NODE_ENV === "development") {
+      if (signalDebugHooks.onSetValue) {
         signalDebugHooks.onSetValue(signal, value);
         ObserverContext.current?.registerSetter(signal);
       }
@@ -286,7 +283,7 @@ export function derived<T>(cb: () => T) {
     get value() {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
-        if (process.env.NODE_ENV === "development") {
+        if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(signal);
         }
       }
@@ -318,7 +315,7 @@ export function derived<T>(cb: () => T) {
 
         isDirty = false;
 
-        if (process.env.NODE_ENV === "development") {
+        if (signalDebugHooks.onSetValue) {
           signalDebugHooks.onSetValue(signal, value, true);
         }
       }
