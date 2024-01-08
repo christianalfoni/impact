@@ -46,7 +46,7 @@ function App() {
 }
 ```
 
-The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `globalContext`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
+The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `context`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
 
 This level of managing state is close to libraries like [jotai](https://jotai.org/) and [zustand](https://github.com/pmndrs/zustand).
 
@@ -138,7 +138,7 @@ You get very far with this level of abstraction, but there is another level givi
 
 ## Level 3: Scoped state management with signals
 
-In extremely complex web applications you might have multiple pages and features that has some shared state across those pages/features and some state scoped to the page/feature. Instead of providing a single global context you target the specific pages/features with their own state management contexts. With signals you have complete control of the granularity of observation.
+In extremely complex web applications you might have multiple pages and features that has some shared state across those pages/features and some state scoped to the page/feature. Instead of providing a single global context you target the specific pages/features with their own state management contexts. With signals you have complete control of the granularity of observation and you can dynamically create signals as well.
 
 ```tsx
 import { context, signal, cleanup } from 'impact-app'
@@ -201,9 +201,9 @@ function App() {
 }
 ```
 
-Reading this example you see that you gain even more control of your state managent. First of all you can mount your state management with the related component tree. This simplifies lazy loading. You can also pass props to the reactive contexts, initializing state with information coming from your React application. You will also be able to consume contexts from other contexts, in this case the feature context consumes the page context.
+Reading this example you see that you gain even more control of your state management. First of all you can mount your state management with the related component tree. This simplifies lazy loading. You can also pass props to the reactive contexts, initializing state with information coming from your React application. You will also be able to consume contexts from parent contexts, in this case the feature context consumes the page context.
 
-At this level of managing complexity new possibilities open up. Things like disposing of state management as the related component tree unmounts. You can optimise consumption of data in components by giving each nested piece of data its own signal. Now that your state management is fused with React itself you can also start taking advantage of new patterns to manage data fetching.
+At this level of managing complexity new possibilities open up. Things like disposing of state management as the related component tree unmounts. You can optimise consumption of data in components by giving each nested piece of data its own signal. You can also dynamically create signals. Now that your state management is fused with React itself you can also start taking advantage of new patterns to manage data fetching.
 
 
 
