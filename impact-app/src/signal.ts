@@ -210,7 +210,7 @@ export function signal<T>(initialValue: T) {
         signal.notify();
       }
     },
-  };
+  } as Signal<T>;
 }
 
 type PendingPromise<T> = Promise<T> & {
