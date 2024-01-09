@@ -106,9 +106,7 @@ export type Signal<T> = T extends Promise<infer V>
       value: T;
     };
 
-export function signal<T>(): Signal<T | undefined>;
-export function signal<T>(initialValue: T): Signal<T>;
-export function signal<T>(initialValue?: T) {
+export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
 
   let value =

@@ -143,17 +143,11 @@ In extremely complex web applications you might have multiple pages and features
 ```tsx
 import { context, signal, cleanup } from 'impact-app'
 
-// The page context receives props from its Provider, maybe data from a router
-// used with React
+// The page context receives props from its Provider,
+// maybe data from a router used with React
 const usePage = context(({ initialCount }) => {
-    const initialCount = signal(initialCount)
-
     return {
-        // We use getters to expose the signal value. This makes it readonly and
-        // more accessible
-        get initialCount() {
-            return initialCount.value
-        }
+        initialCount
     }
 })
 
