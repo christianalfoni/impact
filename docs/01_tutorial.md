@@ -197,7 +197,10 @@ function App() {
 
 Reading this example you see that you gain even more control of your state management. First of all you can mount your state management with the related component tree. This simplifies lazy loading. You can also pass props to the reactive contexts, initializing state with information coming from your React application. You will also be able to consume contexts from parent contexts, in this case the feature context consumes the page context.
 
-At this level of managing complexity new possibilities open up. Things like disposing of state management as the related component tree unmounts. You can optimise consumption of data in components by giving each nested piece of data its own signal. You can also dynamically create signals. Now that your state management is fused with React itself you can also start taking advantage of new patterns to manage data fetching.
+At this level of managing complexity new possibilities open up:
 
-
-
+- You can dispose of state management when the related component tree unmounts
+- You decide the granularity of observability using signals
+- Dynamically create signals
+- Create signals to observe data fetching, mutations or other asynchronous processes
+- Fuse signals with other state management tools like [XState](https://xstate.js.org/) or [RXjs](https://rxjs.dev/)
