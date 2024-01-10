@@ -97,14 +97,10 @@ export class SignalTracker {
   }
 }
 
-export type Signal<T> = T extends Promise<infer V>
-  ? {
-      get value(): ObservablePromise<V>;
-      set value(promise: T);
-    }
-  : {
-      value: T;
-    };
+export type Signal<T> = {
+  get value(): T extends Promise<infer V> ? ObservablePromise<V> : T;
+  set value(value: T);
+};
 
 export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
