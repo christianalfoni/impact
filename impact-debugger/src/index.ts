@@ -227,7 +227,7 @@ export function createSetterDebugEntry(
             return setterPromise.then((targetFrame) => {
               console.groupCollapsed(
                 `%c# ${
-                  isDerived ? "COMPUTE" : "SET"
+                  isDerived ? "DERIVE" : "SET"
                 } SIGNAL at ${functionName}:`,
                 isDerived
                   ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
@@ -236,20 +236,20 @@ export function createSetterDebugEntry(
               );
 
               if (isDerived) {
-                const computedFrame = targetFrame || {
+                const derivedFrame = targetFrame || {
                   functionName,
                   fileName,
                   lineNumber,
                   columnNumber,
                 };
-                console.log("%cComputed at:", "font-weight:bold;");
+                console.log("%Derived at:", "font-weight:bold;");
                 console.log(
-                  computedFrame.functionName,
-                  computedFrame.fileName +
+                  derivedFrame.functionName,
+                  derivedFrame.fileName +
                     ":" +
-                    computedFrame.lineNumber +
+                    derivedFrame.lineNumber +
                     ":" +
-                    computedFrame.columnNumber,
+                    derivedFrame.columnNumber,
                 );
               } else {
                 console.log(
