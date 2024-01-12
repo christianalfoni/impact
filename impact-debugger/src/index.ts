@@ -168,7 +168,11 @@ function cleanFunctionName(functionName?: string) {
     return "ANONYMOUS";
   }
 
-  return functionName.replace(/\s\[.*\]/, "");
+  // Remove "[as current]" etc.
+  functionName = functionName.replace(/\s\[.*\]/, "");
+
+  // Only return last part, as getters has a "get " in front
+  return functionName.split(" ").pop();
 }
 
 export function createSetterDebugEntry(
@@ -234,11 +238,13 @@ export function createSetterDebugEntry(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
               console.groupCollapsed(
-                `%c# ${isDerived ? "DERIVE" : "SET"} SIGNAL at ${
+                `%c# ${
+                  isDerived ? "DERIVE" : "SET"
+                } SIGNAL at ${cleanFunctionName(
                   isDerived
                     ? targetFrame?.functionName || functionName
-                    : functionName
-                }:`,
+                    : functionName,
+                )}:`,
                 isDerived
                   ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
                   : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
