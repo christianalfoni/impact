@@ -163,6 +163,14 @@ export function createGetterDebugEntry(signal: SignalTracker) {
   }
 }
 
+function cleanFunctionName(functionName?: string) {
+  if (!functionName) {
+    return "ANONYMOUS";
+  }
+
+  return functionName.replace(/\s\[.*\]/, "");
+}
+
 export function createSetterDebugEntry(
   signal: SignalTracker,
   value: unknown,
@@ -226,9 +234,11 @@ export function createSetterDebugEntry(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
               console.groupCollapsed(
-                `%c# ${
-                  isDerived ? "DERIVE" : "SET"
-                } SIGNAL at ${functionName}:`,
+                `%c# ${isDerived ? "DERIVE" : "SET"} SIGNAL at ${
+                  isDerived
+                    ? targetFrame?.functionName || functionName
+                    : functionName
+                }:`,
                 isDerived
                   ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
                   : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
@@ -242,9 +252,9 @@ export function createSetterDebugEntry(
                   lineNumber,
                   columnNumber,
                 };
-                console.log("%Derived at:", "font-weight:bold;");
+                console.log("%cDerived at:", "font-weight:bold;");
                 console.log(
-                  derivedFrame.functionName,
+                  cleanFunctionName(derivedFrame.functionName),
                   derivedFrame.fileName +
                     ":" +
                     derivedFrame.lineNumber +
@@ -257,14 +267,14 @@ export function createSetterDebugEntry(
                   "font-weight:bold;",
                 );
                 console.log(
-                  functionName,
+                  cleanFunctionName(functionName),
                   fileName + ":" + lineNumber + ":" + columnNumber,
                 );
 
                 if (targetFrame) {
                   console.log("%cChanged at:", "font-weight:bold;");
                   console.log(
-                    targetFrame.functionName,
+                    cleanFunctionName(targetFrame.functionName),
                     targetFrame.fileName +
                       ":" +
                       targetFrame.lineNumber +
@@ -277,7 +287,7 @@ export function createSetterDebugEntry(
               console.log("%cObservers:", "font-weight:bold;");
               observingStackFrames.forEach((observingStackFrame) => {
                 console.log(
-                  observingStackFrame.functionName,
+                  cleanFunctionName(observingStackFrame.functionName),
                   observingStackFrame.fileName +
                     ":" +
                     observingStackFrame.lineNumber +
