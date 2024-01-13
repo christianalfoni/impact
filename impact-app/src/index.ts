@@ -8,5 +8,6 @@ export * from "./boundary";
 
 componentConsumptionHooks.onConsume = observer;
 componentConsumptionHooks.onConsumed = () => {
+  console.log("CONSUMED?");
   ObserverContext.current?.[Symbol.dispose]();
 };

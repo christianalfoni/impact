@@ -1,0 +1,15 @@
+{
+  "name": "impact-dev",
+  "version": "0.1.0",
+  "description": "Reactive applications for React",
+  "author": "Christian Alfoni <christianalfoni@gmail.com>",
+  "license": "MIT",
+  "repository": "git+https://github.com/christianalfoni/impact.git",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.8.1",
+    "vite": "^5.0.11"
+  }
+}

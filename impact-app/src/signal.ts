@@ -154,6 +154,7 @@ export function signal<T>(initialValue: T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
+          console.log("REGISTER", ObserverContext.current);
           signalDebugHooks.onGetValue(signal);
         }
       }
