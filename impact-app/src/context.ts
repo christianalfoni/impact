@@ -249,8 +249,6 @@ if (typeof window !== "undefined") {
     set(nextDispatcher: ReactDispatcher) {
       currentDispatcher = nextDispatcher;
 
-      console.log("WTF?!?!?", componentConsumptionHooks.isConsuming);
-
       if (
         componentConsumptionHooks.isConsuming &&
         // When the hooks has the same implementation, it is to throw an error, meaning

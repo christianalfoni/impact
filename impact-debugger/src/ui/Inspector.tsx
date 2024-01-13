@@ -2,7 +2,7 @@ import { h } from "preact";
 import { useState } from "preact/hooks";
 import { memo } from "preact/compat";
 import * as styles from "./styles";
-import { isArray, isObject, isValidJson } from "./utils";
+import { isArray, isObject } from "./utils";
 
 function renderValue({
   path,
@@ -12,11 +12,9 @@ function renderValue({
   expandedPaths,
   onClickPath,
   onToggleExpand,
-  selectedStatePath,
   onSubmitState,
 }: {
   onSubmitState?: (newState: string) => void;
-  selectedStatePath?: string;
   onToggleExpand: (path: string[]) => void;
   path: string;
   delimiter: string;
@@ -43,7 +41,6 @@ function renderValue({
         onToggleExpand={onToggleExpand}
         isArray={false}
         value={value}
-        selectedStatePath={selectedStatePath}
         onSubmitState={onSubmitState}
       />
     );
@@ -62,7 +59,6 @@ function renderValue({
         onToggleExpand={onToggleExpand}
         isArray
         value={value}
-        selectedStatePath={selectedStatePath}
         onSubmitState={onSubmitState}
       />
     );
@@ -74,7 +70,6 @@ function renderValue({
         delimiter={delimiter}
         value={value}
         onClickPath={onClickPath}
-        selectedStatePath={selectedStatePath}
         hasWrapper={Boolean(wrapper)}
         onSubmitState={onSubmitState}
       />
@@ -122,37 +117,6 @@ const PathKey = ({
 
 type EditValueProps = {
   value: any;
-  onSubmit: (newState: string) => void;
-};
-
-const EditValue = ({ value, onSubmit }: EditValueProps) => {
-  const [state, setState] = useState(() => JSON.stringify(value, null, 2));
-  const isValid = isValidJson(state);
-
-  return (
-    <span
-      className={styles.editValueWrapper}
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className={styles.editValuePopup}>
-        <textarea
-          autoFocus
-          value={state}
-          onChange={(event) => setState(event.currentTarget.value)}
-          onKeyDown={(event) => {
-            if ((event.metaKey || event.ctrlKey) && event.keyCode === 13) {
-              onSubmit(state);
-            }
-          }}
-          className={styles.newState}
-          style={{
-            borderColor: isValid ? undefined : styles.colors.red,
-          }}
-        />
-        <span className={styles.ok}>CMD/CTRL + ENTER to save</span>
-      </div>
-    </span>
-  );
 };
 
 type NestedProps = {
@@ -167,7 +131,6 @@ type NestedProps = {
   value: any;
   onToggleExpand: (path: string[]) => void;
   onClickPath?: (path: string[]) => void;
-  selectedStatePath?: string;
   onSubmitState?: (newState: string) => void;
 };
 
@@ -182,33 +145,12 @@ const Nested = memo(
     hasWrapper,
     endBracket,
     isArray,
-    selectedStatePath,
     value,
     delimiter,
     onSubmitState,
   }: NestedProps) => {
     const shouldCollapse = !expandedPaths.includes(path);
     const isClass = value.__CLASS__;
-
-    if (selectedStatePath && path === selectedStatePath) {
-      return (
-        <div
-          className={styles.inlineNested}
-          onClick={(event) => {
-            event.stopPropagation();
-            onToggleExpand(path.split(delimiter));
-          }}
-        >
-          {path.length ? (
-            <span className={styles.key}>{path.split(delimiter).pop()}:</span>
-          ) : null}
-          <EditValue
-            value={isClass ? value.value : value}
-            onSubmit={onSubmitState}
-          />
-        </div>
-      );
-    }
 
     if (shouldCollapse) {
       const keys = isClass ? Object.keys(value.value) : Object.keys(value);
@@ -276,7 +218,6 @@ const Nested = memo(
                   onClickPath,
                   onSubmitState,
                   onToggleExpand,
-                  selectedStatePath,
                 }),
               )
             : isClass
@@ -299,7 +240,6 @@ const Nested = memo(
                       onClickPath,
                       onSubmitState,
                       onToggleExpand,
-                      selectedStatePath,
                     });
                   }),
               ]
@@ -315,7 +255,6 @@ const Nested = memo(
                     onClickPath,
                     onSubmitState,
                     onToggleExpand,
-                    selectedStatePath,
                   });
                 })}
         </div>
@@ -346,17 +285,6 @@ const ValueComponent = memo(
     delimiter,
   }: ValueComponentProps) => {
     const [isHoveringString, setHoveringString] = useState(false);
-
-    if (selectedStatePath && path === selectedStatePath) {
-      return (
-        <div className={styles.genericValue}>
-          {path.length ? (
-            <span className={styles.key}>{path.split(delimiter).pop()}:</span>
-          ) : null}
-          <EditValue value={value} onSubmit={onSubmitState} />
-        </div>
-      );
-    }
 
     if (
       typeof value === "string" &&
@@ -425,7 +353,6 @@ type InspectorProps = {
   onToggleExpand: (path: string[]) => void;
   onClickPath?: (path: string[]) => void;
   renderPaths?: RenderPaths;
-  selectedStatePath?: string;
   onSubmitState?: (newState: string) => void;
 };
 
@@ -437,7 +364,6 @@ const Inspector = ({
   delimiter,
   onClickPath = () => {},
   renderPaths,
-  selectedStatePath = "",
   onSubmitState,
 }: InspectorProps) => {
   return (
@@ -450,7 +376,6 @@ const Inspector = ({
         expandedPaths,
         onClickPath,
         onToggleExpand,
-        selectedStatePath,
         onSubmitState,
       })}
     </div>

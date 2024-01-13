@@ -101,7 +101,6 @@ export const itemContentWrapper = css({
 export const circle = css({
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px, rgb(255, 255, 255) 0px 0px 0px 8px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-  backgroundColor: colors.yellow,
   borderRadius: "9999px",
   justifyContent: "center",
   alignItems: "center",

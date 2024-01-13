@@ -7,8 +7,10 @@ Symbol.dispose ??= Symbol("Symbol.dispose");
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
 
+export type ObserverContextType = "component" | "derived" | "effect";
+
 export const signalDebugHooks: {
-  onGetValue?: (signal: SignalTracker) => void;
+  onGetValue?: (type: ObserverContextType, signal: SignalTracker) => void;
   onSetValue?: (
     signal: SignalTracker,
     value: unknown,
@@ -30,7 +32,7 @@ export class ObserverContext {
   get snapshot() {
     return this._snapshot;
   }
-  constructor() {
+  constructor(public type: "component" | "derived" | "effect") {
     ObserverContext.stack.push(this);
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
@@ -154,8 +156,7 @@ export function signal<T>(initialValue: T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
-          console.log("REGISTER", ObserverContext.current);
-          signalDebugHooks.onGetValue(signal);
+          signalDebugHooks.onGetValue(ObserverContext.current.type, signal);
         }
       }
 
@@ -279,14 +280,14 @@ export function derived<T>(cb: () => T) {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
-          signalDebugHooks.onGetValue(signal);
+          signalDebugHooks.onGetValue(ObserverContext.current.type, signal);
         }
       }
 
       if (isDirty) {
         disposer?.();
 
-        const context = new ObserverContext();
+        const context = new ObserverContext("derived");
 
         value = cb();
 
@@ -324,7 +325,7 @@ export function effect(cb: () => void) {
   let currentSubscriptionDisposer: () => void;
 
   const updater = () => {
-    const context = new ObserverContext();
+    const context = new ObserverContext("effect");
 
     cb();
     context[Symbol.dispose]();
@@ -341,7 +342,7 @@ export function effect(cb: () => void) {
 }
 
 export function observer() {
-  const context = new ObserverContext();
+  const context = new ObserverContext("component");
 
   useSyncExternalStore(
     (update) => context.subscribe(update),

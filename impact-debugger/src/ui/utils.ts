@@ -1,14 +1,3 @@
-export const isValidJson = (payload: string) => {
-  try {
-    // eslint-disable-next-line
-    JSON.stringify(eval(`(function () { return ${payload} })()`));
-
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
 export function isObject(value: unknown) {
   return typeof value === "object" && !Array.isArray(value) && value !== null;
 }

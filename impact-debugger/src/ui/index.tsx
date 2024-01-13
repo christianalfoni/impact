@@ -1,8 +1,7 @@
 import { render, h, Fragment } from "preact";
 import ValueInspector from "./ValueInspector";
 import * as styles from "./styles";
-import { useState, useSyncExternalStore } from "preact/compat";
-import { useEffect } from "react";
+import { useState, useSyncExternalStore, useEffect } from "preact/compat";
 
 const root = document.createElement("div");
 
@@ -32,6 +31,9 @@ type DebugData =
     }
   | {
       type: "derived";
+      source: CodeLocation;
+      observers: Observer[];
+      value: any;
     }
   | {
       type: "effect";
@@ -112,7 +114,14 @@ function Item({
     content = (
       <Fragment>
         <div>
-          <span className={styles.circle}>{data.observers.length}</span>
+          <span
+            className={styles.circle}
+            style={{
+              backgroundColor: styles.colors.yellow,
+            }}
+          >
+            {data.observers.length}
+          </span>
         </div>
         <div className={styles.itemContent}>
           <div className={styles.itemTextContent}>
@@ -132,6 +141,58 @@ function Item({
               name={data.source.name}
               path={data.source.path}
             />
+            . Observed by{" "}
+            {observers.length ? (
+              <>
+                {observers.map((observer, index) => (
+                  <>
+                    <CodeReference
+                      key={index}
+                      workspacePath={workspacePath}
+                      {...observer}
+                    />
+                    {index === observers.length - 1 ? " " : ", "}
+                  </>
+                ))}{" "}
+                and{" "}
+              </>
+            ) : null}
+            {lastObserver ? (
+              <CodeReference workspacePath={workspacePath} {...lastObserver} />
+            ) : null}
+          </div>
+          <div></div>
+        </div>
+      </Fragment>
+    );
+  } else if (data.type === "derived") {
+    const observers = data.observers.slice();
+    const lastObserver = observers.pop();
+
+    content = (
+      <Fragment>
+        <div>
+          <span
+            className={styles.circle}
+            style={{
+              backgroundColor: styles.colors.green,
+            }}
+          >
+            {data.observers.length}
+          </span>
+        </div>
+        <div className={styles.itemContent}>
+          <div className={styles.itemTextContent}>
+            Derived calculated from{" "}
+            <CodeReference
+              workspacePath={workspacePath}
+              name={data.source.name}
+              path={data.source.path}
+            />{" "}
+            creating the value{" "}
+            <span className={styles.itemValue}>
+              <ValueInspector delimiter="." value={data.value} />
+            </span>
             . Observed by{" "}
             {observers.length ? (
               <>
@@ -192,6 +253,7 @@ function App() {
               <input
                 type="text"
                 value={workspacePath}
+                // @ts-ignore
                 onChange={(event) => setWorkspacePath(event.target.value)}
                 className={styles.workspaceInput}
               />

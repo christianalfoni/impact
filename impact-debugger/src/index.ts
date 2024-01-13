@@ -1,6 +1,10 @@
 import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
-import { SignalTracker, signalDebugHooks } from "impact-app";
+import {
+  ObserverContextType,
+  SignalTracker,
+  signalDebugHooks,
+} from "impact-app";
 import { mount, unmount, addDebugData } from "./ui";
 
 console.log("The Impact debugger is initialized, hit SHIFT twice to activate");
@@ -9,7 +13,13 @@ const cache: {
   [url: string]: Promise<StackFrame>;
 } = {};
 
-const observedSignals = new WeakMap<SignalTracker, Set<string>>();
+const observedSignals = new WeakMap<
+  SignalTracker,
+  {
+    type: ObserverContextType;
+    cache: Set<string>;
+  }
+>();
 
 let lastShiftPress = Date.now();
 let isActive = true;
@@ -73,7 +83,8 @@ function createStackFrameData(stack: string) {
           !line.includes("node_modules") &&
           line.includes(window.location.origin) &&
           !line.includes("createSetterDebugEntry") &&
-          !line.includes("createGetterDebugEntry"),
+          !line.includes("createGetterDebugEntry") &&
+          !line.includes("impact-app"),
       );
 
     const stackFrameData: Array<{
@@ -136,11 +147,14 @@ function createSourceMappedStackFrame(
   });
 }
 
-export function createGetterDebugEntry(signal: SignalTracker) {
+export function createGetterDebugEntry(
+  type: ObserverContextType,
+  signal: SignalTracker,
+) {
   if (!isActive) {
     return;
   }
-  console.log("GETTER!");
+
   const stack = new Error().stack!;
 
   const stackFrameData = createStackFrameData(stack).pop();
@@ -166,9 +180,12 @@ export function createGetterDebugEntry(signal: SignalTracker) {
   const observedSignal = observedSignals.get(signal);
 
   if (observedSignal) {
-    observedSignal.add(cacheKey);
+    observedSignal.cache.add(cacheKey);
   } else {
-    observedSignals.set(signal, new Set([cacheKey]));
+    observedSignals.set(signal, {
+      type,
+      cache: new Set([cacheKey]),
+    });
   }
 }
 
@@ -256,10 +273,9 @@ export function createSetterDebugEntry(
     cache[sourceCacheKey].then(
       (stackFrame) => {
         const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
-        const observers = Array.from(
-          observedSignals.get(signal) || new Set<string>(),
-        );
-        console.log("#EHM", fileName, targetCacheKey);
+        const observedSignal = observedSignals.get(signal)!;
+        const observers = Array.from(observedSignal.cache);
+
         const setterPromise = targetCacheKey
           ? cache[targetCacheKey]
           : Promise.resolve(null);
@@ -267,28 +283,48 @@ export function createSetterDebugEntry(
         return Promise.all(observers.map((cacheKey) => cache[cacheKey])).then(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
-              console.log("HMMM", targetFrame);
-              addDebugData({
-                value,
-                observers: observingStackFrames.map((observingStackFrame) => ({
-                  type: "component",
-                  name: cleanFunctionName(observingStackFrame.functionName),
-                  path: cleanFilePath(observingStackFrame),
-                })),
-                source: {
-                  name: cleanFunctionName(functionName),
-                  path: cleanFilePath(stackFrame),
-                },
-                target: {
-                  name: cleanFunctionName(
-                    targetFrame?.functionName || "ANONYMOUS",
+              if (isDerived) {
+                addDebugData({
+                  value,
+                  observers: observingStackFrames.map(
+                    (observingStackFrame) => ({
+                      type: observedSignal?.type,
+                      name: cleanFunctionName(observingStackFrame.functionName),
+                      path: cleanFilePath(observingStackFrame),
+                    }),
                   ),
-                  path: cleanFilePath(targetFrame),
-                },
-                type: "signal",
-              });
+                  source: {
+                    name: cleanFunctionName(functionName),
+                    path: cleanFilePath(stackFrame),
+                  },
+                  type: "derived",
+                });
+              } else {
+                addDebugData({
+                  value,
+                  observers: observingStackFrames.map(
+                    (observingStackFrame) => ({
+                      type: observedSignal?.type,
+                      name: cleanFunctionName(observingStackFrame.functionName),
+                      path: cleanFilePath(observingStackFrame),
+                    }),
+                  ),
+                  source: {
+                    name: cleanFunctionName(functionName),
+                    path: cleanFilePath(stackFrame),
+                  },
+                  target: {
+                    name: cleanFunctionName(
+                      targetFrame?.functionName || "ANONYMOUS",
+                    ),
+                    path: cleanFilePath(targetFrame),
+                  },
+                  type: "signal",
+                });
+              }
 
               return;
+              /*
               console.groupCollapsed(
                 `%c# ${
                   isDerived ? "DERIVE" : "SET"
@@ -355,6 +391,7 @@ export function createSetterDebugEntry(
               });
 
               console.groupEnd();
+              */
             });
           },
         );
