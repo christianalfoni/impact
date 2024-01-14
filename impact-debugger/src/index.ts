@@ -7,8 +7,6 @@ import {
 } from "impact-app";
 import { mount, unmount, addDebugData } from "./ui";
 
-console.log("The Impact debugger is initialized, hit SHIFT twice to activate");
-
 const cache: {
   [url: string]: Promise<StackFrame>;
 } = {};
@@ -26,6 +24,10 @@ let isActive = localStorage.getItem("impact.debugger.isActive") === "true";
 
 if (isActive) {
   mount();
+} else {
+  console.log(
+    "The Impact debugger is initialized, hit SHIFT twice toggle activation",
+  );
 }
 
 document.addEventListener("keydown", (event) => {

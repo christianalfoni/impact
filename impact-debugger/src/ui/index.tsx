@@ -62,6 +62,9 @@ function useWorkspacePath() {
   return [workspacePath, setWorkspacePath] as const;
 }
 
+// @ts-ignore
+const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
+
 function CodeReference({
   name,
   path,
@@ -73,11 +76,21 @@ function CodeReference({
       <span className={styles.tooltip}>{path}</span>
       <a
         href={
-          "vscode://file/" +
-          (workspacePath.startsWith("/")
-            ? workspacePath.substring(1)
-            : workspacePath) +
-          path
+          csbFocusFile
+            ? "#"
+            : "vscode://file/" +
+              (workspacePath.startsWith("/")
+                ? workspacePath.substring(1)
+                : workspacePath) +
+              path
+        }
+        onClick={
+          csbFocusFile
+            ? () => {
+                const [relativePath, line] = path;
+                csbFocusFile(relativePath, Number(line));
+              }
+            : undefined
         }
         className={styles.itemLink}
         style={
