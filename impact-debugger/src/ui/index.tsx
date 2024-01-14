@@ -248,26 +248,28 @@ function Events({ data }: { data: DebugData[] }) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.innerWrapper}>
-        <div className={styles.workspaceWrapper}>
-          <div className={styles.workspaceInnerWrapper}>
-            <div>
-              <label className={styles.workspaceLabel}>
-                Workspace absolute path
-              </label>
-              <input
-                type="text"
-                value={workspacePath}
-                // @ts-ignore
-                onChange={(event) => setWorkspacePath(event.target.value)}
-                className={styles.workspaceInput}
-              />
-              <p className={styles.workspaceHint}>
-                In VSCode explorer, select the root folder and right click to
-                copy path
-              </p>
+        {csbFocusFile ? null : (
+          <div className={styles.workspaceWrapper}>
+            <div className={styles.workspaceInnerWrapper}>
+              <div>
+                <label className={styles.workspaceLabel}>
+                  Workspace absolute path
+                </label>
+                <input
+                  type="text"
+                  value={workspacePath}
+                  // @ts-ignore
+                  onChange={(event) => setWorkspacePath(event.target.value)}
+                  className={styles.workspaceInput}
+                />
+                <p className={styles.workspaceHint}>
+                  In VSCode explorer, select the root folder and right click to
+                  copy path
+                </p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
         <div className={styles.flowRoot}>
           <ul className={styles.list}>
             {data.map((item, index) => (
