@@ -22,15 +22,18 @@ const observedSignals = new WeakMap<
 >();
 
 let lastShiftPress = Date.now();
-let isActive = true;
-mount();
+let isActive = localStorage.getItem("impact.debugger.isActive") === "true";
+
+if (isActive) {
+  mount();
+}
+
 document.addEventListener("keydown", (event) => {
   if (!event.shiftKey) {
     return;
   }
   const now = Date.now();
 
-  console.log("WTF?", now, lastShiftPress);
   if (now - lastShiftPress < 750) {
     isActive = !isActive;
     console.log(
@@ -39,8 +42,10 @@ document.addEventListener("keydown", (event) => {
         : "Signal debugging is deactivated",
     );
     if (isActive) {
+      localStorage.setItem("impact.debugger.isActive", "true");
       mount();
     } else {
+      localStorage.setItem("impact.debugger.isActive", "false");
       unmount();
     }
   } else {
@@ -233,8 +238,6 @@ export function createSetterDebugEntry(
   const sourceFrame = stackFrameData.pop()!;
   const targetFrame = stackFrameData.shift();
 
-  console.log({ sourceFrame, targetFrame });
-
   if (!sourceFrame) {
     return;
   }
@@ -324,74 +327,6 @@ export function createSetterDebugEntry(
               }
 
               return;
-              /*
-              console.groupCollapsed(
-                `%c# ${
-                  isDerived ? "DERIVE" : "SET"
-                } SIGNAL at ${cleanFunctionName(
-                  isDerived
-                    ? targetFrame?.functionName || functionName
-                    : functionName,
-                )}:`,
-                isDerived
-                  ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
-                  : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
-                value,
-              );
-
-              if (isDerived) {
-                const derivedFrame = targetFrame || {
-                  functionName,
-                  fileName,
-                  lineNumber,
-                  columnNumber,
-                };
-                console.log("%cDerived at:", "font-weight:bold;");
-                console.log(
-                  cleanFunctionName(derivedFrame.functionName),
-                  derivedFrame.fileName +
-                    ":" +
-                    derivedFrame.lineNumber +
-                    ":" +
-                    derivedFrame.columnNumber,
-                );
-              } else {
-                console.log(
-                  `${targetFrame ? "%cCalled from:" : "%cChanged at:"}`,
-                  "font-weight:bold;",
-                );
-                console.log(
-                  cleanFunctionName(functionName),
-                  fileName + ":" + lineNumber + ":" + columnNumber,
-                );
-
-                if (targetFrame) {
-                  console.log("%cChanged at:", "font-weight:bold;");
-                  console.log(
-                    cleanFunctionName(targetFrame.functionName),
-                    targetFrame.fileName +
-                      ":" +
-                      targetFrame.lineNumber +
-                      ":" +
-                      targetFrame.columnNumber,
-                  );
-                }
-              }
-
-              console.log("%cObservers:", "font-weight:bold;");
-              observingStackFrames.forEach((observingStackFrame) => {
-                console.log(
-                  cleanFunctionName(observingStackFrame.functionName),
-                  observingStackFrame.fileName +
-                    ":" +
-                    observingStackFrame.lineNumber +
-                    ":" +
-                    observingStackFrame.columnNumber,
-                );
-              });
-
-              console.groupEnd();
-              */
             });
           },
         );

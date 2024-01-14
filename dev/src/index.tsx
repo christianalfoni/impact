@@ -9,7 +9,6 @@ const root = createRoot(document.querySelector("#root")!);
 const useTest = globalStore({
   foo: "bar",
   changeFoo() {
-    console.log("CHANGE FOO");
     this.foo += "!";
   },
   get upperFoo() {

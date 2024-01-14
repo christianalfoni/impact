@@ -44,7 +44,7 @@ let currentDebugData: DebugData[] = [];
 let currentSubscriber: undefined | ((data: DebugData[]) => void);
 
 export function addDebugData(data: DebugData) {
-  currentDebugData = [data, ...currentDebugData];
+  currentDebugData = [...currentDebugData, data];
   currentSubscriber?.(currentDebugData);
 }
 
@@ -229,16 +229,7 @@ function Item({
   );
 }
 
-function App() {
-  const debugData = useSyncExternalStore(
-    (update) => {
-      currentSubscriber = update;
-      return () => {
-        currentSubscriber = undefined;
-      };
-    },
-    () => currentDebugData,
-  );
+function Events({ data }: { data: DebugData[] }) {
   const [workspacePath, setWorkspacePath] = useWorkspacePath();
 
   return (
@@ -257,18 +248,60 @@ function App() {
                 onChange={(event) => setWorkspacePath(event.target.value)}
                 className={styles.workspaceInput}
               />
+              <p className={styles.workspaceHint}>
+                In VSCode explorer, select the root folder and right click to
+                copy path
+              </p>
             </div>
           </div>
         </div>
         <div className={styles.flowRoot}>
           <ul className={styles.list}>
-            {debugData.map((data, index) => (
-              <Item key={index} data={data} workspacePath={workspacePath} />
+            {data.map((item, index) => (
+              <Item key={index} data={item} workspacePath={workspacePath} />
             ))}
           </ul>
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  const [isOpen, setIsOpen] = useState(false);
+  const debugData = useSyncExternalStore(
+    (update) => {
+      currentSubscriber = update;
+      return () => {
+        currentSubscriber = undefined;
+      };
+    },
+    () => currentDebugData,
+  );
+
+  return (
+    <Fragment>
+      <div className={styles.indicatorHover} onClick={() => setIsOpen(!isOpen)}>
+        <div
+          className={styles.indicatorWrapper}
+          style={{
+            backgroundColor: debugData.length
+              ? styles.colors.green.replace("1)", "0.2)")
+              : undefined,
+          }}
+        >
+          <div
+            className={styles.indicator}
+            style={{
+              backgroundColor: debugData.length
+                ? styles.colors.green
+                : styles.colors.text,
+            }}
+          />
+        </div>
+      </div>
+      {isOpen ? <Events data={debugData} /> : null}
+    </Fragment>
   );
 }
 

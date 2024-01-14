@@ -32,11 +32,11 @@ ${string}}`;
 }
 
 export const colors = {
-  purple: "rgb(192 132 252)",
-  yellow: "rgb(250 204 21)",
-  green: "rgb(163 230 53)",
-  blue: "rgb(96 165 250)",
-  red: "rgb(248 113 113)",
+  purple: "rgba(192, 132, 252, 1)",
+  yellow: "rgba(250, 204, 21, 1)",
+  green: "rgba(163, 230, 53, 1)",
+  blue: "rgba(96, 165, 250, 1)",
+  red: "rgba(248, 113, 113, 1)",
   // activityBar-background
   foreground: "hsl(206, 57%, 17%)",
   // editor-background
@@ -59,6 +59,8 @@ export const wrapper = css({
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(15, 23, 42, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
   borderBottomLeftRadius: "0.5rem",
+  maxHeight: "100vh",
+  overflowY: "scroll",
 });
 
 export const innerWrapper = css({
@@ -315,4 +317,37 @@ export const workspaceInput = css({
   lineHeight: "1.5rem",
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px inset, rgb(209, 213, 219) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+});
+
+export const indicatorHover = css({
+  position: "fixed",
+  top: "0.5rem",
+  right: "0.5rem",
+  padding: "0.1rem",
+  zIndex: "999999999999999999999999",
+  borderRadius: "9999px",
+  backgroundColor: "white",
+  boxShadow:
+    "rgb(255, 255, 255) 0px 0px 0px 0px inset, rgb(209, 213, 219) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
+  cursor: "pointer",
+});
+
+export const indicatorWrapper = css({
+  position: "relative",
+  padding: "0.25rem",
+  flex: "0 0 auto",
+  borderRadius: "9999px",
+});
+
+export const indicator = css({
+  borderRadius: "9999px",
+  width: "0.5rem",
+  height: "0.5rem",
+});
+
+export const workspaceHint = css({
+  fontSize: "0.875rem",
+  lineHeight: "1.25rem",
+  color: colors.text,
+  marginTop: "0.5rem",
 });
