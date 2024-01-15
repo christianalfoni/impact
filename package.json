@@ -2,7 +2,7 @@
   "name": "impact-monorepo",
   "private": true,
   "workspaces": [
-    "website",
+    "dev",
     "impact-app",
     "impact-debugger"
   ],
