@@ -9,7 +9,8 @@
     "dev": "vite"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.8.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "react-dom": "^18.2.0",
     "vite": "^5.0.11"
   }
 }
