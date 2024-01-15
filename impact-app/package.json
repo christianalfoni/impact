@@ -1,6 +1,6 @@
 {
   "name": "impact-app",
-  "version": "0.48.2",
+  "version": "0.48.3",
   "description": "Reactive applications for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -15,6 +15,7 @@
   },
   "types": "./dist/esm/index.d.ts",
   "scripts": {
+    "dev": "tsc -p ./tsconfig.build-esm.json --watch",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",

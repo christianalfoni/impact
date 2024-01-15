@@ -7,9 +7,7 @@
     "impact-debugger"
   ],
   "scripts": {
-    "website:dev": "yarn workspace website start",
-    "app:publish": "yarn workspace impact-app publish",
-    "debugger:publish": "yarn workspace impact-debugger publish"
+    "dev": "concurrently -n dev,app,debugger -c green,blue,yellow \"cd dev && yarn dev\" \"cd impact-app && yarn dev\" \"cd impact-debugger && yarn dev\""
   },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
@@ -21,6 +19,7 @@
     "@types/react-dom": "^18.2.6",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
     "@typescript-eslint/parser": "^6.5.0",
+    "concurrently": "^8.2.2",
     "eslint": "^8.48.0",
     "eslint-plugin-react": "^7.33.2",
     "prettier": "^3.0.3",

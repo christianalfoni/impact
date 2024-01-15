@@ -2,7 +2,10 @@
     "extends": "../tsconfig.build-cjs.json",
     "compilerOptions": {
       "outDir": "./dist/cjs",
-      "rootDir": "src"
+      "rootDir": "src",
+      "jsx": "react",
+      "jsxFactory": "h",
+      "jsxFragmentFactory": "Fragment"
     },
     "include": ["src"]
   }

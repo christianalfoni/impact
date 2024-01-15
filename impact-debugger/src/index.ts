@@ -1,17 +1,35 @@
 import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
-import { SignalTracker, signalDebugHooks } from "impact-app";
-
-console.log("The Impact debugger is initialized, hit SHIFT twice to activate");
+import {
+  ObserverContextType,
+  SignalTracker,
+  signalDebugHooks,
+} from "impact-app";
+import { mount, unmount, addDebugData } from "./ui";
 
 const cache: {
   [url: string]: Promise<StackFrame>;
 } = {};
 
-const observedSignals = new WeakMap<SignalTracker, Set<string>>();
+const observedSignals = new WeakMap<
+  SignalTracker,
+  {
+    type: ObserverContextType;
+    cache: Set<string>;
+  }
+>();
 
 let lastShiftPress = Date.now();
-let isActive = false;
+let isActive = localStorage.getItem("impact.debugger.isActive") === "true";
+
+if (isActive) {
+  mount();
+} else {
+  console.log(
+    "The Impact debugger is initialized, hit SHIFT twice toggle activation",
+  );
+}
+
 document.addEventListener("keydown", (event) => {
   if (!event.shiftKey) {
     return;
@@ -25,6 +43,13 @@ document.addEventListener("keydown", (event) => {
         ? "Signal debugging is active"
         : "Signal debugging is deactivated",
     );
+    if (isActive) {
+      localStorage.setItem("impact.debugger.isActive", "true");
+      mount();
+    } else {
+      localStorage.setItem("impact.debugger.isActive", "false");
+      unmount();
+    }
   } else {
     lastShiftPress = now;
   }
@@ -65,7 +90,8 @@ function createStackFrameData(stack: string) {
           !line.includes("node_modules") &&
           line.includes(window.location.origin) &&
           !line.includes("createSetterDebugEntry") &&
-          !line.includes("createGetterDebugEntry"),
+          !line.includes("createGetterDebugEntry") &&
+          !line.includes("impact-app"),
       );
 
     const stackFrameData: Array<{
@@ -95,8 +121,8 @@ function createStackFrameData(stack: string) {
         file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
 
         stackFrameData.push({ file, line, column, functionName });
-      } catch {
-        // Do not care
+      } catch (error) {
+        console.log(error);
       }
     }
 
@@ -128,10 +154,14 @@ function createSourceMappedStackFrame(
   });
 }
 
-export function createGetterDebugEntry(signal: SignalTracker) {
+export function createGetterDebugEntry(
+  type: ObserverContextType,
+  signal: SignalTracker,
+) {
   if (!isActive) {
     return;
   }
+
   const stack = new Error().stack!;
 
   const stackFrameData = createStackFrameData(stack).pop();
@@ -157,9 +187,12 @@ export function createGetterDebugEntry(signal: SignalTracker) {
   const observedSignal = observedSignals.get(signal);
 
   if (observedSignal) {
-    observedSignal.add(cacheKey);
+    observedSignal.cache.add(cacheKey);
   } else {
-    observedSignals.set(signal, new Set([cacheKey]));
+    observedSignals.set(signal, {
+      type,
+      cache: new Set([cacheKey]),
+    });
   }
 }
 
@@ -172,7 +205,25 @@ function cleanFunctionName(functionName?: string) {
   functionName = functionName.replace(/\s\[.*\]/, "");
 
   // Only return last part, as getters has a "get " in front
-  return functionName.split(" ").pop();
+  return functionName.split(" ").pop()!;
+}
+
+function cleanFilePath(stackFrame: StackFrame | null) {
+  if (!stackFrame || !stackFrame.fileName) {
+    return "UNKNOWN";
+  }
+
+  let path = stackFrame.fileName.replace(window.location.origin, "");
+
+  if (stackFrame.lineNumber) {
+    path += ":" + stackFrame.lineNumber;
+  }
+
+  if (stackFrame.columnNumber) {
+    path += ":" + stackFrame.columnNumber;
+  }
+
+  return path;
 }
 
 export function createSetterDebugEntry(
@@ -189,7 +240,7 @@ export function createSetterDebugEntry(
   const sourceFrame = stackFrameData.pop()!;
   const targetFrame = stackFrameData.shift();
 
-  if (!sourceFrame || !targetFrame) {
+  if (!sourceFrame) {
     return;
   }
 
@@ -208,9 +259,9 @@ export function createSetterDebugEntry(
 
   if (
     targetFrame &&
-    targetFrame.file !== sourceFrame.file &&
-    targetFrame.line !== sourceFrame.line &&
-    targetFrame.column !== sourceFrame.column
+    (targetFrame.file !== sourceFrame.file ||
+      targetFrame.line !== sourceFrame.line ||
+      targetFrame.column !== sourceFrame.column)
   ) {
     targetCacheKey = targetFrame.file + targetFrame.line + targetFrame.column;
     cache[targetCacheKey] =
@@ -227,9 +278,9 @@ export function createSetterDebugEntry(
     cache[sourceCacheKey].then(
       (stackFrame) => {
         const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
-        const observers = Array.from(
-          observedSignals.get(signal) || new Set<string>(),
-        );
+        const observedSignal = observedSignals.get(signal)!;
+        const observers = Array.from(observedSignal.cache);
+
         const setterPromise = targetCacheKey
           ? cache[targetCacheKey]
           : Promise.resolve(null);
@@ -237,71 +288,47 @@ export function createSetterDebugEntry(
         return Promise.all(observers.map((cacheKey) => cache[cacheKey])).then(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
-              console.groupCollapsed(
-                `%c# ${
-                  isDerived ? "DERIVE" : "SET"
-                } SIGNAL at ${cleanFunctionName(
-                  isDerived
-                    ? targetFrame?.functionName || functionName
-                    : functionName,
-                )}:`,
-                isDerived
-                  ? "background-color: rgb(209 250 229);color: rgb(6 78 59);padding:0 4px 0 4px;"
-                  : "background-color: rgb(224 242 254);color: rgb(22 78 99);padding:0 4px 0 4px;",
-                value,
-              );
-
               if (isDerived) {
-                const derivedFrame = targetFrame || {
-                  functionName,
-                  fileName,
-                  lineNumber,
-                  columnNumber,
-                };
-                console.log("%cDerived at:", "font-weight:bold;");
-                console.log(
-                  cleanFunctionName(derivedFrame.functionName),
-                  derivedFrame.fileName +
-                    ":" +
-                    derivedFrame.lineNumber +
-                    ":" +
-                    derivedFrame.columnNumber,
-                );
+                addDebugData({
+                  value,
+                  observers: observingStackFrames.map(
+                    (observingStackFrame) => ({
+                      type: observedSignal?.type,
+                      name: cleanFunctionName(observingStackFrame.functionName),
+                      path: cleanFilePath(observingStackFrame),
+                    }),
+                  ),
+                  source: {
+                    name: cleanFunctionName(functionName),
+                    path: cleanFilePath(stackFrame),
+                  },
+                  type: "derived",
+                });
               } else {
-                console.log(
-                  `${targetFrame ? "%cCalled from:" : "%cChanged at:"}`,
-                  "font-weight:bold;",
-                );
-                console.log(
-                  cleanFunctionName(functionName),
-                  fileName + ":" + lineNumber + ":" + columnNumber,
-                );
-
-                if (targetFrame) {
-                  console.log("%cChanged at:", "font-weight:bold;");
-                  console.log(
-                    cleanFunctionName(targetFrame.functionName),
-                    targetFrame.fileName +
-                      ":" +
-                      targetFrame.lineNumber +
-                      ":" +
-                      targetFrame.columnNumber,
-                  );
-                }
+                addDebugData({
+                  value,
+                  observers: observingStackFrames.map(
+                    (observingStackFrame) => ({
+                      type: observedSignal?.type,
+                      name: cleanFunctionName(observingStackFrame.functionName),
+                      path: cleanFilePath(observingStackFrame),
+                    }),
+                  ),
+                  source: {
+                    name: cleanFunctionName(functionName),
+                    path: cleanFilePath(stackFrame),
+                  },
+                  target: {
+                    name: cleanFunctionName(
+                      targetFrame?.functionName || "ANONYMOUS",
+                    ),
+                    path: cleanFilePath(targetFrame),
+                  },
+                  type: "signal",
+                });
               }
 
-              console.log("%cObservers:", "font-weight:bold;");
-              observingStackFrames.forEach((observingStackFrame) => {
-                console.log(
-                  cleanFunctionName(observingStackFrame.functionName),
-                  observingStackFrame.fileName +
-                    ":" +
-                    observingStackFrame.lineNumber +
-                    ":" +
-                    observingStackFrame.columnNumber,
-                );
-              });
-              console.groupEnd();
+              return;
             });
           },
         );

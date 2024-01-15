@@ -53,9 +53,9 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
 
 Reacts responsibility is to compose dynamic user interfaces and doing so across the client and server boundary. The primitives of React for state are scoped to individual components and you rely on mechanisms like props passing and context providers to share state and management of that state between components. A common misconception about React is that its primitives is designed to manage state, but they are really about synchronising state. It quite quickly becomes cumbersome to use Reacts primitives to share state and state management across components in a way that performs and scales. Expressing state management with the mental overhead of the reconciliation loop also creates friction.
 
-**The first principle** of **Impact** is to allow developers to write state and manage state state without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
+**The first principle** of **Impact** is to allow developers to implement state and management of state without the mental and performance overhead of reconcilication, but still tie it to the lifecycle of component trees.
 
 **The second principle** of **Impact** is to allow scoping state and management of the state to component trees, as opposed to using only a global scope.
 
-**The third principle** of **Impact** is to minimze indirection when navigating and debugging code. In other words you should ideally always be a single intellisense click away from finding the origin of state and the related management of that state.
+**The third principle** of **Impact** is to minimze "time to source" when navigating and debugging code. In other words you should ideally always be a single intellisense click or debugger click away from finding the origin of state and the related management of that state.
 

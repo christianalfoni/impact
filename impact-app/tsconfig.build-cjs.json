@@ -2,7 +2,8 @@
   "extends": "../tsconfig.build-cjs.json",
   "compilerOptions": {
     "outDir": "./dist/cjs",
-    "rootDir": "src"
+    "rootDir": "src",
+    "jsx": "react-jsx"
   },
   "include": ["src"]
 }
