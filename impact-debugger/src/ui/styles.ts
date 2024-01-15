@@ -61,6 +61,7 @@ export const wrapper = css({
   borderBottomLeftRadius: "0.5em",
   maxHeight: "100vh",
   overflowY: "scroll",
+  fontSize: '16px'
 });
 
 export const innerWrapper = css({
