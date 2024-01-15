@@ -14,7 +14,8 @@
       "command": "yarn dev",
       "preview": {
         "port": 5173
-      }
+      },
+      "runAtStart": true
     }
   }
 }
