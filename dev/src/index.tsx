@@ -8,8 +8,16 @@ const root = createRoot(document.querySelector("#root")!);
 
 const useTest = globalStore({
   foo: "bar",
+  mip: {
+    foo: "bar",
+    bar: "baz",
+  },
   changeFoo() {
     this.foo += "!";
+    this.mip = {
+      foo: "bar2",
+      bar: "baz2",
+    };
   },
   get upperFoo() {
     return this.foo.toUpperCase();

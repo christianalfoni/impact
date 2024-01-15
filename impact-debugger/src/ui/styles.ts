@@ -50,23 +50,23 @@ export const colors = {
 };
 
 export const wrapper = css({
-  paddingTop: "1rem",
-  paddingBottom: "3rem",
+  paddingTop: "1em",
+  paddingBottom: "3em",
   backgroundColor: "white",
   fontFamily: `Inter var, ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"`,
   fontFeatureSettings: `"cv02", "cv03", "cv04", "cv11"`,
   webkitFontSmoothing: "antialiased",
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(15, 23, 42, 0.1) 0px 0px 0px 1px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
-  borderBottomLeftRadius: "0.5rem",
+  borderBottomLeftRadius: "0.5em",
   maxHeight: "100vh",
   overflowY: "scroll",
 });
 
 export const innerWrapper = css({
-  paddingLeft: "1.5rem",
-  paddingRight: "1.5rem",
-  width: "28rem",
+  paddingLeft: "1.5em",
+  paddingRight: "1.5em",
+  width: "28em",
   marginLeft: "auto",
   marginRight: "auto",
 });
@@ -74,24 +74,24 @@ export const innerWrapper = css({
 export const flowRoot = css({ display: "flow-root" });
 
 export const list = css({
-  marginBottom: "-2rem",
+  marginBottom: "-2em",
   listStyle: "none",
   margin: 0,
   padding: 0,
 });
 
 export const itemWrapper = css({
-  paddingBottom: "2rem",
+  paddingBottom: "2em",
   position: "relative",
 });
 
 export const line = css({
   backgroundColor: "rgb(229 231 235)",
-  width: "0.125rem",
+  width: "0.125em",
   height: "100%",
   marginLeft: "-1px",
-  top: "1rem",
-  left: "1rem",
+  top: "1em",
+  left: "1em",
   position: "absolute",
 });
 
@@ -106,14 +106,14 @@ export const circle = css({
   borderRadius: "9999px",
   justifyContent: "center",
   alignItems: "center",
-  width: "2rem",
-  height: "2rem",
+  width: "2em",
+  height: "2em",
   display: "flex",
   color: "white",
 });
 
 export const itemContent = css({
-  paddingTop: "0.375rem",
+  paddingTop: "0.375em",
   justifyContent: "space-between",
   marginLeft: "12px",
   marginRight: 0,
@@ -124,8 +124,8 @@ export const itemContent = css({
 
 export const itemTextContent = css({
   color: colors.text,
-  fontSize: "0.875rem",
-  lineHeight: "1.25rem",
+  fontSize: "0.875em",
+  lineHeight: "1.25em",
 });
 
 export const itemLink = css({
@@ -139,12 +139,12 @@ export const itemValue = css({
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px inset, rgb(229, 231, 235) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
   fontWeight: "500",
-  fontSize: "0.75rem",
-  lineHeight: "1rem",
-  paddingTop: "0.25rem",
-  paddingBottom: "0.25rem",
-  paddingLeft: "0.5rem",
-  paddingRight: "0.5rem",
+  fontSize: "0.75em",
+  lineHeight: "1em",
+  paddingTop: "0.25em",
+  paddingBottom: "0.25em",
+  paddingLeft: "0.5em",
+  paddingRight: "0.5em",
   borderRadius: "15px",
   alignItems: "center",
   display: "inline-flex",
@@ -178,7 +178,7 @@ export const key = css({
 });
 
 export const toolIcon = css({
-  margin: "0 0.75rem",
+  margin: "0 0.75em",
 });
 
 export const inlineNested = css({
@@ -208,7 +208,7 @@ export const otherValue = css({
 
 export const inlineClass = css({
   color: colors.purple,
-  marginRight: "0.5rem",
+  marginRight: "0.5em",
 });
 
 export const genericValue = css({
@@ -218,7 +218,7 @@ export const genericValue = css({
 });
 
 export const nestedChildren = css({
-  paddingLeft: "1rem",
+  paddingLeft: "1em",
 });
 
 export const keyCount = css({
@@ -260,7 +260,7 @@ export const ok = css({
   fontSize: 10,
   border: 0,
   outline: "none",
-  padding: "0.25rem 0.5rem",
+  padding: "0.25em 0.5em",
   opacity: 0.5,
   color: colors.background,
 });
@@ -269,26 +269,26 @@ export const tooltip = css({
   backgroundColor: colors.highlight,
   position: "absolute",
   color: colors.text,
-  top: "-2rem",
-  right: "-2rem",
-  paddingLeft: "0.5rem",
-  paddingRight: "0.5rem",
-  paddingTop: "0.25rem",
-  paddingBottom: "0.25rem",
+  top: "-2em",
+  right: "-2em",
+  paddingLeft: "0.5em",
+  paddingRight: "0.5em",
+  paddingTop: "0.25em",
+  paddingBottom: "0.25em",
   borderRadius: "9999px",
   display: "block",
   whiteSpace: "nowrap",
 });
 
 export const workspaceWrapper = css({
-  padding: "2rem",
+  padding: "2em",
   display: "flex",
   justifyContent: "center",
   alignItems: "center",
 });
 
 export const workspaceInnerWrapper = css({
-  maxWidth: "20rem",
+  maxWidth: "20em",
   width: "100%",
   marginLeft: "auto",
   marginRight: "auto",
@@ -296,34 +296,34 @@ export const workspaceInnerWrapper = css({
 
 export const workspaceLabel = css({
   color: colors.highlight,
-  lineHeight: "1.5rem",
+  lineHeight: "1.5em",
   fontWeight: "500",
-  fontSize: "0.875rem",
+  fontSize: "0.875em",
   display: "block",
-  marginBottom: "0.5rem",
+  marginBottom: "0.5em",
 });
 
 export const workspaceInput = css({
-  paddingTop: "0.375rem",
-  paddingBottom: "0.375rem",
+  paddingTop: "0.375em",
+  paddingBottom: "0.375em",
   borderWidth: "0",
-  borderRadius: "0.375rem",
+  borderRadius: "0.375em",
   width: "100%",
-  paddingLeft: "0.75rem",
-  paddingRight: "0.75rem",
+  paddingLeft: "0.75em",
+  paddingRight: "0.75em",
   display: "block",
   color: colors.text,
-  fontSize: "1rem",
-  lineHeight: "1.5rem",
+  fontSize: "1em",
+  lineHeight: "1.5em",
   boxShadow:
     "rgb(255, 255, 255) 0px 0px 0px 0px inset, rgb(209, 213, 219) 0px 0px 0px 1px inset, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px",
 });
 
 export const indicatorHover = css({
   position: "fixed",
-  top: "0.5rem",
-  right: "0.5rem",
-  padding: "0.1rem",
+  top: "0.5em",
+  right: "0.5em",
+  padding: "0.1em",
   zIndex: "999999999999999999999999",
   borderRadius: "9999px",
   backgroundColor: "white",
@@ -334,20 +334,20 @@ export const indicatorHover = css({
 
 export const indicatorWrapper = css({
   position: "relative",
-  padding: "0.25rem",
+  padding: "0.25em",
   flex: "0 0 auto",
   borderRadius: "9999px",
 });
 
 export const indicator = css({
   borderRadius: "9999px",
-  width: "0.5rem",
-  height: "0.5rem",
+  width: "0.5em",
+  height: "0.5em",
 });
 
 export const workspaceHint = css({
-  fontSize: "0.875rem",
-  lineHeight: "1.25rem",
+  fontSize: "0.875em",
+  lineHeight: "1.25em",
   color: colors.text,
-  marginTop: "0.5rem",
+  marginTop: "0.5em",
 });
