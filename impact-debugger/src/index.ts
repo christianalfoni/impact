@@ -279,7 +279,10 @@ export function createSetterDebugEntry(
       (stackFrame) => {
         const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
         const observedSignal = observedSignals.get(signal)!;
-        const observers = Array.from(observedSignal.cache);
+
+        const observers = observedSignal
+          ? Array.from(observedSignal.cache)
+          : [];
 
         const setterPromise = targetCacheKey
           ? cache[targetCacheKey]
