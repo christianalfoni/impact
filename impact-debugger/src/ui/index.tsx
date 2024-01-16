@@ -87,7 +87,7 @@ function CodeReference({
         onClick={
           csbFocusFile
             ? () => {
-                const [relativePath, line] = path;
+                const [relativePath, line] = path.split(":");
                 csbFocusFile(relativePath, Number(line));
               }
             : undefined
