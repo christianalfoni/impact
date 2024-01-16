@@ -12,10 +12,10 @@
     "dev": {
       "name": "dev",
       "command": "yarn dev",
+      "runAtStart": true,
       "preview": {
         "port": 5173
-      },
-      "runAtStart": true
+      }
     }
   }
 }
