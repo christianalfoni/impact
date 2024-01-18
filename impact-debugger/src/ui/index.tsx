@@ -88,7 +88,7 @@ function CodeReference({
           csbFocusFile
             ? () => {
                 const [relativePath, line] = path.split(":");
-                csbFocusFile(relativePath, Number(line));
+                csbFocusFile("/" + workspacePath + relativePath, Number(line));
               }
             : undefined
         }
@@ -248,28 +248,47 @@ function Events({ data }: { data: DebugData[] }) {
   return (
     <div className={styles.wrapper}>
       <div className={styles.innerWrapper}>
-        {csbFocusFile ? null : (
+        {
           <div className={styles.workspaceWrapper}>
             <div className={styles.workspaceInnerWrapper}>
-              <div>
-                <label className={styles.workspaceLabel}>
-                  Workspace absolute path
-                </label>
-                <input
-                  type="text"
-                  value={workspacePath}
-                  // @ts-ignore
-                  onChange={(event) => setWorkspacePath(event.target.value)}
-                  className={styles.workspaceInput}
-                />
-                <p className={styles.workspaceHint}>
-                  In VSCode explorer, select the root folder and right click to
-                  copy path
-                </p>
-              </div>
+              {csbFocusFile ? (
+                <div>
+                  <label className={styles.workspaceLabel}>
+                    Workspace relative path
+                  </label>
+                  <input
+                    type="text"
+                    value={workspacePath}
+                    // @ts-ignore
+                    onChange={(event) => setWorkspacePath(event.target.value)}
+                    className={styles.workspaceInput}
+                  />
+                  <p className={styles.workspaceHint}>
+                    In CodeSandbox explorer, select the folder your dev server
+                    runs from and right click to <b>copy relative path</b>
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className={styles.workspaceLabel}>
+                    Workspace absolute path
+                  </label>
+                  <input
+                    type="text"
+                    value={workspacePath}
+                    // @ts-ignore
+                    onChange={(event) => setWorkspacePath(event.target.value)}
+                    className={styles.workspaceInput}
+                  />
+                  <p className={styles.workspaceHint}>
+                    In VSCode explorer, select the folder your dev server runs
+                    from and right click to <b>copy path</b>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        )}
+        }
         <div className={styles.flowRoot}>
           <ul className={styles.list}>
             {data.map((item, index) => (

@@ -19,6 +19,7 @@ const observedSignals = new WeakMap<
   }
 >();
 
+let isHoldingShift = false;
 let lastShiftPress = Date.now();
 let isActive = localStorage.getItem("impact.debugger.isActive") === "true";
 
@@ -29,14 +30,23 @@ if (isActive) {
     "The Impact debugger is initialized, hit SHIFT twice toggle activation",
   );
 }
+document.addEventListener("keyup", (event) => {
+  if (isHoldingShift && !event.shiftKey) {
+    lastShiftPress = Date.now();
+    isHoldingShift = false;
+  }
+});
 
 document.addEventListener("keydown", (event) => {
   if (!event.shiftKey) {
     return;
   }
+
+  isHoldingShift = true;
+
   const now = Date.now();
 
-  if (now - lastShiftPress < 750) {
+  if (now - lastShiftPress < 300) {
     isActive = !isActive;
     console.log(
       isActive
@@ -50,8 +60,6 @@ document.addEventListener("keydown", (event) => {
       localStorage.setItem("impact.debugger.isActive", "false");
       unmount();
     }
-  } else {
-    lastShiftPress = now;
   }
 });
 
