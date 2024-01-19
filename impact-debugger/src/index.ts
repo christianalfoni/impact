@@ -260,7 +260,6 @@ export function createSetterDebugEntry(
 
   const sourceCacheKey =
     sourceFrame.file + sourceFrame.line + sourceFrame.column;
-  let targetCacheKey: string | undefined;
 
   cache[sourceCacheKey] =
     cache[sourceCacheKey] ||
@@ -271,22 +270,17 @@ export function createSetterDebugEntry(
       sourceFrame.column,
     );
 
-  if (
-    targetFrame &&
-    (targetFrame.file !== sourceFrame.file ||
-      targetFrame.line !== sourceFrame.line ||
-      targetFrame.column !== sourceFrame.column)
-  ) {
-    targetCacheKey = targetFrame.file + targetFrame.line + targetFrame.column;
-    cache[targetCacheKey] =
-      cache[targetCacheKey] ||
-      createSourceMappedStackFrame(
-        targetFrame.file,
-        targetFrame.functionName,
-        targetFrame.line,
-        targetFrame.column,
-      );
-  }
+  const targetCacheKey =
+    targetFrame.file + targetFrame.line + targetFrame.column;
+
+  cache[targetCacheKey] =
+    cache[targetCacheKey] ||
+    createSourceMappedStackFrame(
+      targetFrame.file,
+      targetFrame.functionName,
+      targetFrame.line,
+      targetFrame.column,
+    );
 
   queue.add(() =>
     cache[sourceCacheKey].then(
