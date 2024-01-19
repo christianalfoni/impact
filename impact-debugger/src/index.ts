@@ -250,7 +250,7 @@ export function createSetterDebugEntry(
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
-  const targetFrame = stackFrameData.shift();
+  const targetFrame = stackFrameData.shift() || sourceFrame;
 
   if (!sourceFrame) {
     console.log("Unable to create setter debug entry");
@@ -260,7 +260,6 @@ export function createSetterDebugEntry(
 
   const sourceCacheKey =
     sourceFrame.file + sourceFrame.line + sourceFrame.column;
-  let targetCacheKey: string | undefined;
 
   cache[sourceCacheKey] =
     cache[sourceCacheKey] ||
@@ -271,27 +270,22 @@ export function createSetterDebugEntry(
       sourceFrame.column,
     );
 
-  if (
-    targetFrame &&
-    (targetFrame.file !== sourceFrame.file ||
-      targetFrame.line !== sourceFrame.line ||
-      targetFrame.column !== sourceFrame.column)
-  ) {
-    targetCacheKey = targetFrame.file + targetFrame.line + targetFrame.column;
-    cache[targetCacheKey] =
-      cache[targetCacheKey] ||
-      createSourceMappedStackFrame(
-        targetFrame.file,
-        targetFrame.functionName,
-        targetFrame.line,
-        targetFrame.column,
-      );
-  }
+  const targetCacheKey =
+    targetFrame.file + targetFrame.line + targetFrame.column;
+
+  cache[targetCacheKey] =
+    cache[targetCacheKey] ||
+    createSourceMappedStackFrame(
+      targetFrame.file,
+      targetFrame.functionName,
+      targetFrame.line,
+      targetFrame.column,
+    );
 
   queue.add(() =>
     cache[sourceCacheKey].then(
       (stackFrame) => {
-        const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
+        const { functionName } = stackFrame;
         const observedSignal = observedSignals.get(signal)!;
 
         const observers = observedSignal
