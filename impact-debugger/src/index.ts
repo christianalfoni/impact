@@ -158,7 +158,7 @@ function createSourceMappedStackFrame(
   const gps = new StackTraceGPS();
 
   return gps.pinpoint(stackframe).then((result) => {
-    console.log("Pinpointed stackframe", functionName, stackframe, result);
+    // console.log("Pinpointed stackframe", functionName, stackframe, result);
     result.setFunctionName(functionName);
 
     return result;

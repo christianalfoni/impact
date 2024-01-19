@@ -112,6 +112,27 @@ function CodeReference({
   );
 }
 
+function flattenObservers(observers: Observer[]) {
+  return observers.reduce<Array<Observer & { count: number }>>(
+    (acc, currentObserver) => {
+      const existingObserver = acc.find(
+        (observer) =>
+          observer.name === currentObserver.name &&
+          observer.path.split(":")[0] === currentObserver.path.split(":")[0],
+      );
+
+      if (existingObserver) {
+        existingObserver.count++;
+
+        return acc;
+      }
+
+      return acc.concat({ ...currentObserver, count: 1 });
+    },
+    [],
+  );
+}
+
 function Item({
   data,
   workspacePath,
@@ -121,7 +142,7 @@ function Item({
 }) {
   let content;
   if (data.type === "signal") {
-    const observers = data.observers.slice();
+    const observers = flattenObservers(data.observers);
     const lastObserver = observers.pop();
 
     content = (
@@ -154,24 +175,36 @@ function Item({
               name={data.source.name}
               path={data.source.path}
             />
-            . Observed by{" "}
-            {observers.length ? (
+            .{" "}
+            {observers.length || lastObserver ? (
               <>
-                {observers.map((observer, index) => (
+                Observed by{" "}
+                {observers.length ? (
+                  <>
+                    {observers.map((observer, index) => (
+                      <>
+                        <CodeReference
+                          key={index}
+                          workspacePath={workspacePath}
+                          {...observer}
+                        />
+                        {observer.count > 1 ? ` (${observer.count})` : null}
+                        {index === observers.length - 1 ? " " : ", "}
+                      </>
+                    ))}{" "}
+                    and{" "}
+                  </>
+                ) : null}
+                {lastObserver ? (
                   <>
                     <CodeReference
-                      key={index}
                       workspacePath={workspacePath}
-                      {...observer}
+                      {...lastObserver}
                     />
-                    {index === observers.length - 1 ? " " : ", "}
+                    {lastObserver.count > 1 ? ` (${lastObserver.count})` : null}
                   </>
-                ))}{" "}
-                and{" "}
+                ) : null}
               </>
-            ) : null}
-            {lastObserver ? (
-              <CodeReference workspacePath={workspacePath} {...lastObserver} />
             ) : null}
           </div>
           <div></div>
@@ -179,7 +212,7 @@ function Item({
       </Fragment>
     );
   } else if (data.type === "derived") {
-    const observers = data.observers.slice();
+    const observers = flattenObservers(data.observers);
     const lastObserver = observers.pop();
 
     content = (
@@ -206,24 +239,36 @@ function Item({
             <span className={styles.itemValue}>
               <ValueInspector delimiter="." value={data.value} />
             </span>
-            . Observed by{" "}
-            {observers.length ? (
+            .{" "}
+            {observers.length || lastObserver ? (
               <>
-                {observers.map((observer, index) => (
+                Observed by{" "}
+                {observers.length ? (
+                  <>
+                    {observers.map((observer, index) => (
+                      <>
+                        <CodeReference
+                          key={index}
+                          workspacePath={workspacePath}
+                          {...observer}
+                        />
+                        {observer.count > 1 ? ` (${observer.count})` : null}
+                        {index === observers.length - 1 ? " " : ", "}
+                      </>
+                    ))}{" "}
+                    and{" "}
+                  </>
+                ) : null}
+                {lastObserver ? (
                   <>
                     <CodeReference
-                      key={index}
                       workspacePath={workspacePath}
-                      {...observer}
+                      {...lastObserver}
                     />
-                    {index === observers.length - 1 ? " " : ", "}
+                    {lastObserver.count > 1 ? ` (${lastObserver.count})` : null}
                   </>
-                ))}{" "}
-                and{" "}
+                ) : null}
               </>
-            ) : null}
-            {lastObserver ? (
-              <CodeReference workspacePath={workspacePath} {...lastObserver} />
             ) : null}
           </div>
           <div></div>
