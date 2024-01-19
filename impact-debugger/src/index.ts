@@ -99,7 +99,9 @@ function createStackFrameData(stack: string) {
           line.includes(window.location.origin) &&
           !line.includes("createSetterDebugEntry") &&
           !line.includes("createGetterDebugEntry") &&
-          !line.includes("impact-app"),
+          !line.includes("impact-app") &&
+          // Vite
+          !line.includes("@fs"),
       );
 
     const stackFrameData: Array<{
