@@ -157,10 +157,8 @@ function createSourceMappedStackFrame(
 
   const gps = new StackTraceGPS();
 
-  console.log("Pinpointing stackframe", stackframe);
-
   return gps.pinpoint(stackframe).then((result) => {
-    console.log("Pinpointing result", result);
+    console.log("Pinpointed stackframe", functionName, stackframe, result);
     result.setFunctionName(functionName);
 
     return result;
@@ -223,6 +221,7 @@ function cleanFunctionName(functionName?: string) {
 
 function cleanFilePath(stackFrame: StackFrame | null) {
   if (!stackFrame || !stackFrame.fileName) {
+    console.log("Unknown", stackFrame);
     return "UNKNOWN";
   }
 
