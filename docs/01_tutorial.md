@@ -46,7 +46,7 @@ function App() {
 }
 ```
 
-The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `context`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
+The `globalStore` is just an accessible abstraction over lower level APIs like `signal`, `store` and `globalContext`. Each key you define in the global state store is a signal, where *getters* are lazily evaluated derived signals. Components will only reconcile when the consumed signal changes. The state defined in the store is protected so changes to it can only be made from within the store.
 
 This level of managing state is close to libraries like [jotai](https://jotai.org/) and [zustand](https://github.com/pmndrs/zustand).
 
@@ -92,8 +92,8 @@ const useTodos = (notifications, api) => {
                 this.all = this.all.filter((todo) => todo !== newTodo)
                 notifications.add({ type: 'error', text: "Failed adding todo" })
             }
-            
-            
+
+
         }
     })
 
@@ -114,7 +114,7 @@ const useAppStore = context(() => {
     const api = new Api()
     const notifications = useNotifications()
     const todos = useTodos(notifications, api)
-        
+
     return {
         todos,
         notifications
