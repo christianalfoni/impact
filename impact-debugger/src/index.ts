@@ -250,7 +250,7 @@ export function createSetterDebugEntry(
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
-  const targetFrame = stackFrameData.shift();
+  const targetFrame = stackFrameData.shift() || sourceFrame;
 
   if (!sourceFrame) {
     console.log("Unable to create setter debug entry");
@@ -291,7 +291,7 @@ export function createSetterDebugEntry(
   queue.add(() =>
     cache[sourceCacheKey].then(
       (stackFrame) => {
-        const { fileName, lineNumber, columnNumber, functionName } = stackFrame;
+        const { functionName } = stackFrame;
         const observedSignal = observedSignals.get(signal)!;
 
         const observers = observedSignal
