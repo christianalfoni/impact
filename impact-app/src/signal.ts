@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { cleanup } from "./context";
+import { cleanup, getActiveContextContainer } from "./context";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -153,7 +153,7 @@ export function signal<T>(initialValue: T) {
 
   return {
     get value() {
-      if (ObserverContext.current) {
+      if (ObserverContext.current && !getActiveContextContainer()) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(ObserverContext.current.type, signal);

@@ -30,6 +30,7 @@ function Dev() {
   return (
     <h1 onClick={() => test.changeFoo()}>
       {test.foo}
+      {test.foo}
       {test.upperFoo}
     </h1>
   );
