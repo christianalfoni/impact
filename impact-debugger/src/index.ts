@@ -251,6 +251,8 @@ export function createSetterDebugEntry(
   const targetFrame = stackFrameData.shift();
 
   if (!sourceFrame) {
+    console.log("Unable to create setter debug entry");
+    console.log(stack);
     return;
   }
 
