@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { cleanup, getActiveContextContainer } from "./context";
 
 // @ts-ignore
@@ -19,19 +19,14 @@ export const signalDebugHooks: {
 } = {};
 
 export class ObserverContext {
+  static version = 0;
   static stack: ObserverContext[] = [];
   static get current(): ObserverContext | undefined {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
   private _getters = new Set<SignalTracker>();
   private _setters = new Set<SignalTracker>();
-  private _onUpdate?: () => void;
-  private _snapshot: { signals: unknown[] } = {
-    signals: [],
-  };
-  get snapshot() {
-    return this._snapshot;
-  }
+  private _onUpdate?: (version: number) => void;
   constructor(public type: "component" | "derived" | "effect") {
     ObserverContext.stack.push(this);
     // Use for memory leak debugging
@@ -45,7 +40,6 @@ export class ObserverContext {
     }
 
     this._getters.add(signal);
-    this._snapshot.signals.push(signal.getValue());
   }
   registerSetter(signal: SignalTracker) {
     // We do not allow having getters when setting a signal, the reason is to ensure
@@ -59,7 +53,7 @@ export class ObserverContext {
   /**
    * There is only a single subscriber to any ObserverContext
    */
-  subscribe(onUpdate: () => void) {
+  subscribe(onUpdate: (version: number) => void) {
     this._onUpdate = onUpdate;
     this._getters.forEach((signal) => {
       signal.addContext(this);
@@ -72,10 +66,7 @@ export class ObserverContext {
     };
   }
   notify() {
-    this._snapshot = {
-      ...this._snapshot,
-    };
-    this._onUpdate?.();
+    this._onUpdate?.(ObserverContext.version++);
   }
   [Symbol.dispose]() {
     ObserverContext.stack.pop();
@@ -273,11 +264,10 @@ export function derived<T>(cb: () => T) {
   let disposer: () => void;
   let isDirty = true;
   const signal = new SignalTracker(() => value);
-  let listeners: Set<(newValue: T, prevValue: T) => void> | undefined;
 
   return {
     get value() {
-      if (ObserverContext.current) {
+      if (ObserverContext.current && !getActiveContextContainer()) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(ObserverContext.current.type, signal);
@@ -297,16 +287,7 @@ export function derived<T>(cb: () => T) {
         disposer = context.subscribe(() => {
           isDirty = true;
 
-          const prevValue = value;
-
-          if (listeners?.size) {
-            isDirty = false;
-            value = cb();
-          }
-
           signal.notify();
-
-          listeners?.forEach((listener) => listener(value, prevValue));
         });
 
         isDirty = false;
@@ -344,10 +325,15 @@ export function effect(cb: () => void) {
 export function observer() {
   const context = new ObserverContext("component");
 
-  useSyncExternalStore(
-    (update) => context.subscribe(update),
-    () => context.snapshot,
-    () => context.snapshot,
+  const [_, setState] = useState<unknown>();
+
+  useEffect(
+    () =>
+      context.subscribe((value) => {
+        console.log("Sub", value);
+        setState(value);
+      }),
+    [context],
   );
 
   return context;

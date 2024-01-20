@@ -44,7 +44,7 @@ let currentDebugData: DebugData[] = [];
 let currentSubscriber: undefined | ((data: DebugData[]) => void);
 
 export function addDebugData(data: DebugData) {
-  currentDebugData = [...currentDebugData, data];
+  currentDebugData = [data, ...currentDebugData];
   currentSubscriber?.(currentDebugData);
 }
 

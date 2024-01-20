@@ -61,7 +61,7 @@ export const wrapper = css({
   borderBottomLeftRadius: "0.5em",
   maxHeight: "100vh",
   overflowY: "scroll",
-  fontSize: '16px'
+  fontSize: "16px",
 });
 
 export const innerWrapper = css({
@@ -82,7 +82,7 @@ export const list = css({
 });
 
 export const itemWrapper = css({
-  paddingBottom: "2em",
+  paddingTop: "2em",
   position: "relative",
 });
 
@@ -91,7 +91,7 @@ export const line = css({
   width: "0.125em",
   height: "100%",
   marginLeft: "-1px",
-  top: "1em",
+  bottom: "1em",
   left: "1em",
   position: "absolute",
 });

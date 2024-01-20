@@ -6,18 +6,17 @@ import "impact-debugger";
 
 const root = createRoot(document.querySelector("#root")!);
 
+let count = 0;
 const useTest = globalStore({
-  foo: "bar",
-  mip: {
-    foo: "bar",
-    bar: "baz",
-  },
-  changeFoo() {
-    this.foo += "!";
-    this.mip = {
-      foo: "bar2",
-      bar: "baz2",
-    };
+  runDerived: false,
+  foo: "foo",
+  run() {
+    count++;
+    if (count === 1) {
+      this.foo += "!";
+    } else if (count === 2) {
+      this.runDerived = true;
+    }
   },
   get upperFoo() {
     return this.foo.toUpperCase();
@@ -28,10 +27,9 @@ function Dev() {
   const test = useTest();
 
   return (
-    <h1 onClick={() => test.changeFoo()}>
+    <h1 onClick={() => test.run()}>
       {test.foo}
-      {test.foo}
-      {test.upperFoo}
+      {test.runDerived ? test.upperFoo : null}
     </h1>
   );
 }
