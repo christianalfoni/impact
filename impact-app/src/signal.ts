@@ -10,7 +10,7 @@ Symbol.dispose ??= Symbol("Symbol.dispose");
 export type ObserverContextType = "component" | "derived" | "effect";
 
 export const signalDebugHooks: {
-  onGetValue?: (type: ObserverContextType, signal: SignalTracker) => void;
+  onGetValue?: (context: ObserverContext, signal: SignalTracker) => void;
   onSetValue?: (
     signal: SignalTracker,
     value: unknown,
@@ -27,8 +27,13 @@ export class ObserverContext {
   private _getters = new Set<SignalTracker>();
   private _setters = new Set<SignalTracker>();
   private _onUpdate?: (version: number) => void;
+  public stack = "";
   constructor(public type: "component" | "derived" | "effect") {
     ObserverContext.stack.push(this);
+
+    if (signalDebugHooks.onGetValue) {
+      this.stack = new Error().stack || "";
+    }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
   }
@@ -95,6 +100,12 @@ export type Signal<T> = {
   set value(value: T);
 };
 
+// We resolving contexts with an active ObserverContext, where we do not
+// want to track any signals accessed
+function isResolvingContextFromComponent(context: ObserverContext) {
+  return context.type === "component" && getActiveContextContainer();
+}
+
 export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
 
@@ -144,10 +155,13 @@ export function signal<T>(initialValue: T) {
 
   return {
     get value() {
-      if (ObserverContext.current && !getActiveContextContainer()) {
+      if (
+        ObserverContext.current &&
+        !isResolvingContextFromComponent(ObserverContext.current)
+      ) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
-          signalDebugHooks.onGetValue(ObserverContext.current.type, signal);
+          signalDebugHooks.onGetValue(ObserverContext.current, signal);
         }
       }
 
@@ -267,10 +281,13 @@ export function derived<T>(cb: () => T) {
 
   return {
     get value() {
-      if (ObserverContext.current && !getActiveContextContainer()) {
+      if (
+        ObserverContext.current &&
+        !isResolvingContextFromComponent(ObserverContext.current)
+      ) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
-          signalDebugHooks.onGetValue(ObserverContext.current.type, signal);
+          signalDebugHooks.onGetValue(ObserverContext.current, signal);
         }
       }
 

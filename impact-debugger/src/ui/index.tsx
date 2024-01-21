@@ -150,8 +150,6 @@ function Item({
     const observers = flattenObservers(data.observers);
     const lastObserver = observers.pop();
 
-    console.log(data.source, data.target);
-
     content = (
       <Fragment>
         <div>
