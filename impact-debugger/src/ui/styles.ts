@@ -94,11 +94,13 @@ export const line = css({
   bottom: "1em",
   left: "1em",
   position: "absolute",
+  zIndex: 1,
 });
 
 export const itemContentWrapper = css({
   display: "flex",
   position: "relative",
+  zIndex: 2,
 });
 
 export const circle = css({

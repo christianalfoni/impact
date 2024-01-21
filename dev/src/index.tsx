@@ -1,37 +1,54 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { globalStore } from "impact-app";
+import {
+  ObserverContext,
+  context,
+  derived,
+  globalStore,
+  signal,
+} from "impact-app";
 
 import "impact-debugger";
 
 const root = createRoot(document.querySelector("#root")!);
 
-let count = 0;
-const useTest = globalStore({
-  runDerived: false,
-  foo: "foo",
-  run() {
-    count++;
-    if (count === 1) {
-      this.foo += "!";
-    } else if (count === 2) {
-      this.runDerived = true;
-    }
-  },
-  get upperFoo() {
-    return this.foo.toUpperCase();
-  },
+const useTest = context(() => {
+  const foo = signal("bar");
+  const upperFoo = derived(function UpperFoo() {
+    return foo.value.toUpperCase();
+  });
+
+  setTimeout(function timeout() {
+    console.log("TIMEOUT", ObserverContext.current);
+    foo.value += "!";
+    console.log("Get derived");
+    const mip = upperFoo.value;
+    console.log(mip);
+  }, 1000);
+
+  return {
+    get foo() {
+      return foo.value;
+    },
+    get upperFoo() {
+      return upperFoo.value;
+    },
+  };
 });
 
 function Dev() {
+  console.log("RENDER");
   const test = useTest();
 
+  return <h1>{test.upperFoo}</h1>;
+}
+
+function App() {
   return (
-    <h1 onClick={() => test.run()}>
-      {test.foo}
-      {test.runDerived ? test.upperFoo : null}
-    </h1>
+    <useTest.Provider>
+      <Dev />
+    </useTest.Provider>
   );
 }
 
-root.render(<Dev />);
+root.render(<App />);

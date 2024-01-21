@@ -175,7 +175,9 @@ export function createGetterDebugEntry(
 
   const stack = new Error().stack!;
 
-  const stackFrameData = createStackFrameData(stack).pop();
+  const stackFrameDataList = createStackFrameData(stack);
+  const stackFrameData =
+    type === "derived" ? stackFrameDataList.shift() : stackFrameDataList.pop();
 
   if (!stackFrameData) {
     return;
@@ -221,7 +223,6 @@ function cleanFunctionName(functionName?: string) {
 
 function cleanFilePath(stackFrame: StackFrame | null) {
   if (!stackFrame || !stackFrame.fileName) {
-    console.log("Unknown", stackFrame);
     return "UNKNOWN";
   }
 
@@ -299,45 +300,25 @@ export function createSetterDebugEntry(
         return Promise.all(observers.map((cacheKey) => cache[cacheKey])).then(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
-              if (isDerived) {
-                addDebugData({
-                  value,
-                  observers: observingStackFrames.map(
-                    (observingStackFrame) => ({
-                      type: observedSignal?.type,
-                      name: cleanFunctionName(observingStackFrame.functionName),
-                      path: cleanFilePath(observingStackFrame),
-                    }),
+              addDebugData({
+                value,
+                observers: observingStackFrames.map((observingStackFrame) => ({
+                  type: observedSignal?.type,
+                  name: cleanFunctionName(observingStackFrame.functionName),
+                  path: cleanFilePath(observingStackFrame),
+                })),
+                source: {
+                  name: cleanFunctionName(functionName),
+                  path: cleanFilePath(stackFrame),
+                },
+                target: {
+                  name: cleanFunctionName(
+                    targetFrame?.functionName || "ANONYMOUS",
                   ),
-                  source: {
-                    name: cleanFunctionName(functionName),
-                    path: cleanFilePath(stackFrame),
-                  },
-                  type: "derived",
-                });
-              } else {
-                addDebugData({
-                  value,
-                  observers: observingStackFrames.map(
-                    (observingStackFrame) => ({
-                      type: observedSignal?.type,
-                      name: cleanFunctionName(observingStackFrame.functionName),
-                      path: cleanFilePath(observingStackFrame),
-                    }),
-                  ),
-                  source: {
-                    name: cleanFunctionName(functionName),
-                    path: cleanFilePath(stackFrame),
-                  },
-                  target: {
-                    name: cleanFunctionName(
-                      targetFrame?.functionName || "ANONYMOUS",
-                    ),
-                    path: cleanFilePath(targetFrame),
-                  },
-                  type: "signal",
-                });
-              }
+                  path: cleanFilePath(targetFrame),
+                },
+                type: isDerived ? "derived" : "signal",
+              });
 
               return;
             });
