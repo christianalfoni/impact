@@ -32,6 +32,7 @@ type DebugData =
   | {
       type: "derived";
       source: CodeLocation;
+      target: CodeLocation;
       observers: Observer[];
       value: any;
     }
@@ -133,6 +134,10 @@ function flattenObservers(observers: Observer[]) {
   );
 }
 
+function isSameCodeLocation(locA: CodeLocation, locB: CodeLocation) {
+  return locA.name === locB.name && locA.path === locB.path;
+}
+
 function Item({
   data,
   workspacePath,
@@ -141,9 +146,11 @@ function Item({
   workspacePath: string;
 }) {
   let content;
-  if (data.type === "signal") {
+  if (data.type === "signal" || data.type === "derived") {
     const observers = flattenObservers(data.observers);
     const lastObserver = observers.pop();
+
+    console.log(data.source, data.target);
 
     content = (
       <Fragment>
@@ -151,7 +158,10 @@ function Item({
           <span
             className={styles.circle}
             style={{
-              backgroundColor: styles.colors.yellow,
+              backgroundColor:
+                data.type === "signal"
+                  ? styles.colors.yellow
+                  : styles.colors.green,
             }}
           >
             {data.observers.length}
@@ -159,7 +169,9 @@ function Item({
         </div>
         <div className={styles.itemContent}>
           <div className={styles.itemTextContent}>
-            Signal changed in{" "}
+            {data.type === "signal"
+              ? "Updated signal at "
+              : "Computed derived  at "}
             <CodeReference
               workspacePath={workspacePath}
               name={data.target.name}
@@ -169,77 +181,19 @@ function Item({
             <span className={styles.itemValue}>
               <ValueInspector delimiter="." value={data.value} />
             </span>
-            . Called from{" "}
-            <CodeReference
-              workspacePath={workspacePath}
-              name={data.source.name}
-              path={data.source.path}
-            />
-            .{" "}
-            {observers.length || lastObserver ? (
+            .
+            {isSameCodeLocation(data.source, data.target) ? null : (
               <>
-                Observed by{" "}
-                {observers.length ? (
-                  <>
-                    {observers.map((observer, index) => (
-                      <>
-                        <CodeReference
-                          key={index}
-                          workspacePath={workspacePath}
-                          {...observer}
-                        />
-                        {observer.count > 1 ? ` (${observer.count})` : null}
-                        {index === observers.length - 1 ? " " : ", "}
-                      </>
-                    ))}{" "}
-                    and{" "}
-                  </>
-                ) : null}
-                {lastObserver ? (
-                  <>
-                    <CodeReference
-                      workspacePath={workspacePath}
-                      {...lastObserver}
-                    />
-                    {lastObserver.count > 1 ? ` (${lastObserver.count})` : null}
-                  </>
-                ) : null}
+                {" "}
+                Called from{" "}
+                <CodeReference
+                  workspacePath={workspacePath}
+                  name={data.source.name}
+                  path={data.source.path}
+                />
+                .
               </>
-            ) : null}
-          </div>
-          <div></div>
-        </div>
-      </Fragment>
-    );
-  } else if (data.type === "derived") {
-    const observers = flattenObservers(data.observers);
-    const lastObserver = observers.pop();
-
-    content = (
-      <Fragment>
-        <div>
-          <span
-            className={styles.circle}
-            style={{
-              backgroundColor: styles.colors.green,
-            }}
-          >
-            {data.observers.length}
-          </span>
-        </div>
-        <div className={styles.itemContent}>
-          <div className={styles.itemTextContent}>
-            Derived calculated from{" "}
-            <CodeReference
-              workspacePath={workspacePath}
-              name={data.source.name}
-              path={data.source.path}
-            />{" "}
-            creating the value{" "}
-            <span className={styles.itemValue}>
-              <ValueInspector delimiter="." value={data.value} />
-            </span>
-            .{" "}
+            )}{" "}
             {observers.length || lastObserver ? (
               <>
                 Observed by{" "}

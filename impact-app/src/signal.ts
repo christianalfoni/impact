@@ -327,14 +327,7 @@ export function observer() {
 
   const [_, setState] = useState<unknown>();
 
-  useEffect(
-    () =>
-      context.subscribe((value) => {
-        console.log("Sub", value);
-        setState(value);
-      }),
-    [context],
-  );
+  useEffect(() => context.subscribe(setState), [context]);
 
   return context;
 }
