@@ -4,6 +4,7 @@ import {
   ObserverContext,
   context,
   derived,
+  effect,
   globalStore,
   signal,
 } from "impact-app";
@@ -18,13 +19,9 @@ const useTest = context(() => {
     return foo.value.toUpperCase();
   });
 
-  setTimeout(function timeout() {
-    console.log("TIMEOUT", ObserverContext.current);
-    foo.value += "!";
-    console.log("Get derived");
-    const mip = upperFoo.value;
-    console.log(mip);
-  }, 1000);
+  effect(function LogFoo() {
+    console.log(foo.value);
+  });
 
   return {
     get foo() {
@@ -33,6 +30,9 @@ const useTest = context(() => {
     get upperFoo() {
       return upperFoo.value;
     },
+    changeFoo() {
+      foo.value += "!";
+    },
   };
 });
 
@@ -40,7 +40,12 @@ function Dev() {
   console.log("RENDER");
   const test = useTest();
 
-  return <h1>{test.upperFoo}</h1>;
+  return (
+    <h1 onClick={test.changeFoo}>
+      {test.foo}
+      {test.upperFoo}
+    </h1>
+  );
 }
 
 function App() {

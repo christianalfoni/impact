@@ -1,6 +1,7 @@
 import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
 import {
+  ObserverContext,
   ObserverContextType,
   SignalTracker,
   signalDebugHooks,
@@ -14,8 +15,7 @@ const cache: {
 const observedSignals = new WeakMap<
   SignalTracker,
   {
-    type: ObserverContextType;
-    cache: Set<string>;
+    [cacheKey: string]: ObserverContextType;
   }
 >();
 
@@ -166,18 +166,33 @@ function createSourceMappedStackFrame(
 }
 
 export function createGetterDebugEntry(
-  type: ObserverContextType,
+  context: ObserverContext,
   signal: SignalTracker,
 ) {
   if (!isActive) {
     return;
   }
 
-  const stack = new Error().stack!;
+  let stack = new Error().stack!;
+
+  // This cleans the stack to remove anything happening before running the effect, as
+  // when resolving contexts will run effects immediately, also showing the component
+  // stack trace
+  if (context.type === "effect") {
+    const contextStackEffect = context.stack.split("\n")[3];
+    const debugStack = stack.split("\n");
+    const debugStacEffectIndex = debugStack.findIndex(
+      (line) => line === contextStackEffect,
+    );
+
+    stack = debugStack.slice(0, debugStacEffectIndex).join("\n");
+  }
 
   const stackFrameDataList = createStackFrameData(stack);
   const stackFrameData =
-    type === "derived" ? stackFrameDataList.shift() : stackFrameDataList.pop();
+    context.type === "derived"
+      ? stackFrameDataList.shift()
+      : stackFrameDataList.pop();
 
   if (!stackFrameData) {
     return;
@@ -200,11 +215,10 @@ export function createGetterDebugEntry(
   const observedSignal = observedSignals.get(signal);
 
   if (observedSignal) {
-    observedSignal.cache.add(cacheKey);
+    observedSignal[cacheKey] = context.type;
   } else {
     observedSignals.set(signal, {
-      type,
-      cache: new Set([cacheKey]),
+      [cacheKey]: context.type,
     });
   }
 }
@@ -289,9 +303,7 @@ export function createSetterDebugEntry(
         const { functionName } = stackFrame;
         const observedSignal = observedSignals.get(signal)!;
 
-        const observers = observedSignal
-          ? Array.from(observedSignal.cache)
-          : [];
+        const observers = observedSignal ? Object.keys(observedSignal) : [];
 
         const setterPromise = targetCacheKey
           ? cache[targetCacheKey]
@@ -302,11 +314,13 @@ export function createSetterDebugEntry(
             return setterPromise.then((targetFrame) => {
               addDebugData({
                 value,
-                observers: observingStackFrames.map((observingStackFrame) => ({
-                  type: observedSignal?.type,
-                  name: cleanFunctionName(observingStackFrame.functionName),
-                  path: cleanFilePath(observingStackFrame),
-                })),
+                observers: observingStackFrames.map(
+                  (observingStackFrame, index) => ({
+                    type: observedSignal[observers[index]],
+                    name: cleanFunctionName(observingStackFrame.functionName),
+                    path: cleanFilePath(observingStackFrame),
+                  }),
+                ),
                 source: {
                   name: cleanFunctionName(functionName),
                   path: cleanFilePath(stackFrame),
