@@ -38,6 +38,7 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
 
 - [Tutorial](./docs/01_tutorial.md)
 - Advanced
+  - [Lists](./docs/02_lists.md)
   - [Queries and mutations](./docs/02_queries_and_mutations.md)
 - Api
   - [Store](./docs/03_store.md)
