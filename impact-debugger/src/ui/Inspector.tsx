@@ -1,7 +1,7 @@
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import { memo } from "preact/compat";
-import * as styles from "./styles";
+import { inspector as styles } from "./styles";
 import { isArray, isObject } from "./utils";
 
 function renderValue({
@@ -96,7 +96,7 @@ const PathKey = ({
 }: PathKeyProps) => {
   return path.length ? (
     <span
-      className={styles.key}
+      style={styles.key}
       onClick={
         disabled
           ? undefined
@@ -113,10 +113,6 @@ const PathKey = ({
       {path.split(delimiter).pop()}:
     </span>
   ) : null;
-};
-
-type EditValueProps = {
-  value: any;
 };
 
 type NestedProps = {
@@ -157,7 +153,7 @@ const Nested = memo(
 
       return (
         <div
-          className={styles.inlineNested}
+          style={styles.inlineNested}
           onClick={(event) => {
             event.stopPropagation();
             onToggleExpand(path.split(delimiter));
@@ -171,13 +167,13 @@ const Nested = memo(
             disabled={!onSubmitState || hasWrapper}
           />
           {startBracket}
-          <span className={styles.keyCount}>
+          <span style={styles.keyCount}>
             {isArray ? (
               keys.length + " items"
             ) : (
-              <span className={styles.inlineNested}>
+              <span style={styles.inlineNested}>
                 {isClass ? (
-                  <span className={styles.inlineClass}>{value.name}</span>
+                  <span style={styles.inlineClass}>{value.name}</span>
                 ) : null}{" "}
                 {keys.sort().slice(0, 3).join(", ") + "..."}
               </span>
@@ -191,7 +187,7 @@ const Nested = memo(
     return (
       <div>
         <div
-          className={styles.bracket(true)}
+          style={styles.bracket(true)}
           onClick={(event) => {
             event.stopPropagation();
             onToggleExpand(path.split(delimiter));
@@ -206,7 +202,7 @@ const Nested = memo(
           />
           {startBracket}
         </div>
-        <div className={styles.nestedChildren}>
+        <div style={styles.nestedChildren}>
           {Array.isArray(value)
             ? value.map((_, index) =>
                 renderValue({
@@ -223,7 +219,7 @@ const Nested = memo(
             : isClass
             ? [
                 <span
-                  className={styles.otherValue}
+                  style={styles.otherValue}
                   key={path.concat((path ? delimiter : "") + "__CLASS__")}
                 >
                   {value.name}
@@ -258,7 +254,7 @@ const Nested = memo(
                   });
                 })}
         </div>
-        <div className={styles.bracket(false)}>{endBracket}</div>
+        <div style={styles.bracket(false)}>{endBracket}</div>
       </div>
     );
   },
@@ -292,7 +288,7 @@ const ValueComponent = memo(
       value[value.length - 1] === "]"
     ) {
       return (
-        <div className={styles.otherValue}>
+        <div style={styles.otherValue}>
           <PathKey
             path={path}
             delimiter={delimiter}
@@ -306,7 +302,7 @@ const ValueComponent = memo(
 
     if (typeof value === "string") {
       return (
-        <div className={styles.stringValue}>
+        <div style={styles.stringValue}>
           <PathKey
             path={path}
             delimiter={delimiter}
@@ -328,7 +324,7 @@ const ValueComponent = memo(
     }
 
     return (
-      <div className={styles.genericValue}>
+      <div style={styles.genericValue}>
         <PathKey
           path={path}
           delimiter={delimiter}
@@ -367,7 +363,7 @@ const Inspector = ({
   onSubmitState,
 }: InspectorProps) => {
   return (
-    <div className={small ? styles.smallWrapper : styles.inspectorWrapper}>
+    <div style={small ? styles.smallWrapper : styles.inspectorWrapper}>
       {renderValue({
         path: "",
         delimiter,

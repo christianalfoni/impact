@@ -41,7 +41,7 @@ function Dev() {
   const test = useTest();
 
   return (
-    <h1 onClick={test.changeFoo}>
+    <h1 onClick={() => test.changeFoo()}>
       {test.foo}
       {test.upperFoo}
     </h1>
