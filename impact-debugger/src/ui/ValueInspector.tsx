@@ -4,11 +4,10 @@ import Inspector from "./Inspector";
 
 type Props = {
   value: any;
-  small?: boolean;
   delimiter: string;
 };
 
-const ValueInspector = ({ value, small, delimiter }: Props) => {
+const ValueInspector = ({ value, delimiter }: Props) => {
   const [expandedPaths, setExpandedPaths] = useState<string[]>([]);
 
   function onToggleExpand(path: string[]) {
@@ -29,7 +28,6 @@ const ValueInspector = ({ value, small, delimiter }: Props) => {
       value={value}
       expandedPaths={expandedPaths}
       onToggleExpand={onToggleExpand}
-      small={small}
     />
   );
 };

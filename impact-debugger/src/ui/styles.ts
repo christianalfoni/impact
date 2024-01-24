@@ -184,7 +184,7 @@ export const inspector = {
   stringValue: css({
     display: "flex",
     alignItems: "center",
-    color: palette[9],
+    color: palette[11],
   }),
   otherValue: css({
     display: "flex",
@@ -208,3 +208,11 @@ export const inspector = {
     color: palette[9],
   }),
 };
+
+export const path = css({
+  overflow: "hidden",
+  whiteSpace: "nowrap",
+  textOverflow: "ellipsis",
+  color: palette[7],
+  cursor: "pointer",
+});

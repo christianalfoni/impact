@@ -355,7 +355,6 @@ type InspectorProps = {
 const Inspector = ({
   value,
   expandedPaths,
-  small,
   onToggleExpand,
   delimiter,
   onClickPath = () => {},
@@ -363,7 +362,7 @@ const Inspector = ({
   onSubmitState,
 }: InspectorProps) => {
   return (
-    <div style={small ? styles.smallWrapper : styles.inspectorWrapper}>
+    <div>
       {renderValue({
         path: "",
         delimiter,

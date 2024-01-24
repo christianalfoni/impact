@@ -80,10 +80,10 @@ const Item = ({ data }: { data: DebugData }) => {
     }
 
     return (
-      <span>
+      <span style={{ whiteSpace: "nowrap" }}>
         <span>{data.target.name}</span>
         <span style={styles.colors[10]}>();</span>{" "}
-        <span style={styles.colors[7]}>// {data.target.path}</span>
+        <span style={styles.path}>// {data.target.path}</span>
       </span>
     );
   };
@@ -128,17 +128,14 @@ const Item = ({ data }: { data: DebugData }) => {
           <span style={styles.colors[11]}>
             <ValueInspector value={data.value} delimiter="." />
           </span>
-          <span style={{ ...styles.colors[7], cursor: "pointer" }}>
-            {" "}
-            // {typeof data.value}
-          </span>
+          <span style={styles.path}> // {typeof data.value}</span>
         </span>
 
         {data.source && (
           <span style={styles.list.contentItem}>
             {icons.lightingBolt}
             <span style={styles.colors[11]}>{data.source.name}</span>
-            <span style={{ ...styles.colors[7], cursor: "pointer" }}>
+            <span style={styles.path} title={data.source.path}>
               {" "}
               // {data.source.path}
             </span>
@@ -151,7 +148,7 @@ const Item = ({ data }: { data: DebugData }) => {
               <span style={styles.list.contentItem} key={index}>
                 {icons.eye}
                 <span style={styles.colors[11]}>{name}</span>
-                <span style={{ ...styles.colors[7], cursor: "pointer" }}>
+                <span style={styles.path} title={path}>
                   {" "}
                   // {path}
                 </span>
@@ -167,10 +164,19 @@ const Item = ({ data }: { data: DebugData }) => {
 function App() {
   const [debugData, setDebugData] = useState<DebugData[]>(currentDebugData);
   const [workspacePath, setWorkspacePath] = useWorkspacePath();
+  const [opened, setOpened] = useState(false);
 
   useEffect(() => {
     currentSubscriber = setDebugData;
   }, []);
+
+  if (!opened) {
+    return (
+      <div style={styles.impactButton} onClick={() => setOpened(true)}>
+        {icons.dev}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -197,7 +203,10 @@ function App() {
               />
             </div>
 
-            <span style={{ cursor: "pointer", color: styles.palette[11] }}>
+            <span
+              style={{ cursor: "pointer", color: styles.palette[11] }}
+              onClick={() => setOpened(false)}
+            >
               {icons.cross}
             </span>
           </div>
