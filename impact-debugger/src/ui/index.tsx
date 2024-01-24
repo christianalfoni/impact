@@ -69,6 +69,7 @@ const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
 
 const Item = ({ data }: { data: DebugData }) => {
   const [open, setOpen] = useState(false);
+  const [workspacePath, setWorkspacePath] = useWorkspacePath();
 
   if (data.type === "effect") {
     return null;
@@ -79,11 +80,32 @@ const Item = ({ data }: { data: DebugData }) => {
       return "Derived";
     }
 
+    const [relativePath, line] = data.target.path.split(":");
+
     return (
-      <span style={{ whiteSpace: "nowrap" }}>
-        <span>{data.target.name}</span>
-        <span style={styles.colors[10]}>();</span>{" "}
-        <span style={styles.path}>// {data.target.path}</span>
+      <span style={{ display: "flex", gap: ".6em", minWidth: 0 }}>
+        <span>
+          <span style={styles.colors[12]}>{data.target.name}</span>
+          <span style={styles.colors[10]}>();</span>{" "}
+        </span>
+
+        <span style={styles.colors[7]}>{`//`}</span>
+        <span
+          dir="rtl"
+          onClick={
+            csbFocusFile
+              ? () => {
+                  csbFocusFile(
+                    "/" + workspacePath + relativePath,
+                    Number(line),
+                  );
+                }
+              : undefined
+          }
+          style={styles.path}
+        >
+          {relativePath.startsWith("/") ? relativePath.slice(1) : relativePath}
+        </span>
       </span>
     );
   };
@@ -105,20 +127,22 @@ const Item = ({ data }: { data: DebugData }) => {
 
   return (
     <Fragment>
-      <button style={styles.list.header} onClick={() => setOpen(!open)}>
+      <span style={styles.list.header}>
         <span style={styles.list.headerText}>
           {renderLine()}
           {renderTitle()}
         </span>
         <span
+          onClick={() => setOpen(!open)}
           style={{
+            cursor: "pointer",
             color: styles.palette[11],
             rotate: open ? "0deg" : "180deg",
           }}
         >
           {icons.chevron}
         </span>
-      </button>
+      </span>
 
       <div style={{ position: "relative", display: open ? "block" : "none" }}>
         <span style={styles.list.contentLine} />
@@ -128,16 +152,29 @@ const Item = ({ data }: { data: DebugData }) => {
           <span style={styles.colors[11]}>
             <ValueInspector value={data.value} delimiter="." />
           </span>
-          <span style={styles.path}> // {typeof data.value}</span>
+          <span style={styles.path}>{`// ` + typeof data.value}</span>
         </span>
 
         {data.source && (
           <span style={styles.list.contentItem}>
             {icons.lightingBolt}
             <span style={styles.colors[11]}>{data.source.name}</span>
-            <span style={styles.path} title={data.source.path}>
-              {" "}
-              // {data.source.path}
+            <span
+              style={styles.path}
+              title={data.source.path}
+              onClick={
+                csbFocusFile
+                  ? () => {
+                      const [relativePath, line] = data.source.path.split(":");
+                      csbFocusFile(
+                        "/" + workspacePath + relativePath,
+                        Number(line),
+                      );
+                    }
+                  : undefined
+              }
+            >
+              {`// ` + data.source.path}
             </span>
           </span>
         )}
@@ -148,7 +185,21 @@ const Item = ({ data }: { data: DebugData }) => {
               <span style={styles.list.contentItem} key={index}>
                 {icons.eye}
                 <span style={styles.colors[11]}>{name}</span>
-                <span style={styles.path} title={path}>
+                <span
+                  style={styles.path}
+                  title={path}
+                  onClick={
+                    csbFocusFile
+                      ? () => {
+                          const [relativePath, line] = path.split(":");
+                          csbFocusFile(
+                            "/" + workspacePath + relativePath,
+                            Number(line),
+                          );
+                        }
+                      : undefined
+                  }
+                >
                   {" "}
                   // {path}
                 </span>
