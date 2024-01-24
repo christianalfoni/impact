@@ -8,7 +8,7 @@ You probably already know contexts from React. Contexts is the primitive you use
 
 ### Creating a context
 
-A context is just a function that returns state and/or management of state, just like any other traditional React context. We call it a context for familiarity, but you will learn that Impact contexts has benefits over traditional React contexts.
+A context is just a function that returns state and/or management of state, just like any other traditional React context. We call it a context for familiarity, but you can think about this function as a constructor. It will be called once, when the context is mounted, and not be called again during its lifetime.
 
 ```ts
 import { context } from 'impact-app'
