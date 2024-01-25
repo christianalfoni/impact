@@ -24,6 +24,7 @@ type Observer = CodeLocation & {
 
 type DebugData =
   | {
+      id: number;
       type: "signal";
       source: CodeLocation;
       target: CodeLocation;
@@ -31,22 +32,26 @@ type DebugData =
       value: any;
     }
   | {
+      id: number;
       type: "derived";
       source: CodeLocation;
       target: CodeLocation;
       observers: Observer[];
       value: any;
     }
-  | {
-      type: "effect";
-    };
+  | { id: number; type: "effect"; name: string; target: CodeLocation };
 
 let currentDebugData: DebugData[] = [];
 
 let currentSubscriber: undefined | ((data: DebugData[]) => void);
 
 export function addDebugData(data: DebugData) {
-  currentDebugData = [data, ...currentDebugData];
+  currentDebugData = [...currentDebugData, data].sort((a, b) => a.id - b.id);
+  currentSubscriber?.(currentDebugData);
+}
+
+function resetDebugData() {
+  currentDebugData = [];
   currentSubscriber?.(currentDebugData);
 }
 
@@ -67,17 +72,25 @@ function useWorkspacePath() {
 // @ts-ignore
 const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
 
-const Item = ({ data }: { data: DebugData }) => {
+function Item({
+  data,
+  workspacePath,
+}: {
+  data: DebugData;
+  workspacePath: string;
+}) {
   const [open, setOpen] = useState(false);
-  const [workspacePath, setWorkspacePath] = useWorkspacePath();
-
-  if (data.type === "effect") {
-    return null;
-  }
 
   const renderTitle = () => {
+    let title: string;
+    const fileName = data.target.path.split("/").pop()!.split(".")[0]!;
+
     if (data.type === "derived") {
-      return "Derived";
+      title = `${fileName}.${data.target.name}`;
+    } else if (data.type === "effect") {
+      title = `${fileName}.${data.name}`;
+    } else {
+      title = `${fileName}.${data.target.name}`;
     }
 
     const [relativePath, line] = data.target.path.split(":");
@@ -85,7 +98,7 @@ const Item = ({ data }: { data: DebugData }) => {
     return (
       <span style={{ display: "flex", gap: ".6em", minWidth: 0 }}>
         <span>
-          <span style={styles.colors[12]}>{data.target.name}</span>
+          <span style={styles.colors[12]}>{title}</span>
           <span style={styles.colors[10]}>();</span>{" "}
         </span>
 
@@ -111,18 +124,19 @@ const Item = ({ data }: { data: DebugData }) => {
   };
 
   const renderLine = () => {
-    if (data.type === "signal") {
-      return (
-        <span
-          style={{
-            ...styles.list.headerLine,
-            background: "#00F0FF",
-          }}
-        />
-      );
-    }
-
-    return <span style={styles.list.headerLine} />;
+    return (
+      <span
+        style={{
+          ...styles.list.headerLine,
+          background:
+            data.type === "signal"
+              ? "#00F0FF"
+              : data.type === "derived"
+              ? "#00ff66"
+              : "#ff00ff",
+        }}
+      />
+    );
   };
 
   return (
@@ -138,6 +152,7 @@ const Item = ({ data }: { data: DebugData }) => {
             cursor: "pointer",
             color: styles.palette[11],
             rotate: open ? "0deg" : "180deg",
+            padding: ".5em",
           }}
         >
           {icons.chevron}
@@ -145,53 +160,39 @@ const Item = ({ data }: { data: DebugData }) => {
       </span>
 
       <div style={{ position: "relative", display: open ? "block" : "none" }}>
-        <span style={styles.list.contentLine} />
+        {data.type === "effect" ? (
+          <Fragment>
+            <span style={styles.list.contentLine} />
 
-        <span style={styles.list.contentItem}>
-          {icons.pencil}
-          <span style={styles.colors[11]}>
-            <ValueInspector value={data.value} delimiter="." />
-          </span>
-          <span style={styles.path}>{`// ` + typeof data.value}</span>
-        </span>
-
-        {data.source && (
-          <span style={styles.list.contentItem}>
-            {icons.lightingBolt}
-            <span style={styles.colors[11]}>{data.source.name}</span>
-            <span
-              style={styles.path}
-              title={data.source.path}
-              onClick={
-                csbFocusFile
-                  ? () => {
-                      const [relativePath, line] = data.source.path.split(":");
-                      csbFocusFile(
-                        "/" + workspacePath + relativePath,
-                        Number(line),
-                      );
-                    }
-                  : undefined
-              }
-            >
-              {`// ` + data.source.path}
+            <span style={styles.list.contentItem}>
+              {icons.lightingBolt}
+              <span style={styles.colors[11]}>{data.name}</span>
             </span>
-          </span>
-        )}
+          </Fragment>
+        ) : (
+          <Fragment>
+            <span style={styles.list.contentLine} />
 
-        {data.observers && data.observers.length > 0 && (
-          <>
-            {data.observers.map(({ name, path }, index) => (
-              <span style={styles.list.contentItem} key={index}>
-                {icons.eye}
-                <span style={styles.colors[11]}>{name}</span>
+            <span style={styles.list.contentItem}>
+              {icons.pencil}
+              <span style={styles.colors[11]}>
+                <ValueInspector value={data.value} delimiter="." />
+              </span>
+              <span style={styles.path}>{`// ` + typeof data.value}</span>
+            </span>
+
+            {data.source && (
+              <span style={styles.list.contentItem}>
+                {icons.lightingBolt}
+                <span style={styles.colors[11]}>{data.source.name}</span>
                 <span
                   style={styles.path}
-                  title={path}
+                  title={data.source.path}
                   onClick={
                     csbFocusFile
                       ? () => {
-                          const [relativePath, line] = path.split(":");
+                          const [relativePath, line] =
+                            data.source.path.split(":");
                           csbFocusFile(
                             "/" + workspacePath + relativePath,
                             Number(line),
@@ -200,17 +201,48 @@ const Item = ({ data }: { data: DebugData }) => {
                       : undefined
                   }
                 >
-                  {" "}
-                  // {path}
+                  {`// ` +
+                    (data.source.path.startsWith("/")
+                      ? data.source.path.slice(1)
+                      : data.source.path)}
                 </span>
               </span>
-            ))}
-          </>
+            )}
+
+            {data.observers && data.observers.length > 0 && (
+              <>
+                {data.observers.map(({ name, path }, index) => (
+                  <span style={styles.list.contentItem} key={index}>
+                    {icons.eye}
+                    <span style={styles.colors[11]}>{name}</span>
+                    <span
+                      style={styles.path}
+                      title={path}
+                      onClick={
+                        csbFocusFile
+                          ? () => {
+                              const [relativePath, line] = path.split(":");
+                              csbFocusFile(
+                                "/" + workspacePath + relativePath,
+                                Number(line),
+                              );
+                            }
+                          : undefined
+                      }
+                    >
+                      {" "}
+                      {`// ` + (path.startsWith("/") ? path.slice(1) : path)}
+                    </span>
+                  </span>
+                ))}
+              </>
+            )}
+          </Fragment>
         )}
       </div>
     </Fragment>
   );
-};
+}
 
 function App() {
   const [debugData, setDebugData] = useState<DebugData[]>(currentDebugData);
@@ -229,6 +261,8 @@ function App() {
     );
   }
 
+  console.log(debugData);
+
   return (
     <>
       <div style={{ ...styles.impactButton, left: 300 }}>{icons.dev}</div>
@@ -242,7 +276,7 @@ function App() {
               <span style={styles.colors[10]}>;</span>
             </span>
 
-            <div style={styles.header}>
+            <div style={styles.workspaceInputWrapper}>
               <span style={styles.colors[7]}>//</span>
               <input
                 style={styles.workspace}
@@ -253,6 +287,13 @@ function App() {
                 onChange={(event) => setWorkspacePath(event.target.value)}
               />
             </div>
+
+            <span
+              style={{ cursor: "pointer", color: styles.palette[11] }}
+              onClick={resetDebugData}
+            >
+              {icons.clean}
+            </span>
 
             <span
               style={{ cursor: "pointer", color: styles.palette[11] }}
@@ -286,8 +327,8 @@ function App() {
               />
             </div>
 
-            {debugData.map((data, index) => (
-              <Item key={index} data={data} />
+            {debugData.reverse().map((data) => (
+              <Item key={data.id} data={data} workspacePath={workspacePath} />
             ))}
 
             {/* End timeline */}

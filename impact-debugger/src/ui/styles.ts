@@ -61,8 +61,8 @@ export const impactButton = css({
 export const body = css({
   boxSizing: "border-box",
   position: "absolute",
-  width: 300,
-  height: 460,
+  width: 320,
+  height: 512,
   right: 10,
   top: 10,
 
@@ -87,6 +87,13 @@ export const header = css({
   whiteSpace: "nowrap",
   justifyContent: "space-between",
   marginBottom: "1em",
+  alignItems: "center",
+});
+
+export const workspaceInputWrapper = css({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 });
 
 export const workspace = css({

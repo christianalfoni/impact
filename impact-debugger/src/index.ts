@@ -253,6 +253,7 @@ function cleanFilePath(stackFrame: StackFrame | null) {
   return path;
 }
 
+let debugDataId = 0;
 export function createSetterDebugEntry(
   signal: SignalTracker,
   value: unknown,
@@ -262,6 +263,7 @@ export function createSetterDebugEntry(
     return;
   }
 
+  const id = debugDataId++;
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
@@ -313,6 +315,7 @@ export function createSetterDebugEntry(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
               addDebugData({
+                id,
                 value,
                 observers: observingStackFrames.map(
                   (observingStackFrame, index) => ({
@@ -346,5 +349,56 @@ export function createSetterDebugEntry(
   );
 }
 
+// We cache the initial effects stacktrace as that is what
+// we want to use for reference whenever the effect triggers
+const effectsCachedStackFrame = new Map<() => void, Promise<StackFrame>>();
+
+function createEffectDebugEntry(effect: () => void) {
+  if (!isActive) {
+    return;
+  }
+
+  const id = debugDataId++;
+
+  let stackFramePromise = effectsCachedStackFrame.get(effect);
+
+  if (!stackFramePromise) {
+    const stack = new Error().stack!;
+
+    // We need to figure out where effect is being called from
+    const stackFrameData = createStackFrameData(stack);
+    const targetFrame = stackFrameData.shift();
+
+    if (!targetFrame) {
+      return;
+    }
+
+    stackFramePromise = createSourceMappedStackFrame(
+      targetFrame.file,
+      targetFrame.functionName,
+      targetFrame.line,
+      targetFrame.column,
+    );
+
+    effectsCachedStackFrame.set(effect, stackFramePromise);
+  }
+
+  queue.add(() =>
+    // Not sure why TS yells here, we always assign a promise to this variable, hm
+    stackFramePromise!.then((stackFrame) => {
+      addDebugData({
+        id,
+        type: "effect",
+        name: effect.name,
+        target: {
+          name: cleanFunctionName(stackFrame?.functionName || "ANONYMOUS"),
+          path: cleanFilePath(stackFrame),
+        },
+      });
+    }),
+  );
+}
+
 signalDebugHooks.onGetValue = createGetterDebugEntry;
 signalDebugHooks.onSetValue = createSetterDebugEntry;
+signalDebugHooks.onEffectRun = createEffectDebugEntry;
