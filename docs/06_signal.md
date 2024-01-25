@@ -116,6 +116,27 @@ const useGlobalContext = globalContext(() => {
 })
 ```
 
+The key "feature" of `derived` is that it's result will be memoized as long as signals consumed within it remain the same. This is in contrast to a standard getter that would be re-executed on each access:
+
+```ts
+import { signal, globalContext } from 'impact-app'
+
+const useGlobalContext = globalContext(() => {
+    const message = signal('Hello World')
+
+    return {
+        get message() {
+            return message.value
+        },
+        get shoutingMessage() {
+            return message.value + '!!!'
+        }
+    }
+})
+```
+
+
+
 ### effect
 
 It will run whenever the signals accessed changes.
@@ -125,7 +146,7 @@ import { signal, effect, globalContext } from 'impact-signal'
 
 const useGlobalContext = globalContext(() => {
     const message = signal('Hello World')
-    
+
     effect(() => {
         console.log(message.value)
     })
