@@ -69,6 +69,32 @@ function useWorkspacePath() {
   return [workspacePath, setWorkspacePath] as const;
 }
 
+function mergeObservers(observers: Observer[]) {
+  return observers.reduce<Array<{ observer: Observer; count: number }>>(
+    (acc, observer) => {
+      const existing = acc.find(
+        (accObserver) =>
+          accObserver.observer.name === observer.name &&
+          accObserver.observer.path.split(":")[0] ===
+            observer.path.split(":")[0] &&
+          accObserver.observer.type === observer.type,
+      );
+
+      if (existing) {
+        existing.count++;
+
+        return acc;
+      }
+
+      return acc.concat({
+        count: 1,
+        observer,
+      });
+    },
+    [],
+  );
+}
+
 // @ts-ignore
 const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
 
@@ -97,14 +123,10 @@ function Item({
 
     return (
       <span style={{ display: "flex", gap: ".6em", minWidth: 0 }}>
-        <span>
-          <span style={styles.colors[12]}>{title}</span>
-          <span style={styles.colors[10]}>();</span>{" "}
-        </span>
-
-        <span style={styles.colors[7]}>{`//`}</span>
         <span
-          dir="rtl"
+          style={{
+            cursor: "pointer",
+          }}
           onClick={
             csbFocusFile
               ? () => {
@@ -115,25 +137,30 @@ function Item({
                 }
               : undefined
           }
-          style={styles.path}
         >
-          {relativePath.startsWith("/") ? relativePath.slice(1) : relativePath}
+          <span style={styles.colors[12]}>{title}</span>
+          <span style={styles.colors[10]}>();</span>{" "}
         </span>
       </span>
     );
   };
 
   const renderLine = () => {
+    if (data.type === "signal") {
+      return (
+        <span
+          style={{
+            ...styles.list.headerLine,
+            background: "#00F0FF",
+          }}
+        />
+      );
+    }
+
     return (
       <span
         style={{
           ...styles.list.headerLine,
-          background:
-            data.type === "signal"
-              ? "#00F0FF"
-              : data.type === "derived"
-              ? "#00ff66"
-              : "#ff00ff",
         }}
       />
     );
@@ -166,7 +193,23 @@ function Item({
 
             <span style={styles.list.contentItem}>
               {icons.lightingBolt}
-              <span style={styles.colors[11]}>{data.name}</span>
+              <span
+                onClick={
+                  csbFocusFile
+                    ? () => {
+                        const [relativePath, line] =
+                          data.target.path.split(":");
+                        csbFocusFile(
+                          "/" + workspacePath + relativePath,
+                          Number(line),
+                        );
+                      }
+                    : undefined
+                }
+                style={{ ...styles.colors[11], cursor: "pointer" }}
+              >
+                {data.name}
+              </span>
             </span>
           </Fragment>
         ) : (
@@ -178,16 +221,12 @@ function Item({
               <span style={styles.colors[11]}>
                 <ValueInspector value={data.value} delimiter="." />
               </span>
-              <span style={styles.path}>{`// ` + typeof data.value}</span>
             </span>
 
             {data.source && (
               <span style={styles.list.contentItem}>
                 {icons.lightingBolt}
-                <span style={styles.colors[11]}>{data.source.name}</span>
                 <span
-                  style={styles.path}
-                  title={data.source.path}
                   onClick={
                     csbFocusFile
                       ? () => {
@@ -200,41 +239,40 @@ function Item({
                         }
                       : undefined
                   }
+                  style={{ ...styles.colors[11], cursor: "pointer" }}
                 >
-                  {`// ` +
-                    (data.source.path.startsWith("/")
-                      ? data.source.path.slice(1)
-                      : data.source.path)}
+                  {data.source.name}
                 </span>
               </span>
             )}
 
             {data.observers && data.observers.length > 0 && (
               <>
-                {data.observers.map(({ name, path }, index) => (
-                  <span style={styles.list.contentItem} key={index}>
-                    {icons.eye}
-                    <span style={styles.colors[11]}>{name}</span>
-                    <span
-                      style={styles.path}
-                      title={path}
-                      onClick={
-                        csbFocusFile
-                          ? () => {
-                              const [relativePath, line] = path.split(":");
-                              csbFocusFile(
-                                "/" + workspacePath + relativePath,
-                                Number(line),
-                              );
-                            }
-                          : undefined
-                      }
-                    >
-                      {" "}
-                      {`// ` + (path.startsWith("/") ? path.slice(1) : path)}
+                {mergeObservers(data.observers).map(
+                  ({ observer, count }, index) => (
+                    <span style={styles.list.contentItem} key={index}>
+                      {icons.eye}
+                      <span
+                        style={{ cursor: "pointer", ...styles.colors[11] }}
+                        onClick={
+                          csbFocusFile
+                            ? () => {
+                                const [relativePath, line] =
+                                  observer.path.split(":");
+                                csbFocusFile(
+                                  "/" + workspacePath + relativePath,
+                                  Number(line),
+                                );
+                              }
+                            : undefined
+                        }
+                      >
+                        {observer.name}
+                        {count > 1 ? `(${count})` : null}
+                      </span>
                     </span>
-                  </span>
-                ))}
+                  ),
+                )}
               </>
             )}
           </Fragment>

@@ -13,6 +13,7 @@ function Dev() {
   return (
     <h1 onClick={() => store.changeFoo()}>
       {store.foo}
+      {store.foo}
       {store.upperFoo}
     </h1>
   );
