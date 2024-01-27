@@ -112,11 +112,11 @@ export const list = {
   startTimeline: css({
     display: "flex",
     flexDirection: "column",
-    gap: 4,
+    gap: 2,
   }),
   startTimelineItem: css({
     width: 3,
-    height: 6,
+    height: 4,
     borderRadius: 2,
   }),
   header: css({
@@ -144,6 +144,14 @@ export const list = {
     boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
     borderRadius: 2,
   }),
+  // headerCircleLine: css({
+  //   minWidth: 3,
+  //   height: 3,
+  //   background: palette[12],
+  //   display: "block",
+  //   boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
+  //   borderRadius: 2,
+  // }),
   contentLine: css({
     width: 3,
     position: "absolute",
@@ -159,6 +167,12 @@ export const list = {
     gap: "1em",
     color: palette[9],
     padding: ".4em 0 .4em 1.3em",
+  }),
+  contentItemList: css({
+    display: "flex",
+    gap: ".8em",
+    flexDirection: "column",
+    minWidth: 0,
   }),
 };
 

@@ -3,6 +3,7 @@ import * as styles from "./styles";
 import * as icons from "./icons";
 import { useEffect, useState } from "preact/hooks";
 import ValueInspector from "./ValueInspector";
+import { text } from "stream/consumers";
 
 const root = document.createElement("div");
 
@@ -159,7 +160,34 @@ function Item({
     }
 
     if (data.type === "effect") {
-      return <>{icons.effect}</>;
+      return (
+        <div style={styles.list.startTimeline}>
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+        </div>
+      );
     }
 
     return (
@@ -177,7 +205,8 @@ function Item({
         <span
           style={{
             ...styles.list.headerText,
-            gap: data.type === "effect" ? ".3em" : "1.1em",
+            gap: "1.1em",
+            height: 22,
           }}
         >
           {renderLine()}
@@ -237,15 +266,9 @@ function Item({
             {data.observers && (
               <Fragment>
                 <span style={styles.list.contentItem}>
-                  {icons.eye}
+                  <div style={{ minWidth: 12 }}>{icons.eye}</div>
 
-                  <span
-                    style={{
-                      display: "flex",
-                      gap: ".8em",
-                      flexDirection: "column",
-                    }}
-                  >
+                  <span style={styles.list.contentItemList}>
                     {data.observers.length > 0 && (
                       <>
                         {mergeObservers(data.observers).map(
@@ -253,6 +276,8 @@ function Item({
                             <span
                               key={index}
                               style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
                                 cursor: "pointer",
                                 ...styles.colors[12],
                               }}
@@ -353,6 +378,12 @@ function App() {
               <span
                 style={{
                   ...styles.list.startTimelineItem,
+                  background: styles.palette[5],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
                   background: styles.palette[6],
                 }}
               />
@@ -392,6 +423,12 @@ function App() {
                 style={{
                   ...styles.list.startTimelineItem,
                   background: styles.palette[6],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[5],
                 }}
               />
             </div>
