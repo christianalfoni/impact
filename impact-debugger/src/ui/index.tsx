@@ -1,7 +1,9 @@
-import { render, h, Fragment } from "preact";
-import ValueInspector from "./ValueInspector";
+import { Fragment, h, render } from "preact";
 import * as styles from "./styles";
-import { useState, useSyncExternalStore, useEffect } from "preact/compat";
+import * as icons from "./icons";
+import { useEffect, useState } from "preact/hooks";
+import ValueInspector from "./ValueInspector";
+import { text } from "stream/consumers";
 
 const root = document.createElement("div");
 
@@ -23,6 +25,7 @@ type Observer = CodeLocation & {
 
 type DebugData =
   | {
+      id: number;
       type: "signal";
       source: CodeLocation;
       target: CodeLocation;
@@ -30,22 +33,26 @@ type DebugData =
       value: any;
     }
   | {
+      id: number;
       type: "derived";
       source: CodeLocation;
       target: CodeLocation;
       observers: Observer[];
       value: any;
     }
-  | {
-      type: "effect";
-    };
+  | { id: number; type: "effect"; name: string; target: CodeLocation };
 
 let currentDebugData: DebugData[] = [];
 
 let currentSubscriber: undefined | ((data: DebugData[]) => void);
 
 export function addDebugData(data: DebugData) {
-  currentDebugData = [data, ...currentDebugData];
+  currentDebugData = [...currentDebugData, data].sort((a, b) => a.id - b.id);
+  currentSubscriber?.(currentDebugData);
+}
+
+function resetDebugData() {
+  currentDebugData = [];
   currentSubscriber?.(currentDebugData);
 }
 
@@ -63,80 +70,34 @@ function useWorkspacePath() {
   return [workspacePath, setWorkspacePath] as const;
 }
 
-// @ts-ignore
-const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
-
-function CodeReference({
-  name,
-  path,
-  workspacePath,
-  type,
-}: CodeLocation & { type?: ObserverType; workspacePath: string }) {
-  return (
-    <span className="impact-debugger-tooltip">
-      <span className={styles.tooltip}>{path}</span>
-      <a
-        href={
-          csbFocusFile
-            ? "#"
-            : "vscode://file/" +
-              (workspacePath.startsWith("/")
-                ? workspacePath.substring(1)
-                : workspacePath) +
-              path
-        }
-        onClick={
-          csbFocusFile
-            ? () => {
-                const [relativePath, line] = path.split(":");
-                csbFocusFile("/" + workspacePath + relativePath, Number(line));
-              }
-            : undefined
-        }
-        className={styles.itemLink}
-        style={
-          type
-            ? {
-                color:
-                  type === "component"
-                    ? styles.colors.blue
-                    : type === "effect"
-                    ? styles.colors.purple
-                    : styles.colors.green,
-              }
-            : undefined
-        }
-      >
-        {name}
-      </a>
-    </span>
-  );
-}
-
-function flattenObservers(observers: Observer[]) {
-  return observers.reduce<Array<Observer & { count: number }>>(
-    (acc, currentObserver) => {
-      const existingObserver = acc.find(
-        (observer) =>
-          observer.name === currentObserver.name &&
-          observer.path.split(":")[0] === currentObserver.path.split(":")[0],
+function mergeObservers(observers: Observer[]) {
+  return observers.reduce<Array<{ observer: Observer; count: number }>>(
+    (acc, observer) => {
+      const existing = acc.find(
+        (accObserver) =>
+          accObserver.observer.name === observer.name &&
+          accObserver.observer.path.split(":")[0] ===
+            observer.path.split(":")[0] &&
+          accObserver.observer.type === observer.type,
       );
 
-      if (existingObserver) {
-        existingObserver.count++;
+      if (existing) {
+        existing.count++;
 
         return acc;
       }
 
-      return acc.concat({ ...currentObserver, count: 1 });
+      return acc.concat({
+        count: 1,
+        observer,
+      });
     },
     [],
   );
 }
 
-function isSameCodeLocation(locA: CodeLocation, locB: CodeLocation) {
-  return locA.name === locB.name && locA.path === locB.path;
-}
+// @ts-ignore
+const csbFocusFile = window.CODESANDBOX_PREVIEW?.focusFile;
 
 function Item({
   data,
@@ -145,198 +106,338 @@ function Item({
   data: DebugData;
   workspacePath: string;
 }) {
-  let content;
-  if (data.type === "signal" || data.type === "derived") {
-    const observers = flattenObservers(data.observers);
-    const lastObserver = observers.pop();
+  const [open, setOpen] = useState(false);
 
-    content = (
-      <Fragment>
-        <div>
-          <span
-            className={styles.circle}
-            style={{
-              backgroundColor:
-                data.type === "signal"
-                  ? styles.colors.yellow
-                  : styles.colors.green,
-            }}
-          >
-            {data.observers.length}
-          </span>
-        </div>
-        <div className={styles.itemContent}>
-          <div className={styles.itemTextContent}>
-            {data.type === "signal"
-              ? "Updated signal at "
-              : "Computed derived  at "}
-            <CodeReference
-              workspacePath={workspacePath}
-              name={data.target.name}
-              path={data.target.path}
-            />{" "}
-            with the value{" "}
-            <span className={styles.itemValue}>
-              <ValueInspector delimiter="." value={data.value} />
-            </span>
-            .
-            {isSameCodeLocation(data.source, data.target) ? null : (
-              <>
-                {" "}
-                Called from{" "}
-                <CodeReference
-                  workspacePath={workspacePath}
-                  name={data.source.name}
-                  path={data.source.path}
-                />
-                .
-              </>
-            )}{" "}
-            {observers.length || lastObserver ? (
-              <>
-                Observed by{" "}
-                {observers.length ? (
-                  <>
-                    {observers.map((observer, index) => (
-                      <>
-                        <CodeReference
-                          key={index}
-                          workspacePath={workspacePath}
-                          {...observer}
-                        />
-                        {observer.count > 1 ? ` (${observer.count})` : null}
-                        {index === observers.length - 1 ? " " : ", "}
-                      </>
-                    ))}{" "}
-                    and{" "}
-                  </>
-                ) : null}
-                {lastObserver ? (
-                  <>
-                    <CodeReference
-                      workspacePath={workspacePath}
-                      {...lastObserver}
-                    />
-                    {lastObserver.count > 1 ? ` (${lastObserver.count})` : null}
-                  </>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-          <div></div>
-        </div>
-      </Fragment>
-    );
-  }
+  const renderTitle = () => {
+    let title: string;
+    const fileName = data.target.path.split("/").pop()!.split(".")[0]!;
 
-  return (
-    <li>
-      <div className={styles.itemWrapper}>
-        <span className={styles.line} />
-        <div className={styles.itemContentWrapper}>{content}</div>
-      </div>
-    </li>
-  );
-}
+    if (data.type === "derived") {
+      title = data.target.name;
+    } else if (data.type === "effect") {
+      title = data.name;
+    } else {
+      title = data.target.name;
+    }
 
-function Events({ data }: { data: DebugData[] }) {
-  const [workspacePath, setWorkspacePath] = useWorkspacePath();
+    const [relativePath, line] = data.target.path.split(":");
 
-  return (
-    <div className={styles.wrapper}>
-      <div className={styles.innerWrapper}>
-        {
-          <div className={styles.workspaceWrapper}>
-            <div className={styles.workspaceInnerWrapper}>
-              {csbFocusFile ? (
-                <div>
-                  <label className={styles.workspaceLabel}>
-                    Workspace relative path
-                  </label>
-                  <input
-                    type="text"
-                    value={workspacePath}
-                    // @ts-ignore
-                    onChange={(event) => setWorkspacePath(event.target.value)}
-                    className={styles.workspaceInput}
-                  />
-                  <p className={styles.workspaceHint}>
-                    In CodeSandbox explorer, select the folder your dev server
-                    runs from and right click to <b>copy relative path</b>
-                  </p>
-                </div>
-              ) : (
-                <div>
-                  <label className={styles.workspaceLabel}>
-                    Workspace absolute path
-                  </label>
-                  <input
-                    type="text"
-                    value={workspacePath}
-                    // @ts-ignore
-                    onChange={(event) => setWorkspacePath(event.target.value)}
-                    className={styles.workspaceInput}
-                  />
-                  <p className={styles.workspaceHint}>
-                    In VSCode explorer, select the folder your dev server runs
-                    from and right click to <b>copy path</b>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        }
-        <div className={styles.flowRoot}>
-          <ul className={styles.list}>
-            {data.map((item, index) => (
-              <Item key={index} data={item} workspacePath={workspacePath} />
-            ))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function App() {
-  const [isOpen, setIsOpen] = useState(false);
-  const debugData = useSyncExternalStore(
-    (update) => {
-      currentSubscriber = update;
-      return () => {
-        currentSubscriber = undefined;
-      };
-    },
-    () => currentDebugData,
-  );
-
-  return (
-    <Fragment>
-      <div className={styles.indicatorHover} onClick={() => setIsOpen(!isOpen)}>
-        <div
-          className={styles.indicatorWrapper}
+    return (
+      <span style={{ display: "flex", gap: ".6em", minWidth: 0 }}>
+        <span
           style={{
-            backgroundColor: debugData.length
-              ? styles.colors.green.replace("1)", "0.2)")
-              : undefined,
+            cursor: "pointer",
           }}
+          onClick={
+            csbFocusFile
+              ? () => {
+                  csbFocusFile(
+                    "/" + workspacePath + relativePath,
+                    Number(line),
+                  );
+                }
+              : undefined
+          }
         >
-          <div
-            className={styles.indicator}
+          <span style={styles.colors[10]}>{fileName}.</span>
+          <span style={styles.colors[12]}>{title}</span>
+          <span style={styles.colors[10]}>();</span>{" "}
+        </span>
+      </span>
+    );
+  };
+
+  const renderLine = () => {
+    if (data.type === "signal") {
+      return (
+        <span
+          style={{
+            ...styles.list.headerLine,
+            background: "#00F0FF",
+          }}
+        />
+      );
+    }
+
+    if (data.type === "effect") {
+      return (
+        <div style={styles.list.startTimeline}>
+          <span
             style={{
-              backgroundColor: debugData.length
-                ? styles.colors.green
-                : styles.colors.text,
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
+            }}
+          />
+          <span
+            style={{
+              ...styles.list.startTimelineItem,
+              background: styles.palette[10],
             }}
           />
         </div>
+      );
+    }
+
+    return (
+      <span
+        style={{
+          ...styles.list.headerLine,
+        }}
+      />
+    );
+  };
+
+  return (
+    <Fragment>
+      <span style={styles.list.header}>
+        <span
+          style={{
+            ...styles.list.headerText,
+            gap: "1.1em",
+            height: 22,
+          }}
+        >
+          {renderLine()}
+          {renderTitle()}
+        </span>
+
+        {data.type !== "effect" && (
+          <span
+            onClick={() => setOpen(!open)}
+            style={{
+              cursor: "pointer",
+              color: styles.palette[11],
+              rotate: open ? "0deg" : "180deg",
+              padding: ".5em",
+            }}
+          >
+            {icons.chevron}
+          </span>
+        )}
+      </span>
+
+      <div style={{ position: "relative", display: open ? "block" : "none" }}>
+        {data.type !== "effect" && (
+          <Fragment>
+            <span style={styles.list.contentLine} />
+
+            <span style={styles.list.contentItem}>
+              {icons.pencil}
+              <span style={styles.colors[12]}>
+                <ValueInspector value={data.value} delimiter="." />
+              </span>
+            </span>
+
+            {data.source && (
+              <span style={styles.list.contentItem}>
+                {icons.lightingBolt}
+                <span
+                  onClick={
+                    csbFocusFile
+                      ? () => {
+                          const [relativePath, line] =
+                            data.source.path.split(":");
+                          csbFocusFile(
+                            "/" + workspacePath + relativePath,
+                            Number(line),
+                          );
+                        }
+                      : undefined
+                  }
+                  style={{ ...styles.colors[12], cursor: "pointer" }}
+                >
+                  {data.source.name}
+                </span>
+              </span>
+            )}
+
+            {data.observers && (
+              <Fragment>
+                <span style={styles.list.contentItem}>
+                  <div style={{ minWidth: 12 }}>{icons.eye}</div>
+
+                  <span style={styles.list.contentItemList}>
+                    {data.observers.length > 0 && (
+                      <>
+                        {mergeObservers(data.observers).map(
+                          ({ observer, count }, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                cursor: "pointer",
+                                ...styles.colors[12],
+                              }}
+                              onClick={
+                                csbFocusFile
+                                  ? () => {
+                                      const [relativePath, line] =
+                                        observer.path.split(":");
+                                      csbFocusFile(
+                                        "/" + workspacePath + relativePath,
+                                        Number(line),
+                                      );
+                                    }
+                                  : undefined
+                              }
+                            >
+                              {observer.name}
+                              {count > 1 ? `(${count})` : null}
+                            </span>
+                          ),
+                        )}
+                      </>
+                    )}
+                  </span>
+                </span>
+              </Fragment>
+            )}
+          </Fragment>
+        )}
       </div>
-      {isOpen ? <Events data={debugData} /> : null}
     </Fragment>
   );
 }
 
-document.head.appendChild(styles.styleTag);
+function App() {
+  const [debugData, setDebugData] = useState<DebugData[]>(currentDebugData);
+  const [workspacePath, setWorkspacePath] = useWorkspacePath();
+  const [opened, setOpened] = useState(false);
+
+  useEffect(() => {
+    currentSubscriber = setDebugData;
+  }, []);
+
+  if (!opened) {
+    return (
+      <div style={styles.impactButton} onClick={() => setOpened(true)}>
+        {icons.dev}
+      </div>
+    );
+  }
+
+  console.log(debugData);
+
+  return (
+    <>
+      <div style={{ ...styles.impactButton, left: 300 }}>{icons.dev}</div>
+
+      <div style={styles.impactBoundary}>
+        <div style={styles.body}>
+          {/* Header */}
+          <div style={styles.header}>
+            <span style={styles.colors[12]}>
+              Impact <span style={styles.colors[12]}>debugger</span>
+              <span style={styles.colors[10]}>;</span>
+            </span>
+
+            <div style={styles.workspaceInputWrapper}>
+              <span style={styles.colors[7]}>//</span>
+              <input
+                style={styles.workspace}
+                type="text"
+                placeholder="Base path..."
+                value={workspacePath}
+                // @ts-ignore
+                onChange={(event) => setWorkspacePath(event.target.value)}
+              />
+            </div>
+
+            <span
+              style={{ cursor: "pointer", color: styles.palette[11] }}
+              onClick={resetDebugData}
+            >
+              {icons.clean}
+            </span>
+
+            <span
+              style={{ cursor: "pointer", color: styles.palette[11] }}
+              onClick={() => setOpened(false)}
+            >
+              {icons.cross}
+            </span>
+          </div>
+
+          {/* List */}
+          <div style={styles.list.container}>
+            {/* Start timeline */}
+            <div style={styles.list.startTimeline}>
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[5],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[6],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[7],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[8],
+                }}
+              />
+            </div>
+
+            {debugData.reverse().map((data) => (
+              <Item key={data.id} data={data} workspacePath={workspacePath} />
+            ))}
+
+            {/* End timeline */}
+            <div style={styles.list.startTimeline}>
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[8],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[7],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[6],
+                }}
+              />
+              <span
+                style={{
+                  ...styles.list.startTimelineItem,
+                  background: styles.palette[5],
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 render(<App />, root);
 

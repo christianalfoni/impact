@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { cleanup, getActiveContextContainer } from "./context";
 
 // @ts-ignore
@@ -16,6 +16,7 @@ export const signalDebugHooks: {
     value: unknown,
     derived?: boolean,
   ) => void;
+  onEffectRun?: (effect: () => void) => void;
 } = {};
 
 export class ObserverContext {
@@ -327,6 +328,10 @@ export function effect(cb: () => void) {
 
     cb();
     context[Symbol.dispose]();
+
+    if (signalDebugHooks.onEffectRun) {
+      signalDebugHooks.onEffectRun(cb);
+    }
 
     return context.subscribe(() => {
       currentSubscriptionDisposer();
