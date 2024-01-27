@@ -106,7 +106,7 @@ export const list = {
   container: css({
     display: "flex",
     flexDirection: "column",
-    gap: "1.2em",
+    gap: ".6em",
     overflowY: "auto",
   }),
   startTimeline: css({
@@ -141,7 +141,7 @@ export const list = {
     height: 22,
     background: palette[12],
     display: "block",
-    boxShadow: "0 0 5px 1px rgb(255 255 255 / 0.4)",
+    boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
     borderRadius: 2,
   }),
   contentLine: css({
@@ -156,7 +156,6 @@ export const list = {
   }),
   contentItem: css({
     display: "flex",
-    alignItems: "center",
     gap: "1em",
     color: palette[9],
     padding: ".4em 0 .4em 1.3em",
@@ -194,7 +193,7 @@ export const inspector = {
   stringValue: css({
     display: "flex",
     alignItems: "center",
-    color: palette[11],
+    color: palette[12],
   }),
   otherValue: css({
     display: "flex",

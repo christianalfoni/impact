@@ -112,11 +112,11 @@ function Item({
     const fileName = data.target.path.split("/").pop()!.split(".")[0]!;
 
     if (data.type === "derived") {
-      title = `${fileName}.${data.target.name}`;
+      title = data.target.name;
     } else if (data.type === "effect") {
-      title = `${fileName}.${data.name}`;
+      title = data.name;
     } else {
-      title = `${fileName}.${data.target.name}`;
+      title = data.target.name;
     }
 
     const [relativePath, line] = data.target.path.split(":");
@@ -138,6 +138,7 @@ function Item({
               : undefined
           }
         >
+          <span style={styles.colors[10]}>{fileName}.</span>
           <span style={styles.colors[12]}>{title}</span>
           <span style={styles.colors[10]}>();</span>{" "}
         </span>
@@ -157,6 +158,10 @@ function Item({
       );
     }
 
+    if (data.type === "effect") {
+      return <>{icons.effect}</>;
+    }
+
     return (
       <span
         style={{
@@ -169,56 +174,39 @@ function Item({
   return (
     <Fragment>
       <span style={styles.list.header}>
-        <span style={styles.list.headerText}>
+        <span
+          style={{
+            ...styles.list.headerText,
+            gap: data.type === "effect" ? ".3em" : "1.1em",
+          }}
+        >
           {renderLine()}
           {renderTitle()}
         </span>
-        <span
-          onClick={() => setOpen(!open)}
-          style={{
-            cursor: "pointer",
-            color: styles.palette[11],
-            rotate: open ? "0deg" : "180deg",
-            padding: ".5em",
-          }}
-        >
-          {icons.chevron}
-        </span>
+
+        {data.type !== "effect" && (
+          <span
+            onClick={() => setOpen(!open)}
+            style={{
+              cursor: "pointer",
+              color: styles.palette[11],
+              rotate: open ? "0deg" : "180deg",
+              padding: ".5em",
+            }}
+          >
+            {icons.chevron}
+          </span>
+        )}
       </span>
 
       <div style={{ position: "relative", display: open ? "block" : "none" }}>
-        {data.type === "effect" ? (
-          <Fragment>
-            <span style={styles.list.contentLine} />
-
-            <span style={styles.list.contentItem}>
-              {icons.lightingBolt}
-              <span
-                onClick={
-                  csbFocusFile
-                    ? () => {
-                        const [relativePath, line] =
-                          data.target.path.split(":");
-                        csbFocusFile(
-                          "/" + workspacePath + relativePath,
-                          Number(line),
-                        );
-                      }
-                    : undefined
-                }
-                style={{ ...styles.colors[11], cursor: "pointer" }}
-              >
-                {data.name}
-              </span>
-            </span>
-          </Fragment>
-        ) : (
+        {data.type !== "effect" && (
           <Fragment>
             <span style={styles.list.contentLine} />
 
             <span style={styles.list.contentItem}>
               {icons.pencil}
-              <span style={styles.colors[11]}>
+              <span style={styles.colors[12]}>
                 <ValueInspector value={data.value} delimiter="." />
               </span>
             </span>
@@ -239,41 +227,58 @@ function Item({
                         }
                       : undefined
                   }
-                  style={{ ...styles.colors[11], cursor: "pointer" }}
+                  style={{ ...styles.colors[12], cursor: "pointer" }}
                 >
                   {data.source.name}
                 </span>
               </span>
             )}
 
-            {data.observers && data.observers.length > 0 && (
-              <>
-                {mergeObservers(data.observers).map(
-                  ({ observer, count }, index) => (
-                    <span style={styles.list.contentItem} key={index}>
-                      {icons.eye}
-                      <span
-                        style={{ cursor: "pointer", ...styles.colors[11] }}
-                        onClick={
-                          csbFocusFile
-                            ? () => {
-                                const [relativePath, line] =
-                                  observer.path.split(":");
-                                csbFocusFile(
-                                  "/" + workspacePath + relativePath,
-                                  Number(line),
-                                );
+            {data.observers && (
+              <Fragment>
+                <span style={styles.list.contentItem}>
+                  {icons.eye}
+
+                  <span
+                    style={{
+                      display: "flex",
+                      gap: ".8em",
+                      flexDirection: "column",
+                    }}
+                  >
+                    {data.observers.length > 0 && (
+                      <>
+                        {mergeObservers(data.observers).map(
+                          ({ observer, count }, index) => (
+                            <span
+                              key={index}
+                              style={{
+                                cursor: "pointer",
+                                ...styles.colors[12],
+                              }}
+                              onClick={
+                                csbFocusFile
+                                  ? () => {
+                                      const [relativePath, line] =
+                                        observer.path.split(":");
+                                      csbFocusFile(
+                                        "/" + workspacePath + relativePath,
+                                        Number(line),
+                                      );
+                                    }
+                                  : undefined
                               }
-                            : undefined
-                        }
-                      >
-                        {observer.name}
-                        {count > 1 ? `(${count})` : null}
-                      </span>
-                    </span>
-                  ),
-                )}
-              </>
+                            >
+                              {observer.name}
+                              {count > 1 ? `(${count})` : null}
+                            </span>
+                          ),
+                        )}
+                      </>
+                    )}
+                  </span>
+                </span>
+              </Fragment>
             )}
           </Fragment>
         )}
@@ -310,7 +315,7 @@ function App() {
           {/* Header */}
           <div style={styles.header}>
             <span style={styles.colors[12]}>
-              Impact <span style={styles.colors[11]}>debugger</span>
+              Impact <span style={styles.colors[12]}>debugger</span>
               <span style={styles.colors[10]}>;</span>
             </span>
 
