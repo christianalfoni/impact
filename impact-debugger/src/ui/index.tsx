@@ -219,17 +219,16 @@ function Item({
       );
     }
 
-    return (
-      <span
-        style={{
-          ...styles.list.headerLine,
-        }}
-      />
-    );
+    return <span style={styles.list.headerLine} />;
   };
 
   return (
     <Fragment>
+      {data.isStale && (
+        <span style={styles.list.header}>
+          <span style={styles.list.staleLine} />
+        </span>
+      )}
       <span style={styles.list.header}>
         <span
           style={{
@@ -240,15 +239,9 @@ function Item({
         >
           {renderLine()}
           {renderTitle()}
-          <span
-            style={{
-              ...styles.list.staleLine,
-              opacity: data.isStale ? 1 : 0,
-            }}
-          />
         </span>
 
-        {data.type !== "effect" && (
+        {(data.type === "signal" || data.type === "derived") && (
           <span
             onClick={() => setOpen(!open)}
             style={{
@@ -264,7 +257,7 @@ function Item({
       </span>
 
       <div style={{ position: "relative", display: open ? "block" : "none" }}>
-        {data.type !== "effect" && (
+        {(data.type === "signal" || data.type === "derived") && (
           <Fragment>
             <span style={styles.list.contentLine} />
 
