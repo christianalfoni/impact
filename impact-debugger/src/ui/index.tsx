@@ -1,7 +1,7 @@
 import { Fragment, h, render } from "preact";
 import * as styles from "./styles";
 import * as icons from "./icons";
-import { useEffect, useState, useCallback } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import ValueInspector from "./ValueInspector";
 
 const root = document.createElement("div");
