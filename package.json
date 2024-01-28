@@ -7,7 +7,7 @@
     "impact-debugger"
   ],
   "scripts": {
-    "dev": "concurrently -n dev,app,debugger -c green,blue,yellow \"cd dev && yarn dev\" \"cd impact-app && yarn dev\" \"cd impact-debugger && yarn dev\""
+    "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-app && yarn dev\" \"cd impact-debugger && yarn dev\" \"cd dev && yarn dev\""
   },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",

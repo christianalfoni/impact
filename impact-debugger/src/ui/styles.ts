@@ -119,7 +119,18 @@ export const list = {
     height: 4,
     borderRadius: 2,
   }),
+  staleLine: css({
+    minWidth: 3,
+    height: 3,
+    marginTop: 10,
+    marginBottom: 10,
+    background: palette[12],
+    display: "block",
+    boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
+    borderRadius: 2,
+  }),
   header: css({
+    position: "relative",
     width: "100%",
     display: "flex",
     justifyContent: "space-between",
@@ -144,14 +155,7 @@ export const list = {
     boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
     borderRadius: 2,
   }),
-  // headerCircleLine: css({
-  //   minWidth: 3,
-  //   height: 3,
-  //   background: palette[12],
-  //   display: "block",
-  //   boxShadow: "0 0 5px rgb(255 255 255 / 0.4)",
-  //   borderRadius: 2,
-  // }),
+
   contentLine: css({
     width: 3,
     position: "absolute",
