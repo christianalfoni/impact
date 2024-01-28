@@ -1,9 +1,8 @@
 import { Fragment, h, render } from "preact";
 import * as styles from "./styles";
 import * as icons from "./icons";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState, useCallback } from "preact/hooks";
 import ValueInspector from "./ValueInspector";
-import { text } from "stream/consumers";
 
 const root = document.createElement("div");
 
@@ -11,6 +10,16 @@ root.style.position = "fixed";
 root.style.zIndex = "99999999999999999999";
 root.style.top = "0px";
 root.style.right = "0px";
+
+function debounce<T extends any[]>(func: (...args: T) => any, timeout: number) {
+  let timer: number;
+  return (...args: T) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func(...args);
+    }, timeout) as unknown as number;
+  };
+}
 
 type CodeLocation = {
   name: string;
@@ -23,7 +32,7 @@ type Observer = CodeLocation & {
   type: ObserverType;
 };
 
-type DebugData =
+type DebugDataDTO =
   | {
       id: number;
       type: "signal";
@@ -42,19 +51,39 @@ type DebugData =
     }
   | { id: number; type: "effect"; name: string; target: CodeLocation };
 
+type DebugData = DebugDataDTO & { isStale: boolean };
+
 let currentDebugData: DebugData[] = [];
 
 let currentSubscriber: undefined | ((data: DebugData[]) => void);
 
-export function addDebugData(data: DebugData) {
-  currentDebugData = [...currentDebugData, data].sort((a, b) => a.id - b.id);
+export function addDebugData(data: DebugDataDTO) {
+  currentDebugData = [
+    ...currentDebugData,
+    {
+      ...data,
+      isStale: false,
+    },
+  ].sort((a, b) => b.id - a.id);
   currentSubscriber?.(currentDebugData);
+  makeLastStale();
 }
 
 function resetDebugData() {
   currentDebugData = [];
   currentSubscriber?.(currentDebugData);
 }
+
+const makeLastStale = debounce(() => {
+  currentDebugData = [
+    {
+      ...currentDebugData[0],
+      isStale: true,
+    },
+    ...currentDebugData.slice(1),
+  ];
+  currentSubscriber?.(currentDebugData);
+}, 2000);
 
 function useWorkspacePath() {
   const [workspacePath, setWorkspacePath] = useState(
@@ -211,6 +240,12 @@ function Item({
         >
           {renderLine()}
           {renderTitle()}
+          <span
+            style={{
+              ...styles.list.staleLine,
+              opacity: data.isStale ? 1 : 0,
+            }}
+          />
         </span>
 
         {data.type !== "effect" && (
@@ -329,8 +364,6 @@ function App() {
     );
   }
 
-  console.log(debugData);
-
   return (
     <>
       <div style={{ ...styles.impactButton, left: 300 }}>{icons.dev}</div>
@@ -401,7 +434,7 @@ function App() {
               />
             </div>
 
-            {debugData.reverse().map((data) => (
+            {debugData.map((data) => (
               <Item key={data.id} data={data} workspacePath={workspacePath} />
             ))}
 
