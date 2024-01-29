@@ -39,12 +39,12 @@ Or try it out on [codesandbox.io](https://codesandbox.io/p/devbox/impact-templat
 - [Tutorial](./docs/01_tutorial.md)
 - Advanced
   - [Lists](./docs/02_lists.md)
-  - [Queries and mutations](./docs/02_queries_and_mutations.md)
+  - [Queries and mutations](./docs/03_queries_and_mutations.md)
 - Api
-  - [Store](./docs/03_store.md)
-  - [Context](./docs/04_context.md)
-  - [Signal](./docs/05_signal.md)
-- [Debugger](./docs/06_debugger.md)
+  - [Store](./docs/04_store.md)
+  - [Context](./docs/05_context.md)
+  - [Signal](./docs/06_signal.md)
+- [Debugger](./docs/07_debugger.md)
 
 ## Reference projects
 
