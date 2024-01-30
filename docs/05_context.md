@@ -6,6 +6,20 @@ You probably already know contexts from React. Contexts is the primitive you use
 
 ## Learn
 
+### Creating a global context
+
+If you only need to compose your state management into a single context, you can use the `globalContext`. This context does not need to be provided to your component tree. 
+
+```ts
+import { globalContext } from 'impact-app'
+
+function SomeGlobalContext() {
+    return {}
+}
+
+const useSomeGlobalContext = globalContext(SomeGlobalContext)
+```
+
 ### Creating a context
 
 A context is just a function that returns state and/or management of state, just like any other traditional React context. We call it a context for familiarity, but you can think about this function as a constructor. It will be called once, when the context is mounted, and not be called again during its lifetime.
@@ -20,7 +34,7 @@ function SomeContext() {
 const useSomeContext = context(SomeContext)
 ```
 
-### Providing and consuming contexts
+#### Providing and consuming contexts
 
 The `context` function returns a hook that can be used in components and other Impact contexts. The hook has a property called `Provider` which is a context provider component that exposes the context to React. 
 
@@ -46,7 +60,7 @@ function App() {
 }
 ```
 
-### Consuming contexts in other contexts
+#### Consuming contexts in other contexts
 
 A great thing about React contexts is that you can consume other contexts higher up in the component tree. Impact contexts allows the same. The hook returned from a context can be used in both components and other Impact contexts.
 
@@ -63,7 +77,7 @@ function SomePageContext() {
 return useSomePageContext = context(SomePageContext)
 ```
 
-### Disposing
+#### Disposing
 
 When a context provider is unmounted it will be disposed. The `cleanup` function registers a callback that will be called when this disposal occurs. Since Impact contexts runs outside the reconciliation loop this function is guaranteed to run only when the provider is unmounted.
 
@@ -85,7 +99,7 @@ function SomePageContext() {
 export const useSomePageContext = context(SomePageContext)
 ```
 
-### Passing props to contexts
+#### Passing props to contexts
 
 When your context is exposed through its `Provider` any props are passed to the context.
 
@@ -107,7 +121,7 @@ const App = ({ id }: { id: string }) => {
 }
 ```
 
-### Lazy loading contexts
+#### Lazy loading contexts
 
 Just like traditional context providers you simply lazy load the component that has the provider of the context.
 
@@ -124,20 +138,23 @@ const Layout = () => {
 }
 ```
 
-### Organising contexts
+#### Organising contexts
 
 It can be a good idea to structure your application the way your components are nested. Instead of of creating directories of flat components, hooks etc. you rather start with the root component and create a nested structure. Now your file structure reflects you UI composition, but also your file tree also shows what components can consume what contexts.
 
 ```bash
 /pages
-  /PageA
+  /PageAContext
     index.tsx
+    PageA.tsx
     usePageAContext.ts
-  /PageB
-    /Sidebar
+  /PageBContext
+    /SidebarContext
         index.tsx
+        Sidebar.tsx
         useSidebarContext.ts
     index.tsx
+    PageB.tsx
     usePageBContext.ts
 index.tsx
 useGlobalContext.ts
@@ -150,11 +167,9 @@ import { Suspense, use } from 'react'
 import { Errorboundary } from 'react-error-boundary'
 import { useGlobalContext } from '../useGlobalContext'
 import { useProjectContext } from './useProjectContext'
-import { Layout } from './components/Layout'
-import { ProjectOverview } from './components/ProjectOverview'
-import { ConfigureProject } from './components/ConfigureProject'
+import { Project } from './Project'
 
-export function Project({ id }: { id: string }) {
+export function ProjectContext({ id }: { id: string }) {
     const { api } = useGlobalContext()
     const projectData = use(api.projects.fetch(id))
 
@@ -162,10 +177,7 @@ export function Project({ id }: { id: string }) {
         <ErrorBoundary>
             <Suspense fallback={<h4>Loading...</h4>}>
                 <useProjectContext.Provider key={id} data={projectData}>
-                    <Layout>
-                        <ProjectOverview />
-                        <ConfigureProject />
-                    </Layout>
+                    <Project />
                 </useProjectContext.Provider>
             </Suspense>
         </ErrorBoundary>

@@ -54,12 +54,10 @@ The `globalStore` might be all you need for your application, but as the store i
 
 ## Level 2: I need to compose multiple stores
 
-As the complexity of your state store increases you will want to split it up into different domains or namespaces. With **Impact** you can continue using the declarative store definition, but rather compose them in a `context` using the `store` API. Unlike Reacts context, Impacts `context` is a reactive context where components automatically observes changes to any signals it accesses.
-
-Unlike the `globalStore` you will need to provide this context to your application as seen below.
+As the complexity of your state store increases you will want to split it up into different domains or namespaces. With **Impact** you can continue using the declarative store definition, but rather compose them in a `globalContext` using the `store` API. Unlike Reacts context, Impacts `globalContext` is a reactive context where components automatically observes changes to any signals it accesses.
 
 ```tsx
-import { context, store, effect } from 'impact-app'
+import { globalContext, store, effect } from 'impact-app'
 
 // Compose the stores together using the hooks pattern
 const useNotifications = () => store({
@@ -108,9 +106,8 @@ const useTodos = (notifications, api) => {
     return todos
 }
 
-// Use "context" to compose together stores and related logic into a single
-// context which can be provided at the top of your application
-const useAppStore = context(() => {
+// Use "globalContext" to compose together stores and related logic
+const useAppStore = globalContext(() => {
     const api = new Api()
     const notifications = useNotifications()
     const todos = useTodos(notifications, api)
@@ -120,17 +117,9 @@ const useAppStore = context(() => {
         notifications
     }
 })
-
-function AppWrapper() {
-    return (
-        <useAppStore.Provider>
-            <App />
-        </useAppStore.Provider>
-    )
-}
 ```
 
-With `context` you still consume a single global store, but it is composed together using the `store` API, which is the same accessible declarative API over signals as `globalStore`. The function scope of `context` is used to compose together the stores however you want and you can start taking advantage of `effect` and whatever else you want to initialise and manage within your global context.
+With `globalContext` you still consume a single global store, but it is composed together using the `store` API, which is the same accessible declarative API over signals as `globalStore`. The function scope of `globalContext` is used to compose together the stores however you want and you can start taking advantage of `effect` and whatever else you want to initialise and manage within your global context.
 
 This level of managing state is close to what you know from [redux](https://redux.js.org/), [mobx](https://mobx.js.org/README.html), [overmind](https://overmindjs.org/) and the likes.
 
