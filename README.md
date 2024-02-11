@@ -1,8 +1,12 @@
 
-![Impact Logo](./impact.png)
+
+
 
 <p align="center">
-  <b>Bringing reactivity to React</b>
+  <img align="center" src="./Icon.png" />
+</p>
+<p align="center">
+  <b>Reactive state management for React</b>
 </p>
 
 <br />

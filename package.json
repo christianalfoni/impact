@@ -7,7 +7,10 @@
     "impact-debugger"
   ],
   "scripts": {
-    "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-app && yarn dev\" \"cd impact-debugger && yarn dev\" \"cd dev && yarn dev\""
+    "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-app && yarn dev\" \"cd impact-debugger && yarn dev\" \"cd dev && yarn dev\"",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "description": "Bringing reactivity to React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
@@ -26,6 +29,13 @@
     "react": "*",
     "rimraf": "^2.6.1",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitepress": "^1.0.0-rc.42"
+  },
+  "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.1",
+    "@codesandbox/sandpack-client": "^2.12.0",
+    "codemirror": "^6.0.1",
+    "vue-codemirror": "^6.1.1"
   }
 }
