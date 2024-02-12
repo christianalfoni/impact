@@ -1,7 +1,7 @@
 {
-  "name": "impact-app",
-  "version": "0.49.0",
-  "description": "Reactive applications for React",
+  "name": "impact-react",
+  "version": "1.0.0",
+  "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",

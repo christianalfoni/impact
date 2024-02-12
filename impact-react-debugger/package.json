@@ -1,7 +1,7 @@
 {
-  "name": "impact-debugger",
+  "name": "impact-react-debugger",
   "version": "0.5.0",
-  "description": "Reactive applications for React",
+  "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",

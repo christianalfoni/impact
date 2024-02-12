@@ -78,27 +78,17 @@ export default defineComponent({
     });
 
     const code = ref(frontmatter.code);
-    const extensions = [javascript()];
+    const extensions = [
+      javascript({
+        jsx: true,
+        typescript: true,
+      }),
+    ];
 
     // Codemirror EditorView instance ref
     const view = shallowRef();
     const handleReady = (payload) => {
       view.value = payload.view;
-    };
-
-    // Status is available at all times via Codemirror EditorView
-    const getCodemirrorStates = () => {
-      const state = view.value.state;
-      const ranges = state.selection.ranges;
-      const selected = ranges.reduce(
-        (r, range) => r + range.to - range.from,
-        0,
-      );
-      const cursor = ranges[0].anchor;
-      const length = state.doc.length;
-      const lines = state.doc.lines;
-      // more state info ...
-      // return ...
     };
 
     return {
@@ -115,17 +105,45 @@ export default defineComponent({
 });
 </script>
 <template>
-  <Content />
-  <iframe ref="iframe"></iframe>
-  <codemirror
-    v-model="code"
-    placeholder="Code goes here..."
-    :style="{ height: '400px' }"
-    :autofocus="true"
-    :indent-with-tab="true"
-    :tab-size="2"
-    :extensions="extensions"
-    @ready="handleReady"
-    @change="handleChange"
-  />
+  <div class="vertical">
+    <div class="horizontal">
+      <div class="content">
+        <Content />
+      </div>
+      <codemirror
+        v-model="code"
+        placeholder="Code goes here..."
+        :style="{ height: '400px' }"
+        :autofocus="true"
+        :indent-with-tab="true"
+        :tab-size="2"
+        :extensions="extensions"
+        @ready="handleReady"
+        @change="handleChange"
+      />
+    </div>
+    <iframe class="iframe" ref="iframe"></iframe>
+  </div>
 </template>
+<style scoped>
+.horizontal {
+  display: flex;
+}
+
+.vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  padding: 10px;
+  min-width: 300px;
+}
+
+.iframe {
+  border: 1px solid #333;
+  display: block;
+  width: 100%;
+  min-height: 400px;
+}
+</style>

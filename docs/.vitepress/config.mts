@@ -16,11 +16,12 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: "Examples",
-        items: [
-          { text: "Markdown Examples", link: "/markdown-examples" },
-          { text: "Runtime API Examples", link: "/api-examples" },
-        ],
+        text: "Learn",
+        items: [{ text: "Global store", link: "/learn" }],
+      },
+      {
+        text: "API",
+        items: [{ text: "globalStore", link: "/api#globalstore" }],
       },
     ],
 

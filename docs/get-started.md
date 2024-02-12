@@ -3,15 +3,15 @@
 ::: code-group
 
 ```sh [npm]
-npm install impact-app
+npm install impact-react
 ```
 
 ```sh [yarn]
-yarn add impact-app
+yarn add impact-react
 ```
 
 ```sh [pnpm]
-pnpm add impact-app
+pnpm add impact-react
 ```
 
 :::
