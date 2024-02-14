@@ -2,6 +2,7 @@
 import { defineComponent } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
+import { oneDark } from "@codemirror/theme-one-dark";
 
 import { ref, onMounted, shallowRef } from "vue";
 import { useData } from "vitepress";
@@ -65,6 +66,7 @@ export default defineComponent({
   components: {
     Codemirror,
   },
+
   setup() {
     const iframe = ref(null);
 
@@ -81,12 +83,12 @@ export default defineComponent({
       );
     });
 
-    const code = ref(frontmatter.code);
     const extensions = [
       javascript({
         jsx: true,
         typescript: true,
       }),
+      oneDark,
     ];
 
     // Codemirror EditorView instance ref
@@ -96,7 +98,6 @@ export default defineComponent({
     };
 
     return {
-      code,
       extensions,
       handleReady,
       handleChange: (updatedCode) => {
@@ -113,18 +114,35 @@ export default defineComponent({
     <div class="horizontal">
       <div class="content">
         <Content class="vp-doc" />
+        <div class="links">
+          <a
+            v-if="$frontmatter.prev"
+            class="link"
+            :href="'/learn' + $frontmatter.prev"
+            >Prev</a
+          >
+          <a v-if="!$frontmatter.prev" class="link disabled">Prev</a>
+          <a
+            v-if="$frontmatter.next"
+            class="link"
+            :href="'/learn' + $frontmatter.next"
+            >Next</a
+          >
+          <a v-if="!$frontmatter.next" class="link disabled">Next</a>
+        </div>
       </div>
-      <codemirror
-        v-model="code"
-        placeholder="Code goes here..."
-        :style="{ height: '400px' }"
-        :autofocus="true"
-        :indent-with-tab="true"
-        :tab-size="2"
-        :extensions="extensions"
-        @ready="handleReady"
-        @change="handleChange"
-      />
+      <div class="codemirror-wrapper">
+        <codemirror
+          v-model="$frontmatter.code"
+          :style="{ height: '100%' }"
+          :autofocus="true"
+          :indent-with-tab="true"
+          :tab-size="2"
+          :extensions="extensions"
+          @ready="handleReady"
+          @change="handleChange"
+        />
+      </div>
     </div>
     <iframe class="iframe" ref="iframe"></iframe>
   </div>
@@ -140,7 +158,7 @@ export default defineComponent({
 }
 
 .content {
-  padding: 10px;
+  padding: 16px;
   min-width: 300px;
 }
 
@@ -149,5 +167,26 @@ export default defineComponent({
   display: block;
   width: 100%;
   min-height: 400px;
+}
+
+.link {
+  background-color: var(--vp-button-brand-bg);
+  padding: 2px 10px;
+  border-radius: 6px;
+  color: var(--vp-button-brand-text);
+  font-size: 13px;
+}
+.links {
+  display: flex;
+  justify-content: space-between;
+}
+
+.disabled {
+  opacity: 0.3;
+}
+</style>
+<style>
+.cm-focused {
+  outline: none !important;
 }
 </style>
