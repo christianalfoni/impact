@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 
-import "impact-debugger";
+import "impact-react-debugger";
 import { useStore } from "./store";
 
 const root = createRoot(document.querySelector("#root")!);

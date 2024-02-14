@@ -1,4 +1,4 @@
-import { context, derived, effect, signal } from "impact-app";
+import { context, derived, effect, signal } from "impact-react";
 
 function Store() {
   const foo = signal("bar");

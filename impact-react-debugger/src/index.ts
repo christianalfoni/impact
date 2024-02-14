@@ -5,7 +5,7 @@ import {
   ObserverContextType,
   SignalTracker,
   signalDebugHooks,
-} from "impact-app";
+} from "impact-react";
 import { mount, unmount, addDebugData } from "./ui";
 
 const cache: {

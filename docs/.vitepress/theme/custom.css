@@ -1,0 +1,30 @@
+:root {
+  --vp-c-brand-1: #0080a8;
+  --vp-c-brand-2: #0097c7;
+  --vp-c-brand-3: #0097c7;
+}
+
+.image-bg {
+  opacity: 0.1;
+}
+
+.VPHero .main {
+  background: url("/Logo-full.png") no-repeat;
+  background-size: auto 140px;
+}
+
+.VPHero .main .actions {
+  padding-top: 80px;
+}
+
+.VPHero .main .name,
+.VPHero .main .clip,
+.VPHero .main .tagline {
+  -webkit-text-fill-color: transparent;
+  background: none;
+  color: transparent;
+}
+
+.details {
+  font-family: var(--vp-font-family-mono);
+}

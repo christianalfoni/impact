@@ -18,7 +18,11 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
     "/package.json": {
       code: JSON.stringify({
         main: "index.tsx",
-        dependencies: { react: "latest", "react-dom": "latest" },
+        dependencies: {
+          react: "18.2.0",
+          "react-dom": "18.2.0",
+          "impact-react": "1.0.0",
+        },
       }),
     },
     "/App.tsx": { code },
@@ -108,7 +112,7 @@ export default defineComponent({
   <div class="vertical">
     <div class="horizontal">
       <div class="content">
-        <Content />
+        <Content class="vp-doc" />
       </div>
       <codemirror
         v-model="code"

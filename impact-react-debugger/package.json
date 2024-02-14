@@ -1,6 +1,6 @@
 {
   "name": "impact-react-debugger",
-  "version": "0.5.0",
+  "version": "1.0.0",
   "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -43,7 +43,7 @@
     "stacktrace-gps": "^3.1.2"
   },
   "peerDependencies": {
-    "impact-app": "*"
+    "impact-react": "*"
   },
   "devDependencies": {
     "vite": "^5.0.11"
