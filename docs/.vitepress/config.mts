@@ -6,7 +6,7 @@ export default defineConfig({
   description: "Reactive contexts for React",
   cleanUrls: true,
   themeConfig: {
-    logo: "/Icon.png",
+    logo: { light: "/Icon.png", dark: "/Icon-dark.png" },
 
     // https://vitepress.dev/reference/default-theme-config
     nav: [

@@ -134,7 +134,7 @@ export default defineComponent({
       <div class="codemirror-wrapper">
         <codemirror
           v-model="$frontmatter.code"
-          :style="{ height: '100%' }"
+          :style="{ height: '100%', padding: '5px' }"
           :autofocus="true"
           :indent-with-tab="true"
           :tab-size="2"

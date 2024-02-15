@@ -13,6 +13,11 @@
   background-size: auto 140px;
 }
 
+.dark .VPHero .main {
+  background: url("/Logo-full-dark.png") no-repeat;
+  background-size: auto 140px;
+}
+
 .VPHero .main .actions {
   padding-top: 80px;
 }
