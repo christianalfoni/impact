@@ -17,7 +17,14 @@ export default defineConfig({
     sidebar: [
       {
         text: "Learn",
-        items: [{ text: "Global store", link: "/learn" }],
+        items: [
+          { text: "State Management", link: "/learn" },
+          { text: "Closures", link: "/learn/closures" },
+          { text: "Props", link: "/learn/props" },
+          { text: "React Context", link: "/learn/react-context" },
+          { text: "Impact Context", link: "/learn/impact-context" },
+          { text: "Signals", link: "/learn/signals" },
+        ],
       },
       {
         text: "API",

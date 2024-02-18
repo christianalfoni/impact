@@ -462,6 +462,16 @@
     outvariant "1.4.0"
     static-browser-server "1.0.3"
 
+"@ddietr/codemirror-themes@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@ddietr/codemirror-themes/-/codemirror-themes-1.4.2.tgz#5f3ca219ec3b9889ef6d7b6e19860483f4fd6616"
+  integrity sha512-8U3H3lmtmSWLD5VRlt7jf2HW62URnwgPxjZZDYjBX5EtMpgZ2QnqiIYrNzdQPPjJngT9D43gls3+JlekCBmrfw==
+  dependencies:
+    "@codemirror/language" "^6.0.0"
+    "@codemirror/state" "^6.0.0"
+    "@codemirror/view" "^6.0.0"
+    "@lezer/highlight" "^1.0.0"
+
 "@docsearch/css@3.5.2", "@docsearch/css@^3.5.2":
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/@docsearch/css/-/css-3.5.2.tgz#610f47b48814ca94041df969d9fcc47b91fc5aac"

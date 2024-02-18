@@ -36,6 +36,7 @@
     "@codemirror/lang-javascript": "^6.2.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codesandbox/sandpack-client": "^2.12.0",
+    "@ddietr/codemirror-themes": "^1.4.2",
     "codemirror": "^6.0.1",
     "vue-codemirror": "^6.1.1"
   }

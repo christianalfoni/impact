@@ -1,16 +1,22 @@
 ---
 layout: playground
 code: |
-    import { useState } from 'react'
+    import { useState, createContext, useContext, useCallback, useMemo } from 'react'
 
-    function CountLabel({ count }) {
+    const appContext = createContext()
+
+    function CountLabel() {
+        const { count } = useContext(appContext)
+
         return <span>Increase ({count})</span>
     }
 
-    function Counter({ count, onClick }) {
+    function Counter() {
+        const { increase } = useContext(appContext)
+
         return (
             <button onClick={increase}>
-                <CountLabel count={count} />
+                <CountLabel />
             </button>
         )
     }
@@ -18,14 +24,23 @@ code: |
     export default function App() {
         const [count, setCount] = useState(0)
 
-        const increase = () => {
+        const increase = useCallback(() => {
             setCount(count + 1)
-        }
+        }, [count])
 
-        return <Counter count={count} onClick={increase} />
+        const app = useMemo(() => ({
+            count,
+            increase
+        }), [count, increase])
+
+        return (
+            <appContext.Provider value={app}>
+                <Counter />
+            </appContext.Provider>
+        )
     }
 prev: /props
-next: /
+next: /impact-context
 ---
 
 # React Context
@@ -34,5 +49,7 @@ With a React context we can overcome both challenges we just experienced passing
 
 1. The provider component will also reconcile so we need to make sure that the value we expose on the context does not unnnecessarily change reference. We need to both use `useCallback` and `useMemo` to ensure that reconciliation from a parent causes the exposed value to **not** change reference, in turn making all consumers of the context reconcile
 2. Regardless of the previous point you will have components unnecessarily reconciling due to the context value having to change reference whenever any of the state within changes reference. In other words React contexts is an "all or nothing" deal
+3. Even with Reacts compiler, you will still have performance issues as any state changed within the context will cause any consumer of the text to reconcile, even though they where not concerned with that specific state change
+4. Any local state needs to be defined using refs
 
-All the challenges mentioned this far is the reason why we have global state stores like [Mobx](), [Redux]() and the likes. But let us now stay where we are and take the steps gradually back up to a global state store.
+All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. But let us now stay where we are and take the steps gradually back up to a global state store.

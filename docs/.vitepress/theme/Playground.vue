@@ -2,9 +2,10 @@
 import { defineComponent } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { githubLight } from "@ddietr/codemirror-themes/github-light";
+import { githubDark } from "@ddietr/codemirror-themes/github-dark";
 
-import { ref, onMounted, shallowRef } from "vue";
+import { ref, onMounted, shallowRef, onUpdated } from "vue";
 import { useData } from "vitepress";
 import {
   ClientOptions,
@@ -83,12 +84,16 @@ export default defineComponent({
       );
     });
 
+    onUpdated(() => {
+      updateCode(data.frontmatter.value.code);
+    });
+
     const extensions = [
       javascript({
         jsx: true,
         typescript: true,
       }),
-      oneDark,
+      data.isDark.value ? githubDark : githubLight,
     ];
 
     // Codemirror EditorView instance ref
@@ -101,6 +106,7 @@ export default defineComponent({
       extensions,
       handleReady,
       handleChange: (updatedCode) => {
+        console.log("HM", updatedCode);
         updateCode(updatedCode);
       },
       log: console.log,
