@@ -43,11 +43,11 @@ prev: /props
 next: /signals
 ---
 
-# Context
+# Impact Context
 
-**Impact** also has a context, though it is reactive. Instead of implementing the context value in a component, we use a callback. Since the context is reactive the context callback only runs once during its lifetime.
+**Impact** also has a context, though it is reactive. Instead of implementing the context value in a component, we use a callback. What you return from the callback is exposed on the context. Since the context is reactive the context callback only runs once during its lifetime.
 
-The count is exposed using a signal, which any component consuming the context can observe. This context can be populated with as many signals as you need, only the ones actually accessed in any component will cause that component to reconcile when changed.
+The `count` in this example is exposed using a signal, which any component consuming the context can observe. This context can be populated with as many signals as you need, only the ones actually accessed in any component will cause that component to reconcile when changed.
 
 Not having to think of reconciliation when implementing state management is a relief. Also you can not get into performance issues due to the size of your context.
 

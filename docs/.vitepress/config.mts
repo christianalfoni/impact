@@ -18,12 +18,14 @@ export default defineConfig({
       {
         text: "Learn",
         items: [
-          { text: "State Management", link: "/learn" },
+          { text: "State Management", link: "/learn/" },
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "React Context", link: "/learn/react-context" },
           { text: "Impact Context", link: "/learn/impact-context" },
           { text: "Signals", link: "/learn/signals" },
+          { text: "Derived", link: "/learn/derived" },
+          { text: "Effects", link: "/learn/effects" },
         ],
       },
       {

@@ -117,26 +117,26 @@ export default defineComponent({
 </script>
 <template>
   <div class="vertical">
-    <div class="horizontal">
-      <div class="content">
-        <Content class="vp-doc" />
-        <div class="links">
-          <a
-            v-if="$frontmatter.prev"
-            class="link"
-            :href="'/learn' + $frontmatter.prev"
-            >Prev</a
-          >
-          <a v-if="!$frontmatter.prev" class="link disabled">Prev</a>
-          <a
-            v-if="$frontmatter.next"
-            class="link"
-            :href="'/learn' + $frontmatter.next"
-            >Next</a
-          >
-          <a v-if="!$frontmatter.next" class="link disabled">Next</a>
-        </div>
+    <div class="content">
+      <Content class="vp-doc" />
+      <div class="links">
+        <a
+          v-if="$frontmatter.prev"
+          class="link"
+          :href="'/learn' + $frontmatter.prev"
+          >Prev</a
+        >
+        <a v-if="!$frontmatter.prev" class="link disabled">Prev</a>
+        <a
+          v-if="$frontmatter.next"
+          class="link"
+          :href="'/learn' + $frontmatter.next"
+          >Next</a
+        >
+        <a v-if="!$frontmatter.next" class="link disabled">Next</a>
       </div>
+    </div>
+    <div class="horizontal">
       <div class="codemirror-wrapper">
         <codemirror
           v-model="$frontmatter.code"
@@ -149,8 +149,8 @@ export default defineComponent({
           @change="handleChange"
         />
       </div>
+      <iframe class="iframe" ref="iframe"></iframe>
     </div>
-    <iframe class="iframe" ref="iframe"></iframe>
   </div>
 </template>
 <style scoped>
@@ -169,7 +169,7 @@ export default defineComponent({
 }
 
 .iframe {
-  border: 1px solid #333;
+  border: 0;
   display: block;
   width: 100%;
   min-height: 400px;

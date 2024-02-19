@@ -5,18 +5,25 @@ code: |
 
     const useApp = context(() => {
         const count = signal(0)
+        const enabled = signal(false)
 
         return {
             get count() {
                 return count.value
             },
+            get enabled() {
+                return enabled.value
+            },
             increase() {
                 count.value++
+            },
+            toggleEnabled() {
+                enabled.value = !enabled.value
             }
         }
     })
 
-    function Example() {
+    function Counter() {
         const { count, increase } = useApp()
 
         return (
@@ -26,20 +33,31 @@ code: |
         )
     }
 
+    function Enabler() {
+        const { enabled, toggleEnabled } = useApp()
+
+        return (
+            <button onClick={toggleEnabled}>
+                {enabled ? "Disable" : "Enable"}
+            </button>
+        )
+    }
+
     export default function App() {
         return (
             <useApp.Provider>
-                <Example />
+                <Counter />
+                <Enabler />
             </useApp.Provider>
         )
     }
 prev: /impact-context
-next: /effects
+next: /derived
 ---
 
 # Signals
 
-A signal is the equivalent of `useState`, only reactive. You access the current value using `.value` property and you update the value by assigning to it. When a component accesses the `.value` of a signal during its rendering, it will automatically observe any changes to that value.
+A signal is the equivalent of `useState`, only reactive. You access the current value using `.value` property and you update the value by assigning to it. When a component accesses the `.value` of a signal during its rendering, it will automatically observe any changes to that value. And this is where signals have an advantage. It does not matter how many signals are exposed through the context, only the ones actually accessed will cause the component to reconcile when changed.
 
 As the example shows it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component. 
 
