@@ -1,13 +1,28 @@
-import { globalContext } from "./context";
+import { Context, context } from "./context";
 import { Signal, derived, signal } from "./signal";
 
-export function globalStore<S extends Record<string, unknown>>(
+export function store<T, A extends Record<string, unknown> | void>(
+  store: Context<T, A>,
+): (() => T) & {
+  Provider: React.FC<A & { children: React.ReactNode }>;
+  provide: <T>(component: React.FC<A & T>) => React.FC<A & T>;
+};
+export function store<S extends Record<string, unknown>>(
   initialStore: S,
-) {
-  return globalContext(() => store(initialStore));
+): {
+  readonly [K in keyof S]: S[K] extends (...params: any[]) => any
+    ? (this: S, ...params: Parameters<S[K]>) => ReturnType<S[K]>
+    : Signal<S[K]>["value"];
+};
+export function store(store: any) {
+  if (typeof store === "function") {
+    return context(store);
+  }
+
+  return context(() => createStore(store));
 }
 
-export function store<S extends Record<string, unknown>>(initialStore: S) {
+function createStore<S extends Record<string, unknown>>(initialStore: S) {
   /**
    * STATE
    */

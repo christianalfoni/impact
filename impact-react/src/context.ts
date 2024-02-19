@@ -146,8 +146,10 @@ export class ContextProvider<
 export function cleanup(cleaner: () => void) {
   const activeContextContainer = getActiveContextContainer();
 
+  // We do not want to clean up if we are not in a context, which
+  // means we are just globally running the store
   if (!activeContextContainer) {
-    throw new Error("You are cleaning up in an invalid context");
+    return;
   }
 
   activeContextContainer.registerCleanup(cleaner);
@@ -159,34 +161,15 @@ export const componentConsumptionHooks = {
   onConsumed: () => {},
 };
 
-const globalContexts = new Map<Context<any, void>, any>();
-
-export function globalContext<T>(context: Context<T, void>): () => T {
-  return () => {
-    const activeContextContainer = getActiveContextContainer();
-
-    if (!activeContextContainer) {
-      if (!componentConsumptionHooks.isConsuming) {
-        componentConsumptionHooks.isConsuming = true;
-        componentConsumptionHooks.onConsume();
-      }
-    }
-
-    let contextContainer = globalContexts.get(context);
-
-    if (!contextContainer) {
-      contextContainer = context();
-      globalContexts.set(context, contextContainer);
-    }
-
-    return contextContainer;
-  };
-}
+const globalContexts = new Map<Context<any, any>, any>();
 
 export function context<T, A extends Record<string, unknown> | void>(
   context: Context<T, A>,
 ): (() => T) & {
   Provider: React.FC<A & { children: React.ReactNode }>;
+  provide: (
+    component: React.FC<A>,
+  ) => React.FC<A & { children: React.ReactNode }>;
 } {
   const useReactiveContext = () => {
     const activeContextContainer = getActiveContextContainer();
@@ -200,7 +183,15 @@ export function context<T, A extends Record<string, unknown> | void>(
       const contextContainer = useContext(reactContext);
 
       if (!contextContainer) {
-        throw new Error("You are using a store outside its provider");
+        let contextContainer = globalContexts.get(context);
+
+        if (!contextContainer) {
+          // @ts-ignore
+          contextContainer = context();
+          globalContexts.set(context, contextContainer);
+        }
+
+        return contextContainer;
       }
 
       return contextContainer.resolve<T, A>(context);
@@ -225,6 +216,19 @@ export function context<T, A extends Record<string, unknown> | void>(
       },
       children,
     );
+  };
+
+  useReactiveContext.provide = (component: React.FC<A>) => {
+    return (props: A) => {
+      // @ts-ignore
+      return createElement(
+        useReactiveContext.Provider,
+        // @ts-ignore
+        props,
+        // @ts-ignore
+        createElement(component, props),
+      );
+    };
   };
 
   // @ts-ignore

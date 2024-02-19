@@ -4,54 +4,14 @@ outline: deep
 
 # API
 
-## globalStore
-
-A reactive global store. An abstraction over [globalContext](#globalcontext) and [store](#store). Can be accessed by any component.
-
-```tsx
-import { globalStore } from 'impact-react'
-
-const useStore = globalStore({
-    count: 0,
-    increase() {
-        this.count++
-    },
-    get doubleCount() {
-        return this.count * 2
-    }
-})
-```
-
-## globalContext
-
-A reactive global context allows for composition of [stores](#store), [signals](#signal), [derived](#deribed) and [effects](#effect). Can be consumed directly by any component.
-
-```tsx
-import { globalContext, store } from 'impact-react'
-
-const useStore = globalContext(() => {
-    const counter = store({
-        count: 0
-    })
-    const messages = store({
-        current: ''
-    })
-
-    return {
-        counter,
-        messages
-    }
-})
-```
-
 ## store
 
-A reactive store. An abstraction over [signals](#signal) and [derived](#derived). It co-locates an protects state changes with methods and getters which are converted to derived signals. It needs to be exposed through a [globalContext](#globalcontext) or [context](#context) to be observed by components.
+A reactive store can be defined as a declarative global store:
 
 ```ts
 import { store } from 'impact-react'
 
-const counterStore = store({
+const useGlobalStore = store({
     count: 0,
     increase() {
         this.count++

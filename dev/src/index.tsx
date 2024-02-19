@@ -1,12 +1,46 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { store, derived, effect, signal } from "impact-react";
 
 import "impact-react-debugger";
-import { useStore } from "./store";
+
+export const useStore = store(function Store({ message }: { message: string }) {
+  const foo = signal(message);
+  const obj = signal({});
+  const upperFoo = derived(function UpperFoo() {
+    return foo.value.toUpperCase();
+  });
+
+  const reallyLongFunctionNameForTesting = derived(
+    function reallyLongFunctionNameForTestingTest() {
+      obj.value["foo"] = "bar";
+
+      return obj.value;
+    },
+  );
+
+  effect(function LogFoo() {
+    console.log(foo.value, reallyLongFunctionNameForTesting);
+  });
+
+  return {
+    get foo() {
+      return foo.value;
+    },
+    get upperFoo() {
+      return upperFoo.value;
+    },
+    changeFoo() {
+      foo.value += "!";
+      const newObjt = { ...obj.value, anotherValue: "baz" };
+      obj.value = newObjt;
+    },
+  };
+});
 
 const root = createRoot(document.querySelector("#root")!);
 
-function Dev() {
+const App = useStore.provide(function App() {
   console.log("RENDER");
   const store = useStore();
 
@@ -17,14 +51,6 @@ function Dev() {
       {store.upperFoo}
     </h1>
   );
-}
+});
 
-function App() {
-  return (
-    <useStore.Provider>
-      <Dev />
-    </useStore.Provider>
-  );
-}
-
-root.render(<App />);
+root.render(<App message="Hello" />);
