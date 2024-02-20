@@ -34,6 +34,15 @@ export default defineConfig({
         ],
       },
       {
+        text: "Advanced",
+        items: [
+          {
+            text: "Lists",
+            link: "/advanced/lists",
+          },
+        ],
+      },
+      {
         text: "API Reference",
         items: [
           {

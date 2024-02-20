@@ -11,9 +11,9 @@ hero:
       link: /learn/
     - theme: alt
       text: Advanced
-      link: /advanced/
+      link: /advanced/lists
     - theme: alt
-      text: Documentation
+      text: API Reference
       link: /store
 
 features:
@@ -27,32 +27,33 @@ code: |
   import { store, signal } from 'impact-react'
 
   const useStore = store(() => {
-    const tick = signal(0)
     let interval
-
+    const tick = signal(0)
+    
     return {
       get tick() {
         return tick.value
       },
-      start() {
-        interval = setInterval(() => {
-          tick.value++
-        }, 500)
-      },
-      stop() {
-        clearInterval(interval)
+      toggle() {
+        if (interval === undefined) {
+          interval = setInterval(() => {
+            tick.value++
+          }, 500)
+        } else {
+          clearInterval(interval)
+          interval = undefined
+        }
       }
     }
   })
 
   export default function App() {
-    const { tick, start, stop } = useStore()
+    const { tick, toggle } = useStore()
 
     return (
       <div>
         <h4>Tick count: {tick}</h4>
-        <button onClick={start}>Start</button>
-        <button onClick={stop}>Stop</button>
+        <button onClick={toggle}>Toggle</button>
       </div>
     )
   }
@@ -100,5 +101,16 @@ pnpm add impact-react-debugger
 ```
 
 :::
+
+```ts
+if (import.meta.env.DEV) {
+  import('impact-react-debugger')
+}
+```
+
+::: tip
+Hit SHIFT twice to toggle the debugger
+:::
+
 
 </HomeContent>

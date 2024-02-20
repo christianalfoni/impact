@@ -4,24 +4,26 @@ code: |
 
     const useStore = store(({ initialCount }) => {
         const count = signal(initialCount)
+        const interval = setInterval(() => {
+            count.value++
+        }, 1000)
+
+        cleanup(() => clearInterval(interval))
 
         return {
             get count() {
                 return count.value
-            },
-            increase() {
-                count.value++
             }
         }
     })
 
     function Counter() {
-        const { count, increase } = useStore()
+        const { count } = useStore()
 
         return (
-            <button onClick={increase}>
-                Increase ({count})
-            </button>
+            <h2>
+                Count {count}
+            </h2>
         )
     }
 

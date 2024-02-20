@@ -24,7 +24,7 @@ const useStore = store({
 
 ## store (composable)
 
-A composable store allowing for composition with other stores, a private scope and effects.
+A composable store allowing for composition with other stores, a private scope, effects and cleanup.
 
 ```ts
 import { store, signal, derived, effect } from 'impact-react'
