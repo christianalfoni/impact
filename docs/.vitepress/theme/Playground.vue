@@ -5,7 +5,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { githubLight } from "@ddietr/codemirror-themes/github-light";
 import { githubDark } from "@ddietr/codemirror-themes/github-dark";
 
-import { ref, onMounted, shallowRef, onUpdated } from "vue";
+import { ref, onMounted, shallowRef, onUpdated, onBeforeUnmount } from "vue";
 import { useData } from "vitepress";
 import {
   ClientOptions,
@@ -82,6 +82,12 @@ export default defineComponent({
 
   setup() {
     const iframe = ref(null);
+    const isDark = ref(document.documentElement.classList.contains("dark"));
+    let observer = null;
+
+    const setDark = () => {
+      isDark.value = document.documentElement.classList.contains("dark");
+    };
 
     const data = useData();
     const frontmatter = data.frontmatter.value;
@@ -94,10 +100,19 @@ export default defineComponent({
           updateCode = updateCodeCallback;
         },
       );
+      observer = new MutationObserver(setDark);
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class"],
+      });
     });
 
     onUpdated(() => {
       updateCode(data.frontmatter.value.code);
+    });
+
+    onBeforeUnmount(() => {
+      observer.disconnect();
     });
 
     const extensions = [
@@ -105,7 +120,6 @@ export default defineComponent({
         jsx: true,
         typescript: true,
       }),
-      data.isDark.value ? githubDark : githubLight,
     ];
 
     // Codemirror EditorView instance ref
@@ -122,6 +136,9 @@ export default defineComponent({
       },
       log: console.log,
       iframe,
+      isDark,
+      githubDark,
+      githubLight,
     };
   },
 });
@@ -133,11 +150,11 @@ export default defineComponent({
       <div class="codemirror-wrapper">
         <codemirror
           v-model="$frontmatter.code"
-          :style="{ height: '100%', padding: '5px' }"
+          :style="{ height: '100%', padding: '10px' }"
           :autofocus="true"
           :indent-with-tab="true"
           :tab-size="2"
-          :extensions="extensions"
+          :extensions="[...extensions, isDark ? githubDark : githubLight]"
           @ready="handleReady"
           @change="handleChange"
         />
@@ -172,10 +189,18 @@ export default defineComponent({
   width: 25%;
   display: block;
   min-height: 400px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  background-color: white;
 }
 </style>
 <style>
 .cm-focused {
   outline: none !important;
+}
+.cm-editor {
+  background-color: var(--vp-c-bg-alt) !important;
+  border-top-left-radius: 8px;
+  borde-bottom-left-radius: 8px;
 }
 </style>

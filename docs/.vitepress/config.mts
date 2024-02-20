@@ -13,7 +13,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Advanced", link: "/advanced/" },
-      { text: "API", link: "/api" },
+      { text: "API Reference", link: "/store" },
     ],
 
     sidebar: [
@@ -34,7 +34,7 @@ export default defineConfig({
         ],
       },
       {
-        text: "Documentation",
+        text: "API Reference",
         items: [
           {
             text: "Store",
