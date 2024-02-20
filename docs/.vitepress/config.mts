@@ -11,7 +11,9 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "Home", link: "/" },
-      { text: "Examples", link: "/markdown-examples" },
+      { text: "Learn", link: "/learn/" },
+      { text: "Advanced", link: "/advanced/" },
+      { text: "API", link: "/api" },
     ],
 
     sidebar: [
@@ -21,16 +23,36 @@ export default defineConfig({
           { text: "State Management", link: "/learn/" },
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
-          { text: "React Context", link: "/learn/react-context" },
-          { text: "Impact Context", link: "/learn/impact-context" },
+          { text: "Context", link: "/learn/context" },
+          { text: "Store", link: "/learn/store" },
+          { text: "Composable Store", link: "/learn/composable-store" },
           { text: "Signals", link: "/learn/signals" },
           { text: "Derived", link: "/learn/derived" },
           { text: "Effects", link: "/learn/effects" },
+          { text: "Scoping", link: "/learn/scoping" },
+          { text: "Promises", link: "/learn/promises" },
         ],
       },
       {
-        text: "API",
-        items: [{ text: "globalStore", link: "/api#globalstore" }],
+        text: "Documentation",
+        items: [
+          {
+            text: "Store",
+            link: "/store",
+          },
+          {
+            text: "Signal",
+            link: "/signal",
+          },
+          {
+            text: "Derived",
+            link: "/derived",
+          },
+          {
+            text: "Effect",
+            link: "/effect",
+          },
+        ],
       },
     ],
 

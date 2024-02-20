@@ -1,5 +1,4 @@
 ---
-layout: playground
 code: |
     import { useState } from 'react'
 
@@ -22,10 +21,15 @@ code: |
             setCount(count + 1)
         }
 
-        return <Counter count={count} onClick={increase} />
+        return (
+            <Counter
+                count={count}
+                onClick={increase}
+            />
+        )
     }
 prev: /closures
-next: /react-context
+next: /context
 ---
 
 # Props
@@ -38,3 +42,5 @@ This example is not complicated, but it shows two challenges that increases with
 2. It becomes increasingly difficult to make changes to the UI by moving components. The components does not only represent a UI tree, it is a state management tree as well
 
 But you might say, this is what we have React contexts for! Let us dive into that.
+
+<Playground />

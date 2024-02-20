@@ -7,14 +7,14 @@ hero:
   tagline: Reactive state management for React
   actions:
     - theme: brand
-      text: Get started
-      link: /get-started
-    - theme: alt
       text: Learn
       link: /learn/
     - theme: alt
-      text: API
-      link: /api
+      text: Advanced
+      link: /advanced/
+    - theme: alt
+      text: Documentation
+      link: /store
 
 features:
   - title: Simple and performant
@@ -25,3 +25,45 @@ features:
     details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
 ---
 
+
+<HomeContent>
+
+## Install impact-react
+
+::: code-group
+
+```sh [npm]
+npm install impact-react
+```
+
+```sh [yarn]
+yarn add impact-react
+```
+
+```sh [pnpm]
+pnpm add impact-react
+```
+
+:::
+
+Or start from [codesandbox.io](https://codesandbox.io/p/devbox/impact-template-fp6gd9)
+
+## Install debugger
+
+::: code-group
+
+```sh [npm]
+npm install impact-react-debugger
+```
+
+```sh [yarn]
+yarn add impact-react-debugger
+```
+
+```sh [pnpm]
+pnpm add impact-react-debugger
+```
+
+:::
+
+</HomeContent>

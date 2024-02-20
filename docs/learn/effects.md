@@ -1,31 +1,41 @@
 ---
-layout: playground
 code: |
-    import { useState } from 'react'
+    import { store, signal, effect } from 'impact-react'
 
-    function CountLabel({ count }) {
-        return <span>Increase ({count})</span>
-    }
+    const useStore = store(() => {
+        const count = signal(0)
 
-    function Counter({ count, onClick }) {
+        effect(() => console.log(count.value))
+
+        return {
+            get count() {
+                return count.value
+            },
+            increase() {
+                count.value++
+            }
+        }
+    })
+
+    function Counter() {
+        const { count, increase } = useStore()
+
         return (
-            <button onClick={onClick}>
-                <CountLabel count={count} />
+            <button onClick={increase}>
+                Increase ({count})
             </button>
         )
     }
 
     export default function App() {
-        const [count, setCount] = useState(0)
-
-        const increase = () => {
-            setCount(count + 1)
-        }
-
-        return <Counter count={count} onClick={increase} />
+        return <Counter />
     }
 prev: /derived
 next: /react-context
 ---
 
 # Effects
+
+**Impact** effects allows you to run logic related to signal changes observed in the effect. 
+
+<Playground />

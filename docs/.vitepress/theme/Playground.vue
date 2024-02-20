@@ -23,7 +23,7 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         dependencies: {
           react: "18.2.0",
           "react-dom": "18.2.0",
-          "impact-react": "1.0.0",
+          "impact-react": "1.1.0",
         },
       }),
     },
@@ -35,7 +35,17 @@ import App from './App';
 const domNode = document.getElementById('root');
 const root = createRoot(domNode);
 
-root.render(<App />);
+root.render(
+  <div style={{
+    width:'100vw',
+    height:'100vh',
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center'
+  }}>
+    <App />
+  </div>
+);
 `,
     },
   };
@@ -106,7 +116,6 @@ export default defineComponent({
       extensions,
       handleReady,
       handleChange: (updatedCode) => {
-        console.log("HM", updatedCode);
         updateCode(updatedCode);
       },
       log: console.log,
@@ -116,26 +125,8 @@ export default defineComponent({
 });
 </script>
 <template>
+  <hr />
   <div class="vertical">
-    <div class="content">
-      <Content class="vp-doc" />
-      <div class="links">
-        <a
-          v-if="$frontmatter.prev"
-          class="link"
-          :href="'/learn' + $frontmatter.prev"
-          >Prev</a
-        >
-        <a v-if="!$frontmatter.prev" class="link disabled">Prev</a>
-        <a
-          v-if="$frontmatter.next"
-          class="link"
-          :href="'/learn' + $frontmatter.next"
-          >Next</a
-        >
-        <a v-if="!$frontmatter.next" class="link disabled">Next</a>
-      </div>
-    </div>
     <div class="horizontal">
       <div class="codemirror-wrapper">
         <codemirror
@@ -168,27 +159,17 @@ export default defineComponent({
   min-width: 300px;
 }
 
+.codemirror-wrapper {
+  flex: 0 75%;
+  width: 75%;
+}
 .iframe {
   border: 0;
+  border-left: 1px solid var(--vp-c-divider);
+  flex: 0 25%;
+  width: 25%;
   display: block;
-  width: 100%;
   min-height: 400px;
-}
-
-.link {
-  background-color: var(--vp-button-brand-bg);
-  padding: 2px 10px;
-  border-radius: 6px;
-  color: var(--vp-button-brand-text);
-  font-size: 13px;
-}
-.links {
-  display: flex;
-  justify-content: space-between;
-}
-
-.disabled {
-  opacity: 0.3;
 }
 </style>
 <style>
