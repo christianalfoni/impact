@@ -43,7 +43,9 @@ root.render(
     justifyContent:'center',
     alignItems:'center'
   }}>
-    <App />
+    <div>
+      <App />
+    </div>
   </div>
 );
 `,

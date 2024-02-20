@@ -30,8 +30,6 @@ code: |
     export default function App() {
         return <Counter />
     }
-prev: /derived
-next: /react-context
 ---
 
 # Effects

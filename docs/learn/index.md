@@ -15,7 +15,7 @@ code: |
             </button>
         )
     }
-next: /closures
+
 ---
 
 # State management

@@ -25,8 +25,25 @@ code: |
             }
         }
     })
-prev: /props
-next: /signals
+
+    export default function App() {
+        const { timer, start, stop, reset } = useStore()
+
+        return (
+            <div>
+                <h4>{timer}s</h4>
+                <button onClick={start}>
+                    Start
+                </button>
+                <button onClick={stop}>
+                    Stop
+                </button>
+                <button onClick={reset}>
+                    Reset
+                </button>
+            </div>
+        )
+    }
 ---
 
 # Composable Store

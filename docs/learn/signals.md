@@ -48,15 +48,11 @@ code: |
             <Enabler />
         </>
     }
-prev: /impact-context
-next: /derived
 ---
 
 # Signals
 
-By rather passing a function to the `store` you get more flexibility and capabilities. Our store is still global, but now you get a function scope to implement it. You can define variables, instantiate objects and use reactive primitives from **Impact** in this scope.
-
-The `signal` is the primitive you use to define state. When a component accesses the `.value` of a signal during its rendering, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store, only the ones actually accessed in a component will cause it to reconcile.
+The `signal` is the primitive you use to define state. When a component accesses the `.value` of a signal during its rendering, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store, only the ones actually accessed in a component will cause that component to reconcile.
 
 As the example shows it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component. 
 

@@ -52,26 +52,24 @@ code: |
     function Multiplier() {
         const { multipliedCount } = useStore()
 
-        return <h2>Multiplied: {multipliedCount}</h2>
+        return <h3>Multiplied: {multipliedCount}</h3>
     }
 
     export default function App() {
         return (
-            <>
+            <div css={{ display: 'flex', flexDirection: 'column' }}>
                 <Counter />
                 <Enabler />
                 <Multiplier />
-            </>
+            </div>
         )
     }
-prev: /signals
-next: /effects
 ---
 
 # Derived
 
 Derived signals will calculate a value based on other signals and cache it. The benefit `derived` has over `useMemo` is that they do not immediately recaculcate when a dependent signal changes, but rather flag itself as dirty. Only when the value is accessed it will recompute the value.
 
-Derived is consumed just like a plain signal, using the `.value` property, but you can not assing a value to a derived.
+Derived is consumed just like a plain signal, using the `.value` property, but you can not assign a value to a derived.
 
 <Playground />

@@ -32,8 +32,6 @@ code: |
             </useStore.Provider>
         )
     }
-prev: /effects
-next: /promises
 ---
 
 # Scoping

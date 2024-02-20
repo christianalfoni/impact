@@ -28,8 +28,6 @@ code: |
             />
         )
     }
-prev: /closures
-next: /context
 ---
 
 # Props
