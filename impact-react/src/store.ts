@@ -5,7 +5,7 @@ export function store<T, A extends Record<string, unknown> | void>(
   store: Context<T, A>,
 ): (() => T) & {
   Provider: React.FC<A & { children: React.ReactNode }>;
-  provide: <T>(component: React.FC<A & T>) => React.FC<A & T>;
+  provide: <T>(component: React.FC<T>) => React.FC<A & T>;
 };
 export function store<S extends Record<string, unknown>>(
   initialStore: S,

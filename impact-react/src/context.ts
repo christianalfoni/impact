@@ -167,9 +167,7 @@ export function context<T, A extends Record<string, unknown> | void>(
   context: Context<T, A>,
 ): (() => T) & {
   Provider: React.FC<A & { children: React.ReactNode }>;
-  provide: (
-    component: React.FC<A>,
-  ) => React.FC<A & { children: React.ReactNode }>;
+  provide: <T>(component: React.FC<T>) => React.FC<A & T>;
 } {
   const useReactiveContext = () => {
     const activeContextContainer = getActiveContextContainer();
