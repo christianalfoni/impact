@@ -51,4 +51,6 @@ With a React context we can overcome both challenges we just experienced passing
 
 All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. These are all great solutions, but let us explore how Impact solves these challenges and how it differs from the others.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

@@ -24,4 +24,6 @@ In this tutorial we will discuss and learn about state management in React. Why 
 
 In this example we start with a `count` and the ability to `increase` that count. Let us first explore why state management in React is difficult and then we'll continue learning how **Impact** resolves these challenges.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

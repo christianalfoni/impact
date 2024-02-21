@@ -128,7 +128,9 @@ const useStore = store(() => {
 
 Most lists can be managed this way, but you might have much bigger lists. Lists with sorting, filters and other  states. You want to ensure maximum performance so that the component managing the list does not reconcile when items in the list updates and you want full control of what items are shown in the list at any moment.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>
 
 Now you are free to choose how to produce the list to display. By iterating the `items` record you can sort, filter or even add items to the list based on certain interactions. Each item is memoized on its id and the item is only consumed from within the `Item` component, isolating updates.
 

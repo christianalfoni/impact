@@ -46,4 +46,6 @@ Scoping stores allows you to instantiate state management related to specific pa
 
 Additionally the store can now receive props from the provider to initialise itself. This is especially useful to take advantage of modern React data fetching patterns, as you will see later.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

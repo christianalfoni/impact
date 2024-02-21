@@ -61,4 +61,6 @@ When a promise is assigned to a signal it gets enhanced with a `.status` propert
 
 This is as powerful for data fetching as mutations, which you can learn more about in the [advanced]() section.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

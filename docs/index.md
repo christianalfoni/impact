@@ -61,7 +61,9 @@ code: |
 
 <HomeContent>
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>
 
 ## Install impact-react
 

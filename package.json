@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",
     "docs:dev": "vitepress dev docs",
-    "docs:build": "vitepress build docs",
+    "docs:build": "node preBuild.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
   "description": "Bringing reactivity to React",

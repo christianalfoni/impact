@@ -52,4 +52,6 @@ If you rather pass a function to the `store` you will gain more power. In the sc
 
 What you will mainly use this function for though is implementing state management using the reactive primitives from **Impact**.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

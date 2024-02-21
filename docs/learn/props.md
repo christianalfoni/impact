@@ -42,4 +42,6 @@ This example is not complicated, but it shows two challenges that increases with
 
 But you might say, this is what we have React contexts for! Let us dive into that.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>
