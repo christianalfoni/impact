@@ -183,9 +183,11 @@ export default defineComponent({
 </template>
 <style scoped>
 .playground {
-  --height: 360px;
+  --height: 340px;
+  --caption-height: 28px;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
 }
 
 @media (min-width: 1280px) {
@@ -198,12 +200,14 @@ export default defineComponent({
   .codemirror-wrapper {
     flex: 0 50%;
     width: 50%;
+    min-height: var(--height);
   }
 }
 
 .iframe {
   border: 1px solid var(--vp-c-divider);
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-height: var(--height);
   background-color: white;
   border-bottom-left-radius: 8px;
@@ -219,7 +223,7 @@ export default defineComponent({
 
   & iframe {
     width: 100%;
-    height: 100%;
+    flex: 1;
     border: 0;
   }
 }
@@ -232,6 +236,7 @@ export default defineComponent({
   gap: 0.4em;
   padding: 0.1em 0.2em;
   border-bottom: 1px solid var(--vp-c-divider);
+  height: var(--caption-height);
 }
 </style>
 <style>
