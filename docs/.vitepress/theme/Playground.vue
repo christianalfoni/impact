@@ -145,53 +145,92 @@ export default defineComponent({
 </script>
 <template>
   <hr />
-  <div class="vertical">
-    <div class="horizontal">
-      <div class="codemirror-wrapper">
-        <codemirror
-          v-model="$frontmatter.code"
-          :style="{ height: '100%', padding: '10px' }"
-          :autofocus="true"
-          :indent-with-tab="true"
-          :tab-size="2"
-          :extensions="[...extensions, isDark ? githubDark : githubLight]"
-          @ready="handleReady"
-          @change="handleChange"
-        />
+  <div class="playground">
+    <div
+      class="codemirror-wrapper"
+      autocorrect="off"
+      spellcheck="false"
+      translate="no"
+      data-gramm="false"
+    >
+      <codemirror
+        v-model="$frontmatter.code"
+        :style="{ height: '100%', padding: '10px' }"
+        :autofocus="true"
+        :indent-with-tab="true"
+        :tab-size="2"
+        :extensions="[...extensions, isDark ? githubDark : githubLight]"
+        @ready="handleReady"
+        @change="handleChange"
+      />
+    </div>
+    <div class="iframe">
+      <div class="iframe-caption">
+        <svg
+          fill="currentColor"
+          viewBox="0 0 48 48"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M16 37.85v-28l22 14Zm3-14Zm0 8.55 13.45-8.55L19 15.3Z"
+          ></path></svg
+        ><span>Preview</span>
       </div>
-      <iframe class="iframe" ref="iframe"></iframe>
+      <iframe ref="iframe"></iframe>
     </div>
   </div>
 </template>
 <style scoped>
-.horizontal {
-  display: flex;
-}
-
-.vertical {
+.playground {
   display: flex;
   flex-direction: column;
 }
 
-.content {
-  padding: 16px;
-  min-width: 300px;
+@media (min-width: 1280px) {
+  .playground {
+    flex-direction: row;
+  }
 }
 
-.codemirror-wrapper {
-  flex: 0 75%;
-  width: 75%;
+@media (min-width: 1280px) {
+  .codemirror-wrapper {
+    flex: 0 50%;
+    width: 50%;
+  }
 }
+
 .iframe {
-  border: 0;
-  border-left: 1px solid var(--vp-c-divider);
-  flex: 0 25%;
-  width: 25%;
+  border: 1px solid var(--vp-c-divider);
   display: block;
   min-height: 400px;
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
   background-color: white;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+
+  @media (min-width: 1280px) {
+    flex: 0 50%;
+    width: 50%;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+
+  & iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+}
+
+.iframe-caption {
+  display: flex;
+  align-items: center;
+  background: var(--vp-c-bg-soft);
+  font-size: 13px;
+  gap: 0.4em;
+  padding: 0.1em 0.2em;
+  border-bottom: 1px solid var(--vp-c-divider);
 }
 </style>
 <style>
@@ -199,8 +238,19 @@ export default defineComponent({
   outline: none !important;
 }
 .cm-editor {
+  border: 1px solid var(--vp-c-divider);
+  border-bottom-width: 0px;
   background-color: var(--vp-c-bg-alt) !important;
+  border-top-right-radius: 8px;
   border-top-left-radius: 8px;
-  borde-bottom-left-radius: 8px;
+
+  @media (min-width: 1280px) {
+    border-right: 0;
+    border-bottom-width: 1px;
+
+    border-top-right-radius: 0px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
 }
 </style>
