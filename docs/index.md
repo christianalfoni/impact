@@ -1,5 +1,4 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
@@ -17,8 +16,8 @@ hero:
       link: /store
 
 features:
-  - title: Simple and performant
-    details: Implement shared state management without the mental and performance overhead of component reconcilication.
+  - title: Familiar paradigm
+    details: Use the hooks pattern you know and love, but without the mental and performance overhead of reconcilication.
   - title: Globally or scoped
     details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
   - title: Accessible DX
