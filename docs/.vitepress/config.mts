@@ -6,6 +6,13 @@ export default defineConfig({
   description: "Reactive contexts for React",
   cleanUrls: true,
   themeConfig: {
+    search: {
+      provider: "local",
+    },
+    editLink: {
+      pattern: "https://github.com/christianalfoni/impact/edit/main/docs/:path",
+      text: "Edit this page on GitHub",
+    },
     logo: { light: "/Icon.png", dark: "/Icon-dark.png" },
 
     // https://vitepress.dev/reference/default-theme-config
@@ -39,6 +46,10 @@ export default defineConfig({
           {
             text: "Lists",
             link: "/advanced/lists",
+          },
+          {
+            text: "Queries and Mutations",
+            link: "/advanced/queries-and-mutations",
           },
         ],
       },

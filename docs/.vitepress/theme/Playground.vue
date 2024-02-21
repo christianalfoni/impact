@@ -183,6 +183,7 @@ export default defineComponent({
 </template>
 <style scoped>
 .playground {
+  --height: 360px;
   display: flex;
   flex-direction: column;
 }
@@ -203,7 +204,7 @@ export default defineComponent({
 .iframe {
   border: 1px solid var(--vp-c-divider);
   display: block;
-  min-height: 400px;
+  min-height: var(--height);
   background-color: white;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
