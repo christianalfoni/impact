@@ -36,4 +36,6 @@ code: |
 
 **Impact** effects allows you to run logic related to signal changes observed in the effect. 
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

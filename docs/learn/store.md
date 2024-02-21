@@ -24,8 +24,10 @@ code: |
 
 Moving back to our initial example we implement a `store` with the same `count` and `increase`. What has changed now is that our store is global and can be used by any component.
 
-Each key in the store is a [signal](../api#signal), where `getters` are [derived](../api/#derived). Any methods defined in the store has access to change any of the signals in the store, though they are `readonly` for components.
+Each key in the store is a [signal](../signal), where `getters` are [derived](../derived). Any methods defined in the store has access to change any of the signals in the store, though they are `readonly` for components.
 
 Creating declarative global stores like this can work for certain apps, but **Impact** is designed to handle more complexity.
 
-<Playground />
+<ClientOnly>
+    <Playground />
+</ClientOnly>

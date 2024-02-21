@@ -2,8 +2,8 @@
 import { defineComponent } from "vue";
 import { Codemirror } from "vue-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
-import { githubLight } from "@ddietr/codemirror-themes/github-light";
-import { githubDark } from "@ddietr/codemirror-themes/github-dark";
+import { githubLight } from "@ddietr/codemirror-themes/github-light.js";
+import { githubDark } from "@ddietr/codemirror-themes/github-dark.js";
 
 import { ref, onMounted, shallowRef, onUpdated, onBeforeUnmount } from "vue";
 import { useData } from "vitepress";

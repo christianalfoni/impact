@@ -27,4 +27,6 @@ In this example we have introduced another scope though. The `increase` function
 
 If you click the `increase` multiple times you will see the count only increase once. This is because our `useCallback` has closed over the initial `count`. You probably already know how to solve this, either by adding `count` to the dependency array or using an update callback with `setCount`. The point here though is that calling the component function multiple times makes sense in the mindset of comparing the returned result of the function to reconcile the UI, but it creates unwanted complexity with state management.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>

@@ -72,4 +72,6 @@ Derived signals will calculate a value based on other signals and cache it. The 
 
 Derived is consumed just like a plain signal, using the `.value` property, but you can not assign a value to a derived.
 
-<Playground />
+<ClientOnly>
+  <Playground />
+</ClientOnly>
