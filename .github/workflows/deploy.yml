@@ -41,6 +41,8 @@ jobs:
           cache: npm # or pnpm / yarn
       - name: Setup Pages
         uses: actions/configure-pages@v4
+      - name: Set correct NPM_TOKEN env reference
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
       - name: Install dependencies
         run: yarn install
       - name: Build with VitePress
