@@ -16,6 +16,14 @@
       "preview": {
         "port": 5173
       }
+    },
+    "docs": {
+      "name": "docs",
+      "command": "yarn docs:dev",
+      "runAtStart": true,
+      "preview": {
+        "port": 5174
+      }
     }
   }
 }
