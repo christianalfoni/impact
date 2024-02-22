@@ -3,7 +3,7 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Impact",
-  description: "Reactive contexts for React",
+  description: "Reactive state management for React",
   cleanUrls: true,
   themeConfig: {
     footer: {
