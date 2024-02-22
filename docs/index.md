@@ -17,7 +17,7 @@ hero:
 
 features:
   - title: Familiar paradigm
-    details: Use the hooks pattern you know and love, but without the mental and performance overhead of reconcilication.
+    details: Use the hooks pattern you know and love from React, but without the mental and performance overhead of reconcilication.
   - title: Globally or scoped
     details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
   - title: Accessible DX
