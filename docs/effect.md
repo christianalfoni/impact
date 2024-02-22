@@ -10,17 +10,17 @@ Reactive effect. Will oberve and signals or derived in its callback. It runs imm
 import { store, effect, signal } from 'impact-react'
 
 const useStore = store(() => {
-    const count = signal(0)
+  const count = signal(0)
 
-    effect(() => {
-        console.log(count.value)
-    })
+  effect(() => {
+    console.log(count.value)
+  })
 
-    return {
-        get count() {
-            return count.value
-        }
+  return {
+    get count() {
+      return count.value
     }
+  }
 })
 
 ```

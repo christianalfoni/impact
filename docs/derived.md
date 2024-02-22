@@ -10,16 +10,16 @@ Derived reactive state. Will observe any signals or other derived in its callbac
 import { store, signal, derived } from 'impact-react'
 
 const useStore = store(() => {
-    const count = signal(0)
-    const doubleCount = derived(() => count * 2)
+  const count = signal(0)
+  const doubleCount = derived(() => count * 2)
 
-    return {
-        get counter() {
-            return count.value
-        },
-        get doubleCount() {
-            return doubleCount.value
-        }
+  return {
+    get counter() {
+      return count.value
+    },
+    get doubleCount() {
+      return doubleCount.value
     }
+  }
 })
 ```

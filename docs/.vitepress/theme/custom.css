@@ -2,40 +2,43 @@
   --vp-c-brand-1: #0080a8;
   --vp-c-brand-2: #0097c7;
   --vp-c-brand-3: #0097c7;
+
+  --vp-home-hero-name-color: var(--vp-c-brand-1);
+  --vp-home-hero-name-background: -webkit-linear-gradient(
+    120deg,
+    #bd34fe 30%,
+    #41d1ff
+  );
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    #ffffff28 0%,
+    #47cbff28 0%
+  );
+  --vp-home-hero-image-filter: blur(70px);
 }
 
-.image-bg {
-  opacity: 0.1;
+.dark {
+  --vp-home-hero-name-color: #fff;
 }
 
-.VPHero .main {
-  background: url("/Logo-full.png") no-repeat;
-  background-size: auto 140px;
-}
-
-.dark .VPHero .main {
-  background: url("/Logo-full-dark.png") no-repeat;
-  background-size: auto 140px;
-}
-
-.VPHero .main .actions {
-  padding-top: 80px;
-}
-
-.VPHero .main .name,
-.VPHero .main .clip,
-.VPHero .main .tagline {
-  -webkit-text-fill-color: transparent;
-  background: none;
-  color: transparent;
-}
-
-.details {
+.name {
   font-family: var(--vp-font-family-mono);
+  text-align: left;
+}
+
+.tagline {
+  font-family: var(--vp-font-family-mono);
+  line-height: 1.3 !important;
+  font-size: 14px !important;
+  text-align: left;
+}
+
+.VPHomeFeatures {
+  margin-bottom: 1em;
 }
 
 .cm-editor *,
 pre {
   font-size: 13px;
-  line-height: 1.3;
+  line-height: 1.4;
 }

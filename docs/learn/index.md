@@ -1,20 +1,20 @@
 ---
 code: |
-    import { useState } from 'react'
+  import { useState } from 'react'
 
-    export default function App() {
-        const [count, setCount] = useState(0)
+  export default function App() {
+    const [count, setCount] = useState(0)
 
-        const increase = () => {
-            setCount(count + 1)
-        }
-
-        return (
-            <button onClick={increase}>
-                Increase ({count})
-            </button>
-        )
+    const increase = () => {
+      setCount(count + 1)
     }
+
+    return (
+      <button onClick={increase}>
+        Increase ({count})
+      </button>
+    )
+  }
 
 ---
 
@@ -25,5 +25,5 @@ In this tutorial we will discuss and learn about state management in React. Why 
 In this example we start with a `count` and the ability to `increase` that count. Let us first explore why state management in React is difficult and then we'll continue learning how **Impact** resolves these challenges.
 
 <ClientOnly>
-  <Playground />
+ <Playground />
 </ClientOnly>

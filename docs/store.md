@@ -12,13 +12,13 @@ A simple declarative store.
 import { store } from 'impact-react'
 
 const useStore = store({
-    count: 0,
-    increase() {
-        this.count++
-    },
-    get doubleCount() {
-        return this.count * 2
-    }
+  count: 0,
+  increase() {
+    this.count++
+  },
+  get doubleCount() {
+    return this.count * 2
+  }
 })
 ```
 
@@ -30,22 +30,22 @@ A composable store allowing for composition with other stores, a private scope, 
 import { store, signal, derived, effect } from 'impact-react'
 
 const useStore = store(() => {
-    const count = signal()
-    const doubleCount = derived(() => count.value * 2)
+  const count = signal()
+  const doubleCount = derived(() => count.value * 2)
 
-    effect(() => console.log(count.value))
+  effect(() => console.log(count.value))
 
-    return {
-        get count() {
-            return count.value
-        },
-        get doubleCount() {
-            return doubleCount.value
-        },
-        increase() {
-            count.value++
-        }
+  return {
+    get count() {
+      return count.value
+    },
+    get doubleCount() {
+      return doubleCount.value
+    },
+    increase() {
+      count.value++
     }
+  }
 })
 ```
 
@@ -57,34 +57,34 @@ A store can be scoped to a component tree. This allows for passing props to the 
 import { store, signal } from 'impact-react'
 
 const useStore = store(({ initialCount }) => {
-    const count = signal(initialCount)
+  const count = signal(initialCount)
 
-    return {
-        get count() {
-            return count.value
-        },
-        increase() {
-            count.value++
-        }
+  return {
+    get count() {
+      return count.value
+    },
+    increase() {
+      count.value++
     }
+  }
 })
 
 function Counter() {
-    const { count, increase } = useStore()
+  const { count, increase } = useStore()
 
-    return (
-        <button onClick={increase}>
-            Increase ({count})
-        </button>
-    )
+  return (
+    <button onClick={increase}>
+      Increase ({count})
+    </button>
+  )
 }
 
 function App() {
-    return (
-        <useStore.Provider initialCount={10}>
-            <Counter />
-        </useStore.Provider>
-    )
+  return (
+    <useStore.Provider initialCount={10}>
+      <Counter />
+    </useStore.Provider>
+  )
 }
 ```
 
@@ -96,29 +96,29 @@ Provide the store using a higher order component.
 import { store, signal } from 'impact-react'
 
 const useStore = store(({ initialCount }) => {
-    const count = signal(initialCount)
+  const count = signal(initialCount)
 
-    return {
-        get count() {
-            return count.value
-        },
-        increase() {
-            count.value++
-        }
+  return {
+    get count() {
+      return count.value
+    },
+    increase() {
+      count.value++
     }
+  }
 })
 
 const Counter = useStore.provide(function Counter() {
-    const { count, increase } = useStore()
+  const { count, increase } = useStore()
 
-    return (
-        <button onClick={increase}>
-            Increase ({count})
-        </button>
-    )
+  return (
+    <button onClick={increase}>
+      Increase ({count})
+    </button>
+  )
 })
 
 function App() {
-    return <Counter initialCount={10} />
+  return <Counter initialCount={10} />
 }
 ```
