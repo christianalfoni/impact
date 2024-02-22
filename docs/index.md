@@ -2,8 +2,14 @@
 layout: home
 
 hero:
-  name: "Impact"
-  tagline: Reactive state management for React
+  name: "Impact;"
+  tagline: "/** \n
+  * Reactive state management for React \n
+*/
+  "
+  image:
+    light: /Icon.png
+    dark: /Icon-dark.png
   actions:
     - theme: brand
       text: Learn
@@ -22,6 +28,7 @@ features:
     details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
   - title: Accessible DX
     details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
+codeCaption: Running Impact 
 code: |
   import { store, signal } from 'impact-react'
 

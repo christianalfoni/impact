@@ -1,23 +1,24 @@
 ---
+codeCaption: Creating a store
 code: |
-    import { store } from 'impact-react'
+  import { store } from 'impact-react'
 
-    const useStore = store({
-        count: 0,
-        increase() {
-            this.count++
-        }
-    })
-
-    export default function App() {
-        const { count, increase } = useStore()
-
-        return (
-            <button onClick={increase}>
-                Increase ({count})
-            </button>
-        )
+  const useStore = store({
+    count: 0,
+    increase() {
+      this.count++
     }
+  })
+
+  export default function App() {
+    const { count, increase } = useStore()
+
+    return (
+      <button onClick={increase}>
+        Increase ({count})
+      </button>
+    )
+  }
 ---
 
 # Store
@@ -29,5 +30,5 @@ Each key in the store is a [signal](../signal), where `getters` are [derived](..
 Creating declarative global stores like this can work for certain apps, but **Impact** is designed to handle more complexity.
 
 <ClientOnly>
-    <Playground />
+  <Playground />
 </ClientOnly>

@@ -1,4 +1,5 @@
 ---
+codeCaption: Creating a composable Store
 code: |
     import { store, signal } from 'impact-react'
 
@@ -50,7 +51,9 @@ code: |
 
 If you rather pass a function to the `store` you will gain more power. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. What you return from this function will be exposed from the store.
 
+::: info
 What you will mainly use this function for though is implementing state management using the reactive primitives from **Impact**.
+:::
 
 <ClientOnly>
   <Playground />

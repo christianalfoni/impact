@@ -1,35 +1,36 @@
 ---
+codeCaption: Using effects
 code: |
-    import { store, signal, effect } from 'impact-react'
+  import { store, signal, effect } from 'impact-react'
 
-    const useStore = store(() => {
-        const count = signal(0)
+  const useStore = store(() => {
+    const count = signal(0)
 
-        effect(() => console.log(count.value))
+    effect(() => console.log(count.value))
 
-        return {
-            get count() {
-                return count.value
-            },
-            increase() {
-                count.value++
-            }
-        }
-    })
-
-    function Counter() {
-        const { count, increase } = useStore()
-
-        return (
-            <button onClick={increase}>
-                Increase ({count})
-            </button>
-        )
+    return {
+      get count() {
+        return count.value
+      },
+      increase() {
+        count.value++
+      }
     }
+  })
 
-    export default function App() {
-        return <Counter />
-    }
+  function Counter() {
+    const { count, increase } = useStore()
+
+    return (
+      <button onClick={increase}>
+        Increase ({count})
+      </button>
+    )
+  }
+
+  export default function App() {
+    return <Counter />
+  }
 ---
 
 # Effects
@@ -37,5 +38,5 @@ code: |
 **Impact** effects allows you to run logic related to signal changes observed in the effect. 
 
 <ClientOnly>
-  <Playground />
+ <Playground />
 </ClientOnly>

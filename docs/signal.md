@@ -10,12 +10,12 @@ Reactive state. The value is considered immutable and needs to be replaced. If r
 import { store, signal } from 'impact-react'
 
 const useStore = store(() => {
-    const count = signal(0)
+  const count = signal(0)
 
-    return {
-        get counter() {
-            return count.value
-        }
+  return {
+    get counter() {
+      return count.value
     }
+  }
 })
 ```

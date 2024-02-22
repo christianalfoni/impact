@@ -27,10 +27,21 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         },
       }),
     },
+    "/style.css": {
+      code: `
+body {
+  margin: 0;
+  font-family: sans-serif;
+  text-align: center;
+}
+
+`,
+    },
     "/App.tsx": { code },
     "/index.tsx": {
       code: `import { createRoot } from 'react-dom/client';
 import App from './App';
+import "./style.css";
 
 const domNode = document.getElementById('root');
 const root = createRoot(domNode);
@@ -144,7 +155,6 @@ export default defineComponent({
 });
 </script>
 <template>
-  <hr />
   <div class="playground">
     <div
       class="codemirror-wrapper"
@@ -153,6 +163,21 @@ export default defineComponent({
       translate="no"
       data-gramm="false"
     >
+      <div class="caption code-caption">
+        <svg
+          class="nx-mr-2 nx-text-gray-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          width="18"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m8 17.95-6-6L8.05 5.9l1.075 1.075L4.15 11.95l4.925 4.925L8 17.95Zm7.95.05-1.075-1.075 4.975-4.975-4.925-4.925L16 5.95l6 6L15.95 18Z"
+            fill="currentColor"
+          ></path>
+        </svg>
+        <span>{{ $frontmatter.codeCaption }}</span>
+      </div>
       <codemirror
         v-model="$frontmatter.code"
         :style="{ height: '100%', padding: '10px' }"
@@ -165,7 +190,7 @@ export default defineComponent({
       />
     </div>
     <div class="iframe">
-      <div class="iframe-caption">
+      <div class="caption iframe-caption">
         <svg
           fill="currentColor"
           viewBox="0 0 48 48"
@@ -212,6 +237,7 @@ export default defineComponent({
   background-color: white;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+  overflow: hidden;
 
   @media (min-width: 1280px) {
     flex: 0 50%;
@@ -228,15 +254,26 @@ export default defineComponent({
   }
 }
 
-.iframe-caption {
+.caption {
   display: flex;
   align-items: center;
   background: var(--vp-c-bg-soft);
   font-size: 13px;
   gap: 0.4em;
-  padding: 0.1em 0.2em;
+  padding: 0.1em 0.4em;
   border-bottom: 1px solid var(--vp-c-divider);
   height: var(--caption-height);
+}
+
+.code-caption {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border: 1px solid var(--vp-c-divider);
+
+  @media (min-width: 1280px) {
+    border-top-right-radius: 0px;
+    border-right: 0;
+  }
 }
 </style>
 <style>
@@ -245,17 +282,15 @@ export default defineComponent({
 }
 .cm-editor {
   border: 1px solid var(--vp-c-divider);
+  border-top: 0;
   border-bottom-width: 0px;
   background-color: var(--vp-c-bg-alt) !important;
-  border-top-right-radius: 8px;
-  border-top-left-radius: 8px;
+  height: calc(100% - var(--caption-height));
 
   @media (min-width: 1280px) {
     border-right: 0;
     border-bottom-width: 1px;
 
-    border-top-right-radius: 0px;
-    border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
   }
 }

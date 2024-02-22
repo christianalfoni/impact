@@ -1,43 +1,43 @@
 ---
 code: |
-    import { useState, createContext, useContext, useCallback, useMemo } from 'react'
+  import { useState, createContext, useContext, useCallback, useMemo } from 'react'
 
-    const appContext = createContext()
+  const appContext = createContext()
 
-    function CountLabel() {
-        const { count } = useContext(appContext)
+  function CountLabel() {
+    const { count } = useContext(appContext)
 
-        return <span>Increase ({count})</span>
-    }
+    return <span>Increase ({count})</span>
+  }
 
-    function Counter() {
-        const { increase } = useContext(appContext)
+  function Counter() {
+    const { increase } = useContext(appContext)
 
-        return (
-            <button onClick={increase}>
-                <CountLabel />
-            </button>
-        )
-    }
+    return (
+      <button onClick={increase}>
+        <CountLabel />
+      </button>
+    )
+  }
 
-    export default function App() {
-        const [count, setCount] = useState(0)
+  export default function App() {
+    const [count, setCount] = useState(0)
 
-        const increase = useCallback(() => {
-            setCount(count + 1)
-        }, [count])
+    const increase = useCallback(() => {
+      setCount(count + 1)
+    }, [count])
 
-        const app = useMemo(() => ({
-            count,
-            increase
-        }), [count, increase])
+    const app = useMemo(() => ({
+      count,
+      increase
+    }), [count, increase])
 
-        return (
-            <appContext.Provider value={app}>
-                <Counter />
-            </appContext.Provider>
-        )
-    }
+    return (
+      <appContext.Provider value={app}>
+        <Counter />
+      </appContext.Provider>
+    )
+  }
 ---
 
 # Context
@@ -49,8 +49,11 @@ With a React context we can overcome both challenges we just experienced passing
 3. Even with Reacts compiler, you will still have performance issues as any state changed within the context will cause any consumer of the text to reconcile, even though they where not concerned with that specific state change
 4. You can not reliably instantiate and dispose objects related to mounting and unmounting the context/component
 
-All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. These are all great solutions, but let us explore how Impact solves these challenges and how it differs from the others.
 
 <ClientOnly>
-  <Playground />
+ <Playground />
 </ClientOnly>
+
+::: tip
+All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. These are all great solutions, but let us explore how Impact solves these challenges and how it differs from the others.
+:::

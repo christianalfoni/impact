@@ -14,25 +14,25 @@ import { store, signal } from 'impact-react'
 // Imagine that we have a posts page where we want to
 // fetch and cache any posts we open
 export const usePostsStore = store(() => {
-    // We cache any posts using a record of the post id
-    // and the promise of the post as a signal
-    const posts = {}
+  // We cache any posts using a record of the post id
+  // and the promise of the post as a signal
+  const posts = {}
 
-    return {
-        fetchPost(id) {
-            let post = posts[id]
+  return {
+    fetchPost(id) {
+      let post = posts[id]
 
-            if (!post) {
-                // If we have no post, we grab it and store it in a signal
-                post = posts[id] = signal(
-                    fetch('/posts/' + id).then((response) => response.json())
-                )
-            }
+      if (!post) {
+        // If we have no post, we grab it and store it in a signal
+        post = posts[id] = signal(
+          fetch('/posts/' + id).then((response) => response.json())
+        )
+      }
 
-            // We return the signal value, which is now an enhanced promise
-            return post.value
-        }
+      // We return the signal value, which is now an enhanced promise
+      return post.value
     }
+  }
 })
 ```
 
@@ -45,17 +45,17 @@ import { use } from 'impact-react'
 import { usePostsStore } from './usePostsStore'
 
 function Posts({ id }) {
-    const postsStore = usePostsStore()
-    const post = use(postsStore.fetchPost(id))
+  const postsStore = usePostsStore()
+  const post = use(postsStore.fetchPost(id))
 
-    return (
-        <div>
-            <h1>{post.title}</h1>
-            <p>
-                {post.body}
-            </p>
-        </div>
-    )
+  return (
+    <div>
+      <h1>{post.title}</h1>
+      <p>
+        {post.body}
+      </p>
+    </div>
+  )
 }
 ```
 
@@ -65,21 +65,21 @@ But maybe you do not want to use suspense, you just want to deal with the status
 import { usePostsStore } from './usePostsStore'
 
 const Post = ({ id }) => {
-    const postsStore = usePostsStore()
+  const postsStore = usePostsStore()
 
-    const postPromise = postsStore.fetchPost(id)
+  const postPromise = postsStore.fetchPost(id)
 
-    if (postPromise.status === 'pending') {
-        return <div>Loading...</div>
-    }
+  if (postPromise.status === 'pending') {
+    return <div>Loading...</div>
+  }
 
-    if (postPromise.status === 'rejected') {
-        return <div>Some error: {postPromise.reason}</div>
-    }
+  if (postPromise.status === 'rejected') {
+    return <div>Some error: {postPromise.reason}</div>
+  }
 
-    const post = postPromise.value
+  const post = postPromise.value
 
-    return <div>{post.title}</div>
+  return <div>{post.title}</div>
 }
 ```
 
@@ -91,29 +91,29 @@ import { store, signal } from 'impact-app'
 // We create a store for the Post displayed on the page and
 // pass it the fetched data
 const usePostStore = store(({ postData }) => {
-    const post = signal(postData)
-    // The value of the mutation signal starts out as undefined
-    const changingTitle = signal()
+  const post = signal(postData)
+  // The value of the mutation signal starts out as undefined
+  const changingTitle = signal()
 
-    return {
-        get post() {
-            return post.value
-        },
-        get changingTitle() {
-            return changingTitle.value
-        },
-        changeTitle(id, newTitle) {
-            // We assign a new value to our changingTitle mutation, which is
-            // the promise of changing the title
-            changingTitle.value = fetch({
-                method: 'PUT',
-                url: '/posts/' + id,
-                data: {
-                    title: newTitle
-                }
-            })
+  return {
+    get post() {
+      return post.value
+    },
+    get changingTitle() {
+      return changingTitle.value
+    },
+    changeTitle(id, newTitle) {
+      // We assign a new value to our changingTitle mutation, which is
+      // the promise of changing the title
+      changingTitle.value = fetch({
+        method: 'PUT',
+        url: '/posts/' + id,
+        data: {
+          title: newTitle
         }
+      })
     }
+  }
 })
 ```
 
@@ -123,28 +123,28 @@ We can now consume this mutation signal to evaluate the state of the mutation de
 import { usePostStore } from './'
 
 function PostTitle() {
-    const { post, changingTitle, changeTitle } = usePostStore()
-    const [newTitle, setNewTitle] = useState(post.title)
+  const { post, changingTitle, changeTitle } = usePostStore()
+  const [newTitle, setNewTitle] = useState(post.title)
 
-    return (
-        <div>
-            <input
-                // Now we can just check if we have a pending changing title
-                disabled={changingTitle?.status === 'pending' ?? false}
-                value={newTitle}
-                onChange={(event) => setNewTitle(event.target.value)}
-                onKeyDown={(event) => {
-                    if (event.key === 'ENTER') {
-                        changeTitle(id, newTitle)
-                    }
-                }}
-            />
-        </div>
-    )
+  return (
+    <div>
+      <input
+        // Now we can just check if we have a pending changing title
+        disabled={changingTitle?.status === 'pending' ?? false}
+        value={newTitle}
+        onChange={(event) => setNewTitle(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'ENTER') {
+            changeTitle(id, newTitle)
+          }
+        }}
+      />
+    </div>
+  )
 }
 
 const Post = usePostStore.provide(function Post() {
-    // This would of course be a complex component normally
-    return <PostTitle />
+  // This would of course be a complex component normally
+  return <PostTitle />
 })
 ```
