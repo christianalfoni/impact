@@ -9,12 +9,15 @@ export function store<T, A extends Record<string, unknown> | void>(
 };
 export function store<S extends Record<string, unknown>>(
   initialStore: S,
-): {
+): (() => {
   readonly [K in keyof S]: S[K] extends (...params: any[]) => any
     ? (this: S, ...params: Parameters<S[K]>) => ReturnType<S[K]>
     : Signal<S[K]>["value"];
+}) & {
+  Provider: React.FC<{ children: React.ReactNode }>;
+  provide: <T>(component: React.FC<T>) => React.FC<T>;
 };
-export function store(store: any) {
+export function store(store: any): any {
   if (typeof store === "function") {
     return context(store);
   }

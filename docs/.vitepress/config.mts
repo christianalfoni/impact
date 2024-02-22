@@ -6,6 +6,10 @@ export default defineConfig({
   description: "Reactive contexts for React",
   cleanUrls: true,
   themeConfig: {
+    footer: {
+      message: "Released under the MIT License.",
+      copyright: "Copyright © 2024-present Christian Alfoni",
+    },
     search: {
       provider: "local",
     },
@@ -19,7 +23,7 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Advanced", link: "/advanced/" },
+      { text: "Advanced", link: "/advanced/lists" },
       { text: "API Reference", link: "/store" },
     ],
 
