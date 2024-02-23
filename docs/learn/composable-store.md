@@ -49,11 +49,7 @@ code: |
 
 # Composable Store
 
-If you rather pass a function to the `store` you will gain more power. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. What you return from this function will be exposed from the store.
-
-::: info
-What you will mainly use this function for though is implementing state management using the reactive primitives from **Impact**.
-:::
+If you rather pass a function to the `store` you will gain more capabilities. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. You will also be able to use the reactive primitives of **Impact**. What you return from this function will be exposed from the store. This function will **not** reconcile, it only runs once.
 
 <ClientOnly>
   <Playground />

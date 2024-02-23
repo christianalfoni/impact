@@ -1,4 +1,5 @@
 ---
+codeCaption: Cached derived signals
 code: |
   import { store, signal, derived } from 'impact-react'
 
@@ -68,11 +69,9 @@ code: |
 
 # Derived
 
-Derived signals will calculate a value based on other signals and cache it. The benefit `derived` has over `useMemo` is that they do not immediately recaculcate when a dependent signal changes, but rather flag itself as dirty. Only when the value is accessed it will recompute the value.
+Derived signals will calculate a value based on other signals and cache it. The benefit `derived` has over `useMemo` is that they do not immediately recalculate when a dependent signal changes, but rather flag itself as dirty. Only when the value is accessed it will recompute the value.
 
-::: tip
 Derived is consumed just like a plain signal, using the `.value` property, but you can not assign a value to a derived.
-:::
 
 <ClientOnly>
   <Playground />
