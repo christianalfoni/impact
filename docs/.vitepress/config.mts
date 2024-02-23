@@ -3,6 +3,7 @@ import { defineConfig } from "vitepress";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Impact",
+  head: [["link", { rel: "icon", href: "/favicon.ico" }]],
   description: "Reactive state management for React",
   cleanUrls: true,
   themeConfig: {
