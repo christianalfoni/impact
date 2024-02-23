@@ -39,16 +39,14 @@ code: |
 
 # Scoping
 
-By default the stores are global, but you can scope them to specific component trees as well by using their provider.
+By default the stores are global, but you can scope them to specific component trees by using their provider.
 
-The hook used with the store has a `.Provider` property on it. Under the hood the store is exposed through a React context. The store is instantiated when the provider mounts and the `cleanup` is called when the provider unmounts.
+The hook used with the store has a `.Provider` property on it. Under the hood the store is exposed through a React context. The store is instantiated when the provider mounts and any `cleanup` is called when the provider unmounts.
 
 Scoping stores allows you to instantiate state management related to specific pages, features or even for each item in a list.
 
-
-::: tip
 Additionally the store can now receive props from the provider to initialise itself. This is especially useful to take advantage of modern React data fetching patterns, as you will see later.
-:::
+
 
 <ClientOnly>
  <Playground />

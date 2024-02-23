@@ -53,16 +53,14 @@ code: |
 
 # Promises
 
-React is synchronous. You can not await promises during component render. Typically you use effects to call asynchronous APIs and then update local component state with the result of the promise. The states of `LOADING` and `ERROR` are typically handled in individual states.
+React is synchronous. You can not await promises during component render. Typically you use `useEffect` to call asynchronous APIs and then update local component state with the result of the promise. The states of `LOADING` and `ERROR` are typically handled in individual states.
 
 **Impact** signals has first class support for promises. That means you can treat promises as any other values and consume them directly in components.
 
-When a promise is assigned to a signal it gets enhanced with a `.status` property, with related `.reason` and `.value`, which is from the [use]() specification of React. This makes the promise compatible with the use hook, but the promise itself is also reactive. That means you can just consume the `status` directly where a suspending `use` is not the tool for the job.
+When a promise is assigned to a signal it is enhanced with a `.status` property, with related `.reason` and `.value`, which is from the [use]() specification of React. This makes the promise compatible with the use hook, but the promise itself is also reactive. That means you can consume promise "as is" and check its `status` directly to evaluate what to render.
 
+Signal promises can be used for both data fetching and for mutations, which you can learn more about in the [advanced](../advanced/queries-and-mutations.md) section.
 
-::: tip
-This is as powerful for data fetching as mutations, which you can learn more about in the [advanced]() section.
-:::
 
 <ClientOnly>
  <Playground />

@@ -35,7 +35,7 @@ code: |
 
 # Effects
 
-**Impact** effects allows you to run logic related to signal changes observed in the effect. 
+**Impact** effects allows you to run logic related to signal changes observed in the effect. You can safely change signal values from effects and you'll always access the current value of any signal you access.
 
 <ClientOnly>
  <Playground />
