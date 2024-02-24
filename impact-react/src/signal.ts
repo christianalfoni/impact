@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { cleanup, getActiveContextContainer } from "./context";
+import { cleanup, getActiveStoreContainer } from "./store";
 
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -104,7 +104,7 @@ export type Signal<T> = {
 // We resolving contexts with an active ObserverContext, where we do not
 // want to track any signals accessed
 function isResolvingContextFromComponent(context: ObserverContext) {
-  return context.type === "component" && getActiveContextContainer();
+  return context.type === "component" && getActiveStoreContainer();
 }
 
 export function signal<T>(initialValue: T) {

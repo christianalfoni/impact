@@ -1,10 +1,16 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { store, derived, effect, signal } from "impact-react";
+import {
+  useStore,
+  derived,
+  effect,
+  signal,
+  createStoreProvider,
+} from "impact-react";
 
 import "impact-react-debugger";
 
-export const useStore = store(function Store({ message }: { message: string }) {
+function MyStore({ message }: { message: string }) {
   const foo = signal(message);
   const obj = signal({});
   const upperFoo = derived(function UpperFoo() {
@@ -36,13 +42,15 @@ export const useStore = store(function Store({ message }: { message: string }) {
       obj.value = newObjt;
     },
   };
-});
+}
+
+const MyStoreProvider = createStoreProvider(MyStore);
 
 const root = createRoot(document.querySelector("#root")!);
 
-const App = useStore.provide(function App() {
+const App = MyStoreProvider.provide(function App() {
   console.log("RENDER");
-  const store = useStore();
+  const store = useStore(MyStore);
 
   return (
     <h1 onClick={() => store.changeFoo()}>

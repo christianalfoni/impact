@@ -30,9 +30,9 @@ features:
     details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
 codeCaption: Running Impact 
 code: |
-  import { store, signal } from 'impact-react'
+  import { useStore, signal } from 'impact-react'
 
-  const useStore = store(() => {
+  function Store() {
     let interval
     const tick = signal(0)
     
@@ -51,10 +51,10 @@ code: |
         }
       }
     }
-  })
+  }
 
   export default function App() {
-    const { tick, toggle } = useStore()
+    const { tick, toggle } = useStore(Store)
 
     return (
       <div>

@@ -1,4 +1,4 @@
-import { componentConsumptionHooks } from "./context";
+import { componentConsumptionHooks } from "./store";
 import { ObserverContext, observer } from "./signal";
 
 export type { Signal, ObserverContextType } from "./signal";
@@ -11,8 +11,9 @@ export {
   SignalTracker,
   signalDebugHooks,
 } from "./signal";
-export { cleanup } from "./context";
-export { store } from "./store";
+
+export type { Store } from "./store";
+export { useStore, createStoreProvider, cleanup } from "./store";
 
 componentConsumptionHooks.onConsume = observer;
 componentConsumptionHooks.onConsumed = () => {

@@ -1,83 +1,270 @@
-import { Context, context } from "./context";
-import { Signal, derived, signal } from "./signal";
+import {
+  Component,
+  ReactNode,
+  createContext,
+  useContext,
+  // @ts-ignore-next-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as ReactInternals,
+  createElement,
+} from "react";
+import type { useReducer, useEffect } from "react";
 
-export function store<T, A extends Record<string, unknown> | void>(
-  store: Context<T, A>,
-): (() => T) & {
-  Provider: React.FC<A & { children: React.ReactNode }>;
-  provide: <T>(component: React.FC<T>) => React.FC<A & T>;
-};
-export function store<S extends Record<string, unknown>>(
-  initialStore: S,
-): (() => {
-  readonly [K in keyof S]: S[K] extends (...params: any[]) => any
-    ? (this: S, ...params: Parameters<S[K]>) => ReturnType<S[K]>
-    : Signal<S[K]>["value"];
-}) & {
-  Provider: React.FC<{ children: React.ReactNode }>;
-  provide: <T>(component: React.FC<T>) => React.FC<T>;
-};
-export function store(store: any): any {
-  if (typeof store === "function") {
-    return context(store);
-  }
+const currentStoreContainer: StoreContainer[] = [];
+const registeredProvidedStores = new Set<Store<any, any>>();
 
-  return context(() => createStore(store));
+export function getActiveStoreContainer() {
+  return currentStoreContainer[currentStoreContainer.length - 1];
 }
 
-function createStore<S extends Record<string, unknown>>(initialStore: S) {
-  /**
-   * STATE
-   */
-  const signals: Record<string, Signal<unknown>> = {};
-  const readonlyStore: Record<string, unknown> = {};
-  const store: Record<string, unknown> = {};
-  const descriptors = Object.getOwnPropertyDescriptors(initialStore);
-  for (const key in descriptors) {
-    const descriptor = Object.getOwnPropertyDescriptor(initialStore, key)!;
+export type Store<T, A extends Record<string, unknown> | void> = (
+  props: A,
+) => T;
 
-    if ("value" in descriptor && typeof descriptor.value === "function") {
-      readonlyStore[key] = (...params: any[]) =>
-        descriptor.value.apply(store, params);
-      store[key] = readonlyStore[key];
-    } else if ("value" in descriptor) {
-      signals[key] = signal(descriptor.value);
-      Object.defineProperty(readonlyStore, key, {
-        get() {
-          return signals[key].value;
-        },
-      });
-      Object.defineProperty(store, key, {
-        get() {
-          return signals[key].value;
-        },
-        set(v) {
-          return (signals[key].value = v);
-        },
-      });
-    } else if ("get" in descriptor && typeof descriptor.get === "function") {
-      signals[key] = derived(descriptor.get.bind(readonlyStore));
-      Object.defineProperty(readonlyStore, key, {
-        get() {
-          return signals[key].value;
-        },
-      });
-      Object.defineProperty(store, key, {
-        get() {
-          return signals[key].value;
-        },
-      });
-    } else {
-      console.warn(
-        `Not able to signalify the key "${key}" in store`,
-        initialStore,
-      );
+export type StoreState =
+  | {
+      isResolved: true;
+      value: any;
+      ref: Store<any, any>;
     }
+  | {
+      isResolved: false;
+      constr: () => any;
+      ref: Store<any, any>;
+    };
+
+class StoreContainer {
+  // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
+  // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
+  private _resolvementError?: Error;
+  private _state: StoreState;
+  private _disposers = new Set<() => void>();
+  private _isDisposed = false;
+
+  get isDisposed() {
+    return this._isDisposed;
   }
 
-  return readonlyStore as unknown as {
-    readonly [K in keyof S]: S[K] extends (...params: any[]) => any
-      ? (this: S, ...params: Parameters<S[K]>) => ReturnType<S[K]>
-      : Signal<S[K]>["value"];
+  constructor(
+    ref: Store<any, any>,
+    constr: () => any,
+    private _parent: StoreContainer | null,
+  ) {
+    this._state = {
+      isResolved: false,
+      ref,
+      constr,
+    };
+  }
+  registerCleanup(cleaner: () => void) {
+    this._disposers.add(cleaner);
+  }
+  resolve<T, A extends Record<string, unknown> | void>(store: Store<T, A>): T {
+    if (this._resolvementError) {
+      throw this._resolvementError;
+    }
+
+    if (this._state.isResolved && store === this._state.ref) {
+      return this._state.value;
+    }
+
+    if (!this._state.isResolved && this._state.ref === store) {
+      try {
+        currentStoreContainer.push(this);
+        this._state = {
+          isResolved: true,
+          value: this._state.constr(),
+          ref: store,
+        };
+        currentStoreContainer.pop();
+
+        return this._state.value;
+      } catch (e) {
+        this._resolvementError =
+          new Error(`Could not initialize store "${store?.name}":
+${String(e)}`);
+        throw this._resolvementError;
+      }
+    }
+
+    if (!this._parent) {
+      throw new Error(`The store "${store.name}" is not provided`);
+    }
+
+    return this._parent.resolve(store);
+  }
+  clear() {
+    this._disposers.forEach((cleaner) => {
+      cleaner();
+    });
+  }
+  dispose() {
+    this.clear();
+    this._isDisposed = true;
+  }
+}
+
+const storeContainerContext = createContext<StoreContainer | null>(null);
+
+export class StoreContainerProvider<
+  T extends Record<string, unknown> | void,
+> extends Component<{
+  store: Store<any, any>;
+  props: T;
+  children: React.ReactNode;
+}> {
+  static contextType = storeContainerContext;
+  container!: StoreContainer;
+  componentWillUnmount(): void {
+    this.container.dispose();
+  }
+  render(): ReactNode {
+    // React can keep the component reference and mount/unmount it multiple times. Because of that
+    // we need to ensure to always have a hooks container instantiated when rendering, as it could
+    // have been disposed due to an unmount
+    if (!this.container || this.container.isDisposed) {
+      this.container = new StoreContainer(
+        this.props.store,
+        () => this.props.store(this.props.props),
+        // eslint-disable-next-line
+        // @ts-ignore
+        this.context,
+      );
+    }
+
+    return createElement(
+      storeContainerContext.Provider,
+      {
+        value: this.container,
+      },
+      this.props.children,
+    );
+  }
+}
+
+export function cleanup(cleaner: () => void) {
+  const activeStoreContainer = getActiveStoreContainer();
+
+  // We do not want to clean up if we are not in a context, which
+  // means we are just globally running the store
+  if (!activeStoreContainer) {
+    return;
+  }
+
+  activeStoreContainer.registerCleanup(cleaner);
+}
+
+export const componentConsumptionHooks = {
+  isConsuming: false,
+  onConsume: () => {},
+  onConsumed: () => {},
+};
+
+const globalStores = new Map<Store<any, any>, any>();
+
+export function useStore<T, A extends Record<string, unknown> | void>(
+  store: Store<T, A>,
+): T {
+  const activeContextContainer = getActiveStoreContainer();
+
+  if (!activeContextContainer) {
+    if (!componentConsumptionHooks.isConsuming) {
+      componentConsumptionHooks.isConsuming = true;
+      componentConsumptionHooks.onConsume();
+    }
+
+    const storeContainer = useContext(storeContainerContext);
+
+    if (!storeContainer) {
+      let contextContainer = globalStores.get(store);
+
+      if (!contextContainer && registeredProvidedStores.has(store)) {
+        throw new Error(
+          `The store ${store.name} is not provided to this component`,
+        );
+      }
+
+      if (!contextContainer) {
+        // @ts-ignore
+        contextContainer = store();
+        globalStores.set(store, contextContainer);
+      }
+
+      return contextContainer;
+    }
+
+    return storeContainer.resolve<T, A>(store);
+  }
+
+  return activeContextContainer.resolve(store);
+}
+
+export function createStoreProvider<
+  T,
+  A extends Record<string, unknown> | void,
+>(store: Store<T, A>) {
+  registeredProvidedStores.add(store);
+  const StoreProvider = (props: A & { children: React.ReactNode }) => {
+    // To avoid TSLIB
+    const extendedProps = Object.assign({}, props);
+    const children = extendedProps.children;
+
+    delete extendedProps.children;
+
+    return createElement(
+      StoreContainerProvider,
+      // @ts-ignore
+      {
+        props: extendedProps,
+        store,
+      },
+      children,
+    );
   };
+
+  StoreProvider.displayName = store.name
+    ? `${store.name}Provider`
+    : "AnonymousStoreProvider";
+
+  StoreProvider.provide = (component: React.FC<A>) => {
+    return (props: A) => {
+      return createElement(
+        StoreProvider,
+        // @ts-ignore
+        props,
+        // @ts-ignore
+        createElement(component, props),
+      );
+    };
+  };
+
+  return StoreProvider;
+}
+
+interface ReactDispatcher {
+  useReducer: typeof useReducer;
+  useEffect: typeof useEffect;
+}
+
+if (typeof window !== "undefined") {
+  let currentDispatcher: ReactDispatcher | null = null;
+
+  Object.defineProperty(ReactInternals.ReactCurrentDispatcher, "current", {
+    get() {
+      return currentDispatcher;
+    },
+    set(nextDispatcher: ReactDispatcher) {
+      currentDispatcher = nextDispatcher;
+
+      if (
+        componentConsumptionHooks.isConsuming &&
+        // When the hooks has the same implementation, it is to throw an error, meaning
+        // we are done consuming a hooks context
+        currentDispatcher.useReducer === currentDispatcher.useEffect
+      ) {
+        componentConsumptionHooks.isConsuming = false;
+        componentConsumptionHooks.onConsumed();
+      }
+    },
+  });
 }
