@@ -71,7 +71,7 @@ root.render(
   // Optional options
   const options: ClientOptions = {
     showOpenInCodeSandbox: false,
-    //bundlerURL: "https://sandpack-bundler.codesandbox.io",
+    bundlerURL: "https://sandpack-bundler.codesandbox.io",
   };
 
   // Properly load and mount the bundler
