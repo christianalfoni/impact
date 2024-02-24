@@ -1,5 +1,5 @@
 <p align="center">
-  <img align="center" src="../Icon.png" />
+  <img align="center" src="./Icon.png" />
 </p>
 <p align="center">
   <b>Reactive state management for React</b>
