@@ -1,34 +1,40 @@
 ---
-codeCaption: Creating a store
+codeCaption: Creating a Store
 code: |
-  import { store } from 'impact-react'
+    import { useStore, signal } from 'impact-react'
 
-  const useStore = store({
-    count: 0,
-    increase() {
-      this.count++
+    function CounterStore() {
+        const count = signal(0)
+
+        return {
+            get count() {
+                return count.value
+            },
+            increase() {
+                count.value++
+            }
+        }
     }
-  })
 
-  export default function App() {
-    const { count, increase } = useStore()
+    export default function App() {
+      const { count, increase } = useStore(CounterStore)
 
-    return (
-      <button onClick={increase}>
-        Increase ({count})
-      </button>
-    )
-  }
+      return (
+        <button onClick={increase}>
+          Increase ({count})
+        </button>
+      )
+    }
 ---
 
 # Store
 
 Moving back to our initial example we implement a `store` with the same `count` and `increase`. What has changed now is that our store is global and can be used by any component.
 
-Each key in the store is a [signal](../signal), where `getters` are [derived](../derived). Any methods defined in the store has access to change any of the signals in the store, though the signals are `readonly` for components. That means changes to state can only happen within a store.
+Stores in **Impact** is defined as a function, just like a hook. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. You will also be able to use the reactive primitives of **Impact**. What you return from this function will be exposed from the store. This function will **not** reconcile, it only runs once.
+
+The `useStore` is used inside components to consume Impact stores.
 
 <ClientOnly>
   <Playground />
 </ClientOnly>
-
-Creating declarative global stores like this can work for certain apps, but **Impact** is designed to handle more complexity.

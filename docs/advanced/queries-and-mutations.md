@@ -2,20 +2,20 @@
 
 One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises, but React is not well suited for consuming promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to data fetching than consuming a promise in a component.
 
-There are several data fetching solutions for React, like [useQuery](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [useSWR](https://swr.vercel.app/), but these are tied to React and its reconciliation loop. These solutions really only provides data management, not state management.
+There are several data fetching solutions for React, like [react-query](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [swr](https://swr.vercel.app/) and you can use these in combination with **Impact**. But you can also choose to use signals.
 
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a lower abstraction than the above mentioned tools, but that makes them flexible and they can be used for all kinds of async state management, including queries and mutations.
 
 Traditionally with global state management you would do the data fetching inside your stores, but with **Impact** you have the choice to embrace React to do declarative data fetching. 
 
 ```ts
-import { store, signal } from 'impact-react'
+import { useStore, signal } from 'impact-react'
 
 // Imagine that we have a posts page where we want to
 // fetch and cache any posts we open
-export const usePostsStore = store(() => {
-  // We cache any posts using a record of the post id
-  // and the promise of the post as a signal
+function PostsStore() {
+  // We cache any queries for posts using a record of the post id
+  // with the promise of the post as a signal
   const posts = {}
 
   return {
@@ -29,20 +29,22 @@ export const usePostsStore = store(() => {
         )
       }
 
-      // We return the signal value, which is now an enhanced promise
+      // We return the signal value, which is now an observable promise
       return post.value
     }
   }
-})
+}
+
+export const usePostsStore = () => useStore(PostsStore)
 ```
 
-At this point you might wonder why we are storing the promise and not the result of the promise. What to keep in mind here is that we are only creating a consumable asynchronous value that React can consume. That means we are not going to use this signal as the source of the post data, it just represents fetching the initial data.
+The store acts as a cache for the initial data of posts. You choose how this cache operates. In this example we never update the cache, but you could invalidate the cache by any means.
 
-When a signal initialises with a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook. The React `use` hook is not available yet, so you can use the one from Impact in the meantime.
+When a signal initialises with a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook.
 
 ```tsx
-import { use } from 'impact-react'
-import { usePostsStore } from './usePostsStore'
+import { use } from 'react'
+import { usePostsStore } from './postsStore'
 
 function Posts({ id }) {
   const postsStore = usePostsStore()
@@ -62,11 +64,10 @@ function Posts({ id }) {
 But maybe you do not want to use suspense, you just want to deal with the status of the promise directly in the component:
 
 ```tsx
-import { usePostsStore } from './usePostsStore'
+import { usePostsStore } from './postsStore'
 
 const Post = ({ id }) => {
   const postsStore = usePostsStore()
-
   const postPromise = postsStore.fetchPost(id)
 
   if (postPromise.status === 'pending') {
@@ -86,11 +87,11 @@ const Post = ({ id }) => {
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of mutations.
 
 ```ts
-import { store, signal } from 'impact-app'
+import { useStore, signal, createStoreProvider } from 'impact-app'
 
 // We create a store for the Post displayed on the page and
 // pass it the fetched data
-const usePostStore = store(({ postData }) => {
+function PostStore({ postData }) {
   const post = signal(postData)
   // The value of the mutation signal starts out as undefined
   const changingTitle = signal()
@@ -114,13 +115,16 @@ const usePostStore = store(({ postData }) => {
       })
     }
   }
-})
+}
+
+export const usePostStore = () => useStore(PostStore)
+export const PostProvider = createStoreProvider(PostStore)
 ```
 
 We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
 
 ```tsx
-import { usePostStore } from './'
+import { usePostStore, PostProvider } from './'
 
 function PostTitle() {
   const { post, changingTitle, changeTitle } = usePostStore()
@@ -143,8 +147,14 @@ function PostTitle() {
   )
 }
 
-const Post = usePostStore.provide(function Post() {
-  // This would of course be a complex component normally
-  return <PostTitle />
-})
+function Post({ id }) {
+  const postsStore = usePostsStore()
+  const postData = use(postsStore.fetchPost(id))
+
+  return (
+    <PostProvider postData={postData}>
+      <PostTitle />
+    </PostProvider>
+  )
+}
 ```

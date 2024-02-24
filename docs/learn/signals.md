@@ -1,9 +1,9 @@
 ---
 codeCaption: Introducing signals
 code: |
-  import { store, signal } from 'impact-react'
+  import { useStore, signal } from 'impact-react'
 
-  const useStore = store(() => {
+  function CounterStore() {
     const count = signal(0)
     const enabled = signal(false)
 
@@ -21,10 +21,12 @@ code: |
         enabled.value = !enabled.value
       }
     }
-  })
+  }
+
+  const useCounterStore = () => useStore(CounterStore)
 
   function Counter() {
-    const { count, increase } = useStore()
+    const { count, increase } = useCounterStore()
 
     return (
       <button onClick={increase}>
@@ -34,7 +36,7 @@ code: |
   }
 
   function Enabler() {
-    const { enabled, toggleEnabled } = useStore()
+    const { enabled, toggleEnabled } = useCounterStore()
 
     return (
       <button onClick={toggleEnabled}>

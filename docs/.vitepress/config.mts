@@ -37,12 +37,11 @@ export default defineConfig({
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
           { text: "Store", link: "/learn/store" },
-          { text: "Composable Store", link: "/learn/composable-store" },
           { text: "Signals", link: "/learn/signals" },
           { text: "Derived", link: "/learn/derived" },
           { text: "Effects", link: "/learn/effects" },
           { text: "Scoping", link: "/learn/scoping" },
-          { text: "Promises", link: "/learn/promises" },
+          { text: "Data Fetching", link: "/learn/data-fetching" },
         ],
       },
       {

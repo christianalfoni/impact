@@ -1,9 +1,9 @@
 ---
 codeCaption: Using effects
 code: |
-  import { store, signal, effect } from 'impact-react'
+  import { useStore, signal, effect } from 'impact-react'
 
-  const useStore = store(() => {
+  function CounterStore() {
     const count = signal(0)
 
     effect(() => console.log(count.value))
@@ -16,20 +16,16 @@ code: |
         count.value++
       }
     }
-  })
+  }
 
-  function Counter() {
-    const { count, increase } = useStore()
+  export default function App() {
+    const { count, increase } = useStore(CounterStore)
 
     return (
       <button onClick={increase}>
         Increase ({count})
       </button>
     )
-  }
-
-  export default function App() {
-    return <Counter />
   }
 ---
 
