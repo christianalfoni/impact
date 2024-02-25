@@ -76,6 +76,10 @@ export default defineConfig({
             text: "Effect",
             link: "/effect",
           },
+          {
+            text: "Cleanup",
+            link: "/cleanup",
+          },
         ],
       },
     ],
