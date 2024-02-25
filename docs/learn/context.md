@@ -1,4 +1,5 @@
 ---
+codeCaption: React context
 code: |
   import { useState, createContext, useContext, useCallback, useMemo } from 'react'
 
@@ -44,8 +45,14 @@ code: |
 
 With a React context we can overcome both challenges we just experienced passing props. By providing a context we can consume state and related management in any nested component. This is great, but it will introduce a new set of challenges:
 
-1. The provider component will reconcile so we need to make sure that the value we expose on the context does not unnnecessarily change reference. We need to use both `useCallback` and `useMemo` to ensure that reconciliation from a parent causes the exposed value to **not** change reference, or all consumers of the context reconciles as well
+1. The provider component will reconcile so we need to make sure that the value we expose on the context does not unnnecessarily change reference. We need to use both `useCallback` and `useMemo` to ensure that reconciliation from a parent causes the exposed value to **not** change reference, or all components consuming the context reconciles as well
 2. When the context value does change reference, all consumers of the context reconciles. That means React contexts is an "all or nothing" deal. Components consuming the context reconciles on any change in the context, not by the state they actually consume
+
+::: info
+
+Even though the new [React Compiler]() can solve the first point, it will not solve the second point.
+
+:::
 
 <ClientOnly>
  <Playground />

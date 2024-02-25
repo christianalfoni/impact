@@ -29,11 +29,9 @@ code: |
 
 # Store
 
-Moving back to our initial example we implement a `store` with the same `count` and `increase`. What has changed now is that our store is global and can be used by any component.
+Moving back to our initial example we implement an **Impact** store with the same `count` and `increase`.  Stores in **Impact** is defined as a function, just like a hook. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. You will also be able to use the reactive primitives of **Impact**. What you return from this function will be exposed from the store. This function will **not** reconcile, it only runs once.
 
-Stores in **Impact** is defined as a function, just like a hook. In the scope of this function you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. You will also be able to use the reactive primitives of **Impact**. What you return from this function will be exposed from the store. This function will **not** reconcile, it only runs once.
-
-The `useStore` is used inside components to consume Impact stores.
+The `useStore` is used inside components to consume **Impact** stores and they are global by default.
 
 <ClientOnly>
   <Playground />

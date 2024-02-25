@@ -1,4 +1,5 @@
 ---
+codeCaption: The infamous counter
 code: |
   import { useState } from 'react'
 
