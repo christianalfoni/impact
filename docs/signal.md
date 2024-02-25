@@ -22,7 +22,7 @@ function MyStore() {
 
 ## Promises
 
-Assigning a promise to a signal will enhance that promise to comply with the [use]() specification of React. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
+Assigning a promise to a signal will enhance that promise to comply with the [use](https://react.dev/reference/react/use) specification of React. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
 import { signal, useStore } from 'impact-react'

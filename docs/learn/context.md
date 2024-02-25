@@ -50,13 +50,12 @@ With a React context we can overcome both challenges we just experienced passing
 
 ::: info
 
-Even though the new [React Compiler]() can solve the first point, it will not solve the second point.
+Even though the new [React Compiler](https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024#react-compiler) can solve the first point, it will not solve the second point.
 
 :::
 
 <ClientOnly>
  <Playground />
 </ClientOnly>
-
 
 All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. These are all great solutions, but let us explore how Impact solves these challenges and how it differs from the others.
