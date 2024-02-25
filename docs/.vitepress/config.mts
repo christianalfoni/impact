@@ -25,7 +25,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Advanced", link: "/advanced/lists" },
-      { text: "API Reference", link: "/store" },
+      { text: "API Reference", link: "/useStore" },
     ],
 
     sidebar: [
@@ -61,23 +61,27 @@ export default defineConfig({
         text: "API Reference",
         items: [
           {
-            text: "Store",
-            link: "/store",
+            text: "useStore",
+            link: "/useStore",
           },
           {
-            text: "Signal",
+            text: "createStoreProvider",
+            link: "/createStoreProvider",
+          },
+          {
+            text: "signal",
             link: "/signal",
           },
           {
-            text: "Derived",
+            text: "derived",
             link: "/derived",
           },
           {
-            text: "Effect",
+            text: "effect",
             link: "/effect",
           },
           {
-            text: "Cleanup",
+            text: "cleanup",
             link: "/cleanup",
           },
         ],
