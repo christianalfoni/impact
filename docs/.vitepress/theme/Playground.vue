@@ -35,6 +35,23 @@ body {
   text-align: center;
 }
 
+button {
+    display: block;
+    margin: 10px auto;
+    border: 1px solid rgba(0, 0, 0, 0);
+    color: rgb(255, 255, 255);
+    background-color: rgb(0, 151, 199);
+    border-radius: 20px;
+    padding: 0 20px;
+    line-height: 38px;
+    font-size: 14px;
+    min-width: 100px;
+}
+
+h4 {
+  font-size: 22px;
+}
+
 `,
     },
     "/App.tsx": { code },
