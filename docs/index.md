@@ -24,7 +24,7 @@ By CodeSandbox team
       link: /useStore
     - theme: alt
       text: Start from template 
-      link: /useStore
+      link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
   - title: Familiar paradigm
@@ -117,8 +117,6 @@ pnpm add impact-react
 ```
 
 :::
-
-Or start from [codesandbox.io](https://codesandbox.io/p/devbox/impact-template-fp6gd9)
 
 ## Install debugger
 
