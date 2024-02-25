@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { Codemirror } from "vue-codemirror";
+import { basicSetup } from "codemirror";
 import { javascript } from "@codemirror/lang-javascript";
 import { githubLight } from "@ddietr/codemirror-themes/github-light.js";
 import { githubDark } from "@ddietr/codemirror-themes/github-dark.js";
@@ -46,6 +47,12 @@ button {
     line-height: 38px;
     font-size: 14px;
     min-width: 100px;
+    cursor: pointer;
+    transition: color 0.25s, border-color 0.25s, background-color 0.25s;
+
+    &:hover {
+      background: #0289b2;
+    }
 }
 
 h4 {
@@ -145,6 +152,7 @@ export default defineComponent({
     });
 
     const extensions = [
+      ...basicSetup,
       javascript({
         jsx: true,
         typescript: true,
@@ -155,6 +163,10 @@ export default defineComponent({
     const view = shallowRef();
     const handleReady = (payload) => {
       view.value = payload.view;
+
+      // Disable grammarly
+      const el = document.getElementsByClassName("cm-content")[0];
+      el.setAttribute("data-enable-grammarly", "false");
     };
 
     return {
@@ -255,7 +267,6 @@ export default defineComponent({
   background-color: white;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-  overflow: hidden;
 
   @media (min-width: 1280px) {
     flex: 0 50%;
@@ -266,9 +277,11 @@ export default defineComponent({
   }
 
   & iframe {
-    width: 100%;
-    flex: 1;
     border: 0;
+    @media (min-width: 1280px) {
+      position: sticky;
+      top: calc(var(--vp-nav-height) + 10px);
+    }
   }
 }
 
@@ -281,6 +294,7 @@ export default defineComponent({
   padding: 0.1em 0.4em;
   border-bottom: 1px solid var(--vp-c-divider);
   height: var(--caption-height);
+  box-sizing: content-box;
 }
 
 .code-caption {
@@ -295,9 +309,14 @@ export default defineComponent({
 }
 </style>
 <style>
+.v-codemirror {
+  display: block !important;
+}
+
 .cm-focused {
   outline: none !important;
 }
+
 .cm-editor {
   border: 1px solid var(--vp-c-divider);
   border-top: 0;
@@ -310,6 +329,11 @@ export default defineComponent({
     border-bottom-width: 1px;
 
     border-bottom-left-radius: 8px;
+  }
+
+  .cm-activeLineGutter,
+  .cm-gutters {
+    background: none;
   }
 }
 </style>
