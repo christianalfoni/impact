@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# Signal
+# signal
 
 Reactive state. The value is considered immutable and needs to be replaced. If replaced with the same value, the signal will not trigger.
 

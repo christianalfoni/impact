@@ -2,7 +2,7 @@
 outline: deep
 ---
 
-# Effect
+# effect
 
 Reactive effect. Will observe any signals or derived in its callback. It runs immediately and will run again whenever obervation triggers. If an effect both observes and sets the same signal, the observation is ignored.
 
