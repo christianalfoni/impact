@@ -5,10 +5,6 @@ code: |
   import { useStore, signal, cleanup, createStoreProvider } from 'impact-react'
 
   function ListStore({ initialItems }) {
-    // We create a signal for managing what to display in the list. It
-    // only contains ids to items
-    const listById = signal(initialItems.map((item) => item.id))
-    
     // We create a dictionary to reference items
     const items = initialItems.reduce((acc, item) => {
       // We turn every item into a signal
@@ -17,10 +13,13 @@ code: |
       return acc
     }, {})
 
+    // We create a signal for managing what to display in the list. It
+    // only contains ids to items
+    const listById = signal(Object.keys(items))
+
     cleanup(() => {
-      // Subscribe to item updates and update each individual item. Evaluate
-      // if the "listById" needs to update
-      // items[updatedItem.id].value = updatedItem
+      // Subscribe to item updates and update each individual item.
+      // Update the "listById" if necessary
     })
 
     return {

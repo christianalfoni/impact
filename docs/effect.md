@@ -4,7 +4,7 @@ outline: deep
 
 # Effect
 
-Reactive effect. Will oberve and signals or derived in its callback. It runs immediately and will run again whenever obervation triggers. If an effect both observes and sets the same signal, the observation is ignored.
+Reactive effect. Will observe any signals or derived in its callback. It runs immediately and will run again whenever obervation triggers. If an effect both observes and sets the same signal, the observation is ignored.
 
 ```ts
 import { effect, signal } from 'impact-react'
@@ -23,3 +23,7 @@ function MyStore() {
   }
 }
 ```
+
+::: tip
+When stores are scoped it will automatically `cleanup` any effect observer contexts.
+:::

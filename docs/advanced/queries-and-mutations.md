@@ -1,6 +1,6 @@
 # Queries and Mutations
 
-One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises, but React is not well suited for consuming promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to data fetching than consuming a promise in a component.
+One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but managing these promises is not something React is good at or should even consider doing.
 
 There are several data fetching solutions for React, like [react-query](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [swr](https://swr.vercel.app/) and you can use these in combination with **Impact**. But you can also choose to use signals.
 
@@ -86,6 +86,8 @@ const Post = ({ id }) => {
 
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of mutations.
 
+We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and revert.
+
 ```ts
 import { useStore, signal, createStoreProvider } from 'impact-app'
 
@@ -104,15 +106,29 @@ function PostStore({ postData }) {
       return changingTitle.value
     },
     changeTitle(id, newTitle) {
-      // We assign a new value to our changingTitle mutation, which is
-      // the promise of changing the title
-      changingTitle.value = fetch({
-        method: 'PUT',
-        url: '/posts/' + id,
-        data: {
+      const oldTitle = post.value.title
+
+        // Optimistically change the title
+        post.value = {
+          ...post.value,
           title: newTitle
         }
-      })
+
+        changingTitle.value = fetch({
+          method: 'PUT',
+          url: '/posts/' + id,
+          data: {
+            title: newTitle
+          }
+        })
+
+        // Revert to the previous value
+        changingTitle.value.catch(() => {
+          post.value = {
+            ...post.value,
+            title: oldTitle
+          }
+        })
     }
   }
 }
@@ -143,6 +159,7 @@ function PostTitle() {
           }
         }}
       />
+      {changingTitle?.status === 'rejected' ? 'Could not update title' : null}
     </div>
   )
 }
