@@ -28,38 +28,51 @@ features:
     details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
   - title: Accessible DX
     details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
-codeCaption: Running Impact 
+codeCaption: Example store 
 code: |
   import { useStore, signal } from 'impact-react'
 
   function Store() {
     let interval
     const tick = signal(0)
+    const isTicking = signal(false)
+
+    const startInterval = () => {
+      interval = setInterval(() => {
+        tick.value++
+      }, 500)
+      isTicking.value = true
+    }
+
+    const stopInterval = () => {
+      clearInterval(interval)
+      isTicking.value = false
+    }
     
     return {
       get tick() {
         return tick.value
       },
+      get isTicking() {
+        return isTicking.value
+      },
       toggle() {
-        if (interval === undefined) {
-          interval = setInterval(() => {
-            tick.value++
-          }, 500)
+        if (isTicking.value) {
+          stopInterval()
         } else {
-          clearInterval(interval)
-          interval = undefined
+          startInterval()
         }
       }
     }
   }
 
   export default function App() {
-    const { tick, toggle } = useStore(Store)
+    const { tick, isTicking, toggle } = useStore(Store)
 
     return (
       <div>
         <h4>Tick count: {tick}</h4>
-        <button onClick={toggle}>Toggle</button>
+        <button onClick={toggle}>{isTicking ? "Stop" : "Start"}</button>
       </div>
     )
   }

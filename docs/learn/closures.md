@@ -1,5 +1,5 @@
 ---
-codeCaption: Understanding clojures in React
+codeCaption: Understanding closures in React
 code: |
   import { useState, useCallback } from 'react'
 
