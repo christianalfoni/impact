@@ -81,6 +81,16 @@ code: |
 
 <HomeContent>
 
+<hr/>
+
+<h1 align="center">
+
+:warning: Release candidate :warning:
+
+</h1>
+
+<hr/>
+
 <ClientOnly>
   <Playground />
 </ClientOnly>
