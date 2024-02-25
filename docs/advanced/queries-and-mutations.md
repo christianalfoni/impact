@@ -38,7 +38,7 @@ function PostsStore() {
 export const usePostsStore = () => useStore(PostsStore)
 ```
 
-The store acts as a cache for the initial data of posts. You choose how this cache operates. In this example we never update the cache, but you could invalidate the cache by any means.
+The store acts as a cache for the initial data of posts. You choose how this cache operates. In this example we never invalidate the cache, but you are free to do so by any means.
 
 When a signal initialises with a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook.
 
@@ -86,7 +86,7 @@ const Post = ({ id }) => {
 
 But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of mutations.
 
-We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and revert.
+We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and reverting.
 
 ```ts
 import { useStore, signal, createStoreProvider } from 'impact-app'
@@ -108,27 +108,21 @@ function PostStore({ postData }) {
     changeTitle(id, newTitle) {
       const oldTitle = post.value.title
 
-        // Optimistically change the title
-        post.value = {
-          ...post.value,
+      // Optimistically change the title
+      post.value = { ...post.value, title: newTitle }
+
+      changingTitle.value = fetch({
+        method: 'PUT',
+        url: '/posts/' + id,
+        data: {
           title: newTitle
         }
+      })
 
-        changingTitle.value = fetch({
-          method: 'PUT',
-          url: '/posts/' + id,
-          data: {
-            title: newTitle
-          }
-        })
-
-        // Revert to the previous value
-        changingTitle.value.catch(() => {
-          post.value = {
-            ...post.value,
-            title: oldTitle
-          }
-        })
+      // Revert to the previous value
+      changingTitle.value.catch(() => {
+        post.value = { ...post.value, title: oldTitle }
+      })
     }
   }
 }
