@@ -335,5 +335,8 @@ export default defineComponent({
   .cm-gutters {
     background: none;
   }
+  .cm-lineNumbers {
+    color: var(--vp-c-border);
+  }
 }
 </style>
