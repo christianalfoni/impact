@@ -3,18 +3,10 @@
   --vp-c-brand-2: #0289b2;
   --vp-c-brand-3: #0097c7;
 
-  --vp-home-hero-name-color: var(--vp-c-brand-1);
-
   --vp-home-hero-image-background-image: radial-gradient(
     #2a2a2834 1px,
     transparent 0
   );
-  /* --vp-home-hero-image-filter: blur(70px); */
-}
-
-.image-bg {
-  background-size: 20px 20px;
-  background-repeat: repeat;
 }
 
 .dark {
@@ -26,9 +18,77 @@
   );
 }
 
+.VPNavBarTitle > .title {
+  font-family: var(--vp-font-family-mono);
+
+  &:after {
+    content: ";";
+    color: var(--vp-c-text-3);
+    opacity: 0.6;
+  }
+}
+
+/**
+* Home
+*/
+.image-bg {
+  --spread: 30;
+  --dot: 1;
+  --size: 1000;
+  --speed: 100;
+  --bg: linear-gradient(var(--vp-c-text-1), var(--vp-c-brand-1));
+
+  &:before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    mask:
+      radial-gradient(
+          circle at 50% 50%,
+          white calc(var(--dot) * 1px),
+          transparent calc((var(--dot) * 1px) + 0.5px)
+        )
+        50% 50% / calc(var(--spread) * 1px) calc(var(--spread) * 1px),
+      url("https://assets.codepen.io/605876/noise-mask.png")
+        calc(var(--size) * 1px) 50% / calc(var(--size) * 1px)
+        calc(var(--size) * 1px);
+    -webkit-mask-composite: source-in, xor;
+    mask-composite: intersect;
+    animation: flicker calc(var(--speed) * 1s) infinite linear;
+    border-radius: 12px;
+  }
+
+  &:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(
+      var(--vp-c-bg) 40%,
+      transparent 50%,
+      var(--vp-c-bg) 80%
+    );
+  }
+}
+
+@keyframes flicker {
+  to {
+    mask-position:
+      50% 50%,
+      0 50%;
+  }
+}
+
 .name {
   font-family: var(--vp-font-family-mono);
   text-align: left;
+  --vp-home-hero-name-color: var(--vp-c-text-1);
+
+  &:after {
+    content: ";";
+    color: var(--vp-c-text-3);
+    opacity: 0.6;
+  }
 }
 
 .tagline {
@@ -42,6 +102,9 @@
   margin-bottom: 1em;
 }
 
+/**
+* Code snippet & editor
+*/
 .cm-editor *,
 pre {
   font-size: 13px;
