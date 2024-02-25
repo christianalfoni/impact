@@ -50,7 +50,7 @@ With a React context we can overcome both challenges we just experienced passing
 
 ::: info
 
-Even though the new [React Compiler](https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024#react-compiler) can solve the first point, it will not solve the second point.
+Even though the new [React Compiler](https://react.dev/blog/2024/02/15/react-labs-what-we-have-been-working-on-february-2024#react-compiler) can solve the second point, it will not solve the first point.
 
 :::
 
