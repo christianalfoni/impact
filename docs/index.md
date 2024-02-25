@@ -19,7 +19,7 @@ hero:
       link: /advanced/lists
     - theme: alt
       text: API Reference
-      link: /store
+      link: /useStore
 
 features:
   - title: Familiar paradigm
