@@ -165,9 +165,9 @@ const globalStores = new Map<Store<any, any>, any>();
 export function useStore<T, A extends Record<string, unknown> | void>(
   store: Store<T, A>,
 ): T {
-  const activeContextContainer = getActiveStoreContainer();
+  const activeStoreContainer = getActiveStoreContainer();
 
-  if (!activeContextContainer) {
+  if (!activeStoreContainer) {
     if (!componentConsumptionHooks.isConsuming) {
       componentConsumptionHooks.isConsuming = true;
       componentConsumptionHooks.onConsume();
@@ -196,7 +196,7 @@ export function useStore<T, A extends Record<string, unknown> | void>(
     return storeContainer.resolve<T, A>(store);
   }
 
-  return activeContextContainer.resolve(store);
+  return activeStoreContainer.resolve(store);
 }
 
 export function createStoreProvider<
