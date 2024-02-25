@@ -32,6 +32,7 @@ import {
   closeBracketsKeymap,
 } from "@codemirror/autocomplete";
 import { lintKeymap } from "@codemirror/lint";
+import stacktraceGps from "./stack-gps-fix?raw";
 
 import { ref, onMounted, shallowRef, onUpdated, onBeforeUnmount } from "vue";
 import { useData } from "vitepress";
@@ -52,10 +53,17 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
           react: "18.2.0",
           "react-dom": "18.2.0",
           "impact-react": "latest",
-          "impact-react-debugger": "latest",
-          "preact-render-to-string": "latest",
+          ...(code.includes("'impact-react-debugger'")
+            ? {
+                "impact-react-debugger": "latest",
+                "preact-render-to-string": "latest",
+              }
+            : {}),
         },
       }),
+    },
+    "/node_modules/stacktrace-gps/stacktrace-gps.js": {
+      code: "console.log('SSAWDAWDAWDAWD, ' )",
     },
     "/style.css": {
       code: `
@@ -124,7 +132,7 @@ root.render(
   // Optional options
   const options: ClientOptions = {
     showOpenInCodeSandbox: false,
-    bundlerURL: "https://sandpack-bundler.codesandbox.io",
+    bundlerURL: "https://r7nhz8-1234.csb.app/",
   };
 
   // Properly load and mount the bundler

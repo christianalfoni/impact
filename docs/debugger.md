@@ -2,7 +2,7 @@
 
 code: |
   import { useStore, signal } from 'impact-react'
-  import('impact-react-debugger')
+  import 'impact-react-debugger'
 
   function CounterStore() {
     const count = signal(0)
@@ -36,20 +36,9 @@ code: |
     )
   }
 
-  function Enabler() {
-    const { enabled, toggleEnabled } = useCounterStore()
-
-    return (
-      <button onClick={toggleEnabled}>
-        {enabled ? "Disable" : "Enable"}
-      </button>
-    )
-  }
-
   export default function App() {
     return <>
       <Counter />
-      <Enabler />
     </>
   }
 ---
