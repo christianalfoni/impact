@@ -51,7 +51,9 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         dependencies: {
           react: "18.2.0",
           "react-dom": "18.2.0",
-          "impact-react": "1.2.0",
+          "impact-react": "latest",
+          "impact-react-debugger": "latest",
+          "preact-render-to-string": "latest",
         },
       }),
     },
