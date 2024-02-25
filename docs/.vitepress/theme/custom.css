@@ -37,6 +37,8 @@
   --size: 1000;
   --speed: 100;
   --bg: linear-gradient(var(--vp-c-text-1), var(--vp-c-brand-1));
+  width: 800px !important;
+  height: 500px !important;
 
   &:before {
     content: "";
@@ -64,7 +66,7 @@
     position: absolute;
     inset: 0;
     background-image: radial-gradient(
-      var(--vp-c-bg) 40%,
+      var(--vp-c-bg) 20%,
       transparent 50%,
       var(--vp-c-bg) 80%
     );
@@ -87,7 +89,7 @@
   &:after {
     content: ";";
     color: var(--vp-c-text-3);
-    opacity: 0.6;
+    opacity: 0.5;
   }
 }
 
