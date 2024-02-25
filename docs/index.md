@@ -2,10 +2,12 @@
 layout: home
 
 hero:
-  name: "Impact;"
+  name: "Impact"
   tagline: "/** \n
   * Reactive state management for React \n
 */
+\n\n
+By CodeSandbox team
   "
   image:
     light: /Icon.png
@@ -14,11 +16,14 @@ hero:
     - theme: brand
       text: Learn
       link: /learn/
-    - theme: alt
-      text: Advanced
-      link: /advanced/lists
+    # - theme: alt
+    #   text: Advanced
+    #   link: /advanced/lists
     - theme: alt
       text: API Reference
+      link: /useStore
+    - theme: alt
+      text: Start from template 
       link: /useStore
 
 features:
