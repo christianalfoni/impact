@@ -20,9 +20,7 @@ code: |
 
 # Closures
 
-Whenever you change state in a component React will call the component function again and reconcile. In the previous example code the component had only one active closure at any time. Reconciliation is a fantastic feature of React. Because of this you can just use normal JavaScript syntax to create conditions, loops, switches etc. to describe your UI.
-
-In this code example we have introduced another scope. The `increase` function will be re-created when the component reconciles, but the component will always reference the first instance because of `useCallback`. The great thing about this is that the reference to `increase` never changes and you can safely pass the function to a nested component and take avantage of `memo` where needed to avoid unnecessary reconciliation. The problem though is that the component now operates with two closures at any time. The reconciliation closure of the component, and the `useCallback` closure which is created on the first render of the component.
+In the previous example code the component had only one active closure at any time. In this code example we are introducing an additional active closure. The `increase` function will be re-created when the component reconciles, but the component will always reference the first instance because of `useCallback`. The great thing about this is that the reference to `increase` never changes and you can safely pass the function to a nested component and take avantage of `memo` to avoid unnecessary reconciliation. The problem is the mental overhead we introduce. It is very difficult to infer the number of closures a component operates in by reading the code. It can also be difficult to resolve bugs due to stale closures.
 
 <ClientOnly>
  <Playground />

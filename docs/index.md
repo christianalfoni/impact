@@ -29,10 +29,10 @@ By CodeSandbox team
 features:
   - title: Familiar paradigm
     details: Use the hooks pattern you know and love from React, but without the mental and performance overhead of reconcilication.
+  - title: Performant and predictable
+    details: Reactive primitives like signal, derived and effect, combined with inferred observation in components, makes your application blazingly fast and predictable
   - title: Globally or scoped
     details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
-  - title: Accessible DX
-    details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
 codeCaption: Example store 
 code: |
   import { useStore, signal } from 'impact-react'
@@ -42,14 +42,14 @@ code: |
     const tick = signal(0)
     const isTicking = signal(false)
 
-    const startInterval = () => {
+    const start = () => {
       interval = setInterval(() => {
         tick.value++
       }, 500)
       isTicking.value = true
     }
 
-    const stopInterval = () => {
+    const stop = () => {
       clearInterval(interval)
       isTicking.value = false
     }
@@ -63,9 +63,9 @@ code: |
       },
       toggle() {
         if (isTicking.value) {
-          stopInterval()
+          stop()
         } else {
-          startInterval()
+          start()
         }
       }
     }
