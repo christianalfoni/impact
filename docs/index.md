@@ -28,11 +28,11 @@ By CodeSandbox team
 
 features:
   - title: The best of both worlds
-    details: Use Impacts modern reactive model to manage state and Reacts component model to manage UI. The hooks pattern you know and love, but without the mental and performance overhead of reconciliation. 
+    details: Use Impacts modern reactive model to manage state and Reacts component model to manage UI.
   - title: Performant and predictable
-    details: Reactive primitives like signal, derived and effect, combined with inferred observation in components, makes your application blazingly fast and predictable.
+    details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
-    details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
+    details: Scope state management globally or to component trees, where React data fetching patterns can be embraced
 codeCaption: Example store 
 code: |
   import { useStore, signal } from 'impact-react'
