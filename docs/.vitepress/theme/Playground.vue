@@ -384,7 +384,7 @@ export default defineComponent({
 
   .cm-activeLineGutter,
   .cm-gutters {
-    background: none;
+    background: var(--vp-c-bg-alt) !important;
   }
   .cm-lineNumbers {
     color: var(--vp-c-border);
