@@ -32,7 +32,7 @@ export default defineConfig({
       {
         text: "Learn",
         items: [
-          { text: "State Management", link: "/learn/" },
+          { text: "Introduction", link: "/learn/" },
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
