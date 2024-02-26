@@ -34,7 +34,7 @@ code: |
 
 # Props
 
-Another aspect of state management is how you get your state and management of that state to the UI that interacts with it. Where state and its management needs to be located in the component tree depends on where it needs to be consumed in the component tree. The farther "away from each other" the consuming components are, the higher up in the component tree the state management needs to be defined and the farther it needs to "travel" through props to its consuming destination.
+Another aspect of state management is how you get your state and management of that state to the UI that interacts with it. Where state management needs to be located in the component tree depends on where it needs to be consumed in the component tree. The farther "away from each other" the consuming components are, the higher up in the component tree the state management needs to be defined and the farther it needs to "travel" through props to its consuming destination.
 
 <ClientOnly>
   <Playground />

@@ -39,6 +39,7 @@
   --bg: linear-gradient(var(--vp-c-text-1), var(--vp-c-brand-1));
   width: 800px !important;
   height: 500px !important;
+  max-width: 100vw;
 
   &:before {
     content: "";
