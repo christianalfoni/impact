@@ -20,7 +20,7 @@ code: |
 
 # Closures
 
-In the previous example code the component had only one active closure at any time. In this code example we are introducing an additional active closure. The `increase` function will be re-created when the component reconciles, but the component will always reference the first instance because of `useCallback`. The great thing about this is that the reference to `increase` never changes and you can safely pass the function to a nested component and take avantage of `memo` to avoid unnecessary reconciliation. The problem is the mental overhead we introduce. It is very difficult to infer the number of closures a component operates in by reading the code. It can also be difficult to resolve bugs due to stale closures.
+In the previous example code the component had only one closure at any time. In this code example we are introducing an additional closure. The `increase` function will be re-created when the component reconciles, but the component will always reference the first instance because of `useCallback`. The great thing about this is that the reference to `increase` never changes and you can safely pass the function to a nested component and take avantage of `memo` to avoid unnecessary reconciliation. The problem is the mental overhead we introduce. It is very difficult to infer the number of closures a component operates in by reading the code. It can also be difficult to resolve bugs due to stale closures.
 
 <ClientOnly>
  <Playground />
