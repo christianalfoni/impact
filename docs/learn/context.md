@@ -59,4 +59,4 @@ Even though the new [React Compiler](https://react.dev/blog/2024/02/15/react-lab
 </ClientOnly>
 
 
-All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. Global state stores certainly solves these challenges, but comes with their own limitations. Let us explore how Impact solves these challenges without limiting you to a global scope.
+All the challenges mentioned this far is the reason why we have global state stores like [Redux](https://redux.js.org/), [Mobx](https://mobx.js.org/README.html) and the likes. Let us explore how Impact solves these challenges without limiting you to a global scope.
