@@ -48,3 +48,9 @@ Additionally the store can now receive props from the provider to initialise its
 <ClientOnly>
  <Playground />
 </ClientOnly>
+
+::: tip
+
+Another aspect of scoping state management is related to typing. When you scope state management you can receive resolved asynchronous state as a prop. The consumers of scoped state management can safely consume resolved asynchronous state, instead of having to check if the state is there, is pending or has an error.
+
+:::
