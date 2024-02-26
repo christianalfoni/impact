@@ -32,7 +32,7 @@ features:
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
-    details: Scope state management globally or to component trees. Take advantage of React data fetching patterns to initialise your stores.
+    details: Expose state management globally or scope it to component trees. Take advantage of React data fetching patterns to initialise your stores.
 codeCaption: Example store 
 code: |
   import { useStore, signal } from 'impact-react'
