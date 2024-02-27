@@ -42,7 +42,7 @@ code: |
 </ClientOnly>
 
 
-Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it, subscriptions can be defined with the store definition itself. Actually, effects are discouraged in **Impact** because they create indirection in your code. For example:
+Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it, subscriptions can be defined with the store definition itself. Actually, the use of effects is discouraged because they create indirection in your code. For example:
 
 
 ```ts
