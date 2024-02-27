@@ -18,11 +18,11 @@ code: |
   }
 ---
 
-# State management
+# Introduction
 
-In this tutorial we will discuss and learn about state management in React. Why do we even need more primitives than what React offers? What do we mean by **reactive**? And why is reactive state management any better than traditional React state management?
+Before we learn about **Impact** specifically we have to learn about what problem **Impact** solves. To do so we are going to spend the first chapters looking at what state management in React looks like and why it has its shortcomings.
 
-We start our journey with a `count` and the ability to `increase` that count. Let us first explore why state management in React has its challenges and then we'll continue learning how **Impact** resolves these challenges.
+We start our journey with a `count` and the ability to `increase` that count. This example shows what React fundamentally does. You can create component functions that returns a declarative description of its UI. When the component state changes, the component function is called again by React and the newly returned UI description is compared with the previous. This is called [reconciliation](https://legacy.reactjs.org/docs/reconciliation.html). Reconciliation is a fantastic feature of React. Because of this you can just use normal JavaScript syntax to create conditions, loops, switches etc. to describe your UI.
 
 <ClientOnly>
  <Playground />

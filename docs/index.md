@@ -2,10 +2,12 @@
 layout: home
 
 hero:
-  name: "Impact;"
+  name: "Impact"
   tagline: "/** \n
   * Reactive state management for React \n
 */
+\n\n
+By CodeSandbox team
   "
   image:
     light: /Icon.png
@@ -14,20 +16,23 @@ hero:
     - theme: brand
       text: Learn
       link: /learn/
-    - theme: alt
-      text: Advanced
-      link: /advanced/lists
+    # - theme: alt
+    #   text: Advanced
+    #   link: /advanced/lists
     - theme: alt
       text: API Reference
       link: /useStore
+    - theme: alt
+      text: Start from template 
+      link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
-  - title: Familiar paradigm
-    details: Use the hooks pattern you know and love from React, but without the mental and performance overhead of reconcilication.
+  - title: The best of both worlds
+    details: Use Impacts modern reactive model to manage state and Reacts component model to manage UI.
+  - title: Performant and predictable
+    details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
-    details: Scope state management globally or to component trees, where React data fetching patterns can be embraced.
-  - title: Accessible DX
-    details: Minimize "time to source" when navigating and debugging code. Sourcemaps driven debugger giving you code insight during runtime.
+    details: Expose state management globally, or scope it to component trees to take advantage of modern React data fetching patterns.
 codeCaption: Example store 
 code: |
   import { useStore, signal } from 'impact-react'
@@ -37,14 +42,14 @@ code: |
     const tick = signal(0)
     const isTicking = signal(false)
 
-    const startInterval = () => {
+    const start = () => {
       interval = setInterval(() => {
         tick.value++
       }, 500)
       isTicking.value = true
     }
 
-    const stopInterval = () => {
+    const stop = () => {
       clearInterval(interval)
       isTicking.value = false
     }
@@ -58,9 +63,9 @@ code: |
       },
       toggle() {
         if (isTicking.value) {
-          stopInterval()
+          stop()
         } else {
-          startInterval()
+          start()
         }
       }
     }
@@ -112,8 +117,6 @@ pnpm add impact-react
 ```
 
 :::
-
-Or start from [codesandbox.io](https://codesandbox.io/p/devbox/impact-template-fp6gd9)
 
 ## Install debugger
 
