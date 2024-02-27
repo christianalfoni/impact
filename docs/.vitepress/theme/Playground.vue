@@ -62,9 +62,6 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         },
       }),
     },
-    "/node_modules/stacktrace-gps/stacktrace-gps.js": {
-      code: "console.log('SSAWDAWDAWDAWD, ' )",
-    },
     "/style.css": {
       code: `
 body {
