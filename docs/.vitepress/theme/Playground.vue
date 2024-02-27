@@ -262,7 +262,6 @@ export default defineComponent({
       <codemirror
         v-model="$frontmatter.code"
         :style="{ height: '100%', padding: '10px' }"
-        :autofocus="true"
         :indent-with-tab="true"
         :tab-size="2"
         :extensions="[...extensions, isDark ? githubDark : githubLight]"

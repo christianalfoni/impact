@@ -25,8 +25,8 @@ code: |
     const [count, setCount] = useState(0)
 
     const increase = useCallback(() => {
-      setCount(count + 1)
-    }, [count])
+      setCount((current) => current + 1)
+    }, [])
 
     const app = useMemo(() => ({
       count,
