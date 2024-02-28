@@ -231,7 +231,7 @@ type RejectedPromise<T> = Promise<T> & {
   reason: unknown;
 };
 
-type ObservablePromise<T> =
+export type ObservablePromise<T> =
   | PendingPromise<T>
   | FulfilledPromise<T>
   | RejectedPromise<T>;

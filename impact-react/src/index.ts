@@ -1,7 +1,7 @@
 import { componentConsumptionHooks } from "./store";
 import { ObserverContext, observer } from "./signal";
 
-export type { Signal, ObserverContextType } from "./signal";
+export type { Signal, ObserverContextType, ObservablePromise } from "./signal";
 export {
   signal,
   derived,
