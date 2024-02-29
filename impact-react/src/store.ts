@@ -180,7 +180,7 @@ export function useStore<T, A extends Record<string, unknown> | void>(
 
       if (!contextContainer && registeredProvidedStores.has(store)) {
         throw new Error(
-          `The store ${store.name} is not provided to this component`,
+          `The store ${store.name} should be provided on a context, but no provider was found`,
         );
       }
 
