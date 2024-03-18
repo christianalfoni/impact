@@ -87,11 +87,25 @@ ${String(e)}`);
       }
     }
 
-    if (!this._parent) {
-      throw new Error(`The store "${store.name}" is not provided`);
+    if (this._parent) {
+      return this._parent.resolve(store);
     }
 
-    return this._parent.resolve(store);
+    let resolvedStore = globalStores.get(store);
+
+    if (!resolvedStore && registeredProvidedStores.has(store)) {
+      throw new Error(
+        `The store ${store.name} should be provided on a context, but no provider was found`,
+      );
+    }
+
+    if (!resolvedStore) {
+      // @ts-ignore
+      resolvedStore = store();
+      globalStores.set(store, resolvedStore);
+    }
+
+    return resolvedStore;
   }
   clear() {
     this._disposers.forEach((cleaner) => {
@@ -176,21 +190,21 @@ export function useStore<T, A extends Record<string, unknown> | void>(
     const storeContainer = useContext(storeContainerContext);
 
     if (!storeContainer) {
-      let contextContainer = globalStores.get(store);
+      let resolvedStore = globalStores.get(store);
 
-      if (!contextContainer && registeredProvidedStores.has(store)) {
+      if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
           `The store ${store.name} should be provided on a context, but no provider was found`,
         );
       }
 
-      if (!contextContainer) {
+      if (!resolvedStore) {
         // @ts-ignore
-        contextContainer = store();
-        globalStores.set(store, contextContainer);
+        resolvedStore = store();
+        globalStores.set(store, resolvedStore);
       }
 
-      return contextContainer;
+      return resolvedStore;
     }
 
     return storeContainer.resolve<T, A>(store);

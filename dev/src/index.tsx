@@ -10,6 +10,12 @@ import {
 
 import "impact-react-debugger";
 
+function GlobalStore() {
+  return {
+    foo: "bar",
+  };
+}
+
 function MyStore({ message }: { message: string }) {
   const foo = signal(message);
   const obj = signal({});
@@ -50,6 +56,7 @@ const root = createRoot(document.querySelector("#root")!);
 
 const App = MyStoreProvider.provide(function App() {
   console.log("RENDER");
+  const globalSTore = useStore(GlobalStore);
   const store = useStore(MyStore);
 
   return (
