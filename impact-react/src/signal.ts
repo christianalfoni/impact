@@ -19,6 +19,8 @@ export const signalDebugHooks: {
   onEffectRun?: (effect: () => void) => void;
 } = {};
 
+// let lastId = 0;
+
 export class ObserverContext {
   static version = 0;
   static stack: ObserverContext[] = [];
@@ -27,9 +29,13 @@ export class ObserverContext {
   }
   private _getters = new Set<SignalTracker>();
   private _setters = new Set<SignalTracker>();
-  private _onUpdate?: (version: number) => void;
+
   public stack = "";
-  constructor(public type: "component" | "derived" | "effect") {
+  // id = lastId++;
+  constructor(
+    public type: "component" | "derived" | "effect",
+    private _onUpdate: (version: number) => void,
+  ) {
     ObserverContext.stack.push(this);
 
     if (signalDebugHooks.onGetValue) {
@@ -59,8 +65,7 @@ export class ObserverContext {
   /**
    * There is only a single subscriber to any ObserverContext
    */
-  subscribe(onUpdate: (version: number) => void) {
-    this._onUpdate = onUpdate;
+  private subscribe() {
     this._getters.forEach((signal) => {
       signal.addContext(this);
     });
@@ -72,10 +77,11 @@ export class ObserverContext {
     };
   }
   notify() {
-    this._onUpdate?.(ObserverContext.version++);
+    this._onUpdate(ObserverContext.version++);
   }
   [Symbol.dispose]() {
     ObserverContext.stack.pop();
+    return this.subscribe();
   }
 }
 
@@ -295,18 +301,16 @@ export function derived<T>(cb: () => T) {
       if (isDirty) {
         disposer?.();
 
-        const context = new ObserverContext("derived");
-
-        value = cb();
-
-        // @ts-ignore
-        context[Symbol.dispose]();
-
-        disposer = context.subscribe(() => {
+        const context = new ObserverContext("derived", () => {
           isDirty = true;
 
           signal.notify();
         });
+
+        value = cb();
+
+        // @ts-ignore
+        disposer = context[Symbol.dispose]();
 
         isDirty = false;
 
@@ -324,19 +328,18 @@ export function effect(cb: () => void) {
   let currentSubscriptionDisposer: () => void;
 
   const updater = () => {
-    const context = new ObserverContext("effect");
+    const context = new ObserverContext("effect", () => {
+      currentSubscriptionDisposer();
+      currentSubscriptionDisposer = updater();
+    });
 
     cb();
-    context[Symbol.dispose]();
 
     if (signalDebugHooks.onEffectRun) {
       signalDebugHooks.onEffectRun(cb);
     }
 
-    return context.subscribe(() => {
-      currentSubscriptionDisposer();
-      currentSubscriptionDisposer = updater();
-    });
+    return context[Symbol.dispose]();
   };
 
   currentSubscriptionDisposer = updater();
@@ -345,11 +348,7 @@ export function effect(cb: () => void) {
 }
 
 export function observer() {
-  const context = new ObserverContext("component");
-
   const [_, setState] = useState<unknown>();
 
-  useEffect(() => context.subscribe(setState), [context]);
-
-  return context;
+  return new ObserverContext("component", setState);
 }
