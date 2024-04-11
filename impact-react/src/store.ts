@@ -18,7 +18,7 @@ export function getActiveStoreContainer() {
 }
 
 export type Store<T, A extends Record<string, unknown> | void> = (
-  props: A,
+  props: A
 ) => T;
 
 export type StoreState =
@@ -48,7 +48,7 @@ class StoreContainer {
   constructor(
     ref: Store<any, any>,
     constr: () => any,
-    private _parent: StoreContainer | null,
+    private _parent: StoreContainer | null
   ) {
     this._state = {
       isResolved: false,
@@ -95,7 +95,7 @@ ${String(e)}`);
 
     if (!resolvedStore && registeredProvidedStores.has(store)) {
       throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
+        `The store ${store.name} should be provided on a context, but no provider was found`
       );
     }
 
@@ -142,7 +142,7 @@ export class StoreContainerProvider<
         () => this.props.store(this.props.props),
         // eslint-disable-next-line
         // @ts-ignore
-        this.context,
+        this.context
       );
     }
 
@@ -151,7 +151,7 @@ export class StoreContainerProvider<
       {
         value: this.container,
       },
-      this.props.children,
+      this.props.children
     );
   }
 }
@@ -177,7 +177,7 @@ export const componentConsumptionHooks = {
 const globalStores = new Map<Store<any, any>, any>();
 
 export function useStore<T, A extends Record<string, unknown> | void>(
-  store: Store<T, A>,
+  store: Store<T, A>
 ): T {
   const activeStoreContainer = getActiveStoreContainer();
 
@@ -194,7 +194,7 @@ export function useStore<T, A extends Record<string, unknown> | void>(
 
       if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`,
+          `The store ${store.name} should be provided on a context, but no provider was found`
         );
       }
 
@@ -232,7 +232,7 @@ export function createStoreProvider<
         props: extendedProps,
         store,
       },
-      children,
+      children
     );
   };
 
@@ -247,7 +247,7 @@ export function createStoreProvider<
         // @ts-ignore
         props,
         // @ts-ignore
-        createElement(component, props),
+        createElement(component, props)
       );
     };
   };
@@ -260,8 +260,15 @@ interface ReactDispatcher {
   useEffect: typeof useEffect;
 }
 
-if (typeof window !== "undefined") {
-  let currentDispatcher: ReactDispatcher | null = null;
+const isClientEnvironment =
+  // @ts-ignore
+  typeof document !== "undefined" ||
+  // @ts-ignore
+  (typeof navigator !== "undefined" && navigator.product === "ReactNative");
+
+if (isClientEnvironment) {
+  let currentDispatcher: ReactDispatcher | null =
+    ReactInternals.ReactCurrentDispatcher.current;
 
   Object.defineProperty(ReactInternals.ReactCurrentDispatcher, "current", {
     get() {
