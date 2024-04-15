@@ -8,6 +8,8 @@ import {useStore, signal} from 'impact-react';
 function CounterStore() {
   const count = signal(0);
 
+
+
   return {
     get count() {
       return count.value;
@@ -20,7 +22,7 @@ function CounterStore() {
 
 export default function App() {
   const {count, increase} = useStore(CounterStore);
-
+  console.log("COUNT", count)
   return <button onClick={increase}>Increase ({count})</button>;
 }
 
