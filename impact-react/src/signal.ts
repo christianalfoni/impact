@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
-import { cleanup, getActiveStoreContainer } from "./store";
+import {useSyncExternalStore} from 'react';
+import {cleanup, getActiveStoreContainer} from './store';
 
 // @ts-ignore
-Symbol.dispose ??= Symbol("Symbol.dispose");
+Symbol.dispose ??= Symbol('Symbol.dispose');
 
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
 
-export type ObserverContextType = "component" | "derived" | "effect";
+export type ObserverContextType = 'component' | 'derived' | 'effect';
 
 export const signalDebugHooks: {
   onGetValue?: (context: ObserverContext, signal: SignalTracker) => void;
@@ -19,8 +19,6 @@ export const signalDebugHooks: {
   onEffectRun?: (effect: () => void) => void;
 } = {};
 
-// let lastId = 0;
-
 export class ObserverContext {
   static version = 0;
   static stack: ObserverContext[] = [];
@@ -29,17 +27,14 @@ export class ObserverContext {
   }
   private _getters = new Set<SignalTracker>();
   private _setters = new Set<SignalTracker>();
-
-  public stack = "";
-  // id = lastId++;
-  constructor(
-    public type: "component" | "derived" | "effect",
-    private _onUpdate: (version: number) => void,
-  ) {
+  private _onUpdate?: (version: number) => void;
+  public stack = '';
+  snapshot = ObserverContext.version;
+  constructor(public type: 'component' | 'derived' | 'effect') {
     ObserverContext.stack.push(this);
 
     if (signalDebugHooks.onGetValue) {
-      this.stack = new Error().stack || "";
+      this.stack = new Error().stack || '';
     }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
@@ -65,23 +60,23 @@ export class ObserverContext {
   /**
    * There is only a single subscriber to any ObserverContext
    */
-  private subscribe() {
-    this._getters.forEach((signal) => {
+  subscribe(onUpdate: (version: number) => void) {
+    this._onUpdate = onUpdate;
+    this._getters.forEach(signal => {
       signal.addContext(this);
     });
 
     return () => {
-      this._getters.forEach((signal) => {
+      this._getters.forEach(signal => {
         signal.removeContext(this);
       });
     };
   }
   notify() {
-    this._onUpdate(ObserverContext.version++);
+    this._onUpdate?.((this.snapshot = ++ObserverContext.version));
   }
   [Symbol.dispose]() {
     ObserverContext.stack.pop();
-    return this.subscribe();
   }
 }
 
@@ -98,7 +93,7 @@ export class SignalTracker {
     // A context can be synchronously added back to this signal related to firing the signal, which
     // could cause a loop. We only want to notify the current contexts
     const contexts = Array.from(this.contexts);
-    contexts.forEach((context) => context.notify());
+    contexts.forEach(context => context.notify());
   }
 }
 
@@ -110,7 +105,7 @@ export type Signal<T> = {
 // We resolving contexts with an active ObserverContext, where we do not
 // want to track any signals accessed
 function isResolvingContextFromComponent(context: ObserverContext) {
-  return context.type === "component" && getActiveStoreContainer();
+  return context.type === 'component' && getActiveStoreContainer();
 }
 
 export function signal<T>(initialValue: T) {
@@ -144,7 +139,7 @@ export function signal<T>(initialValue: T) {
 
           return resolvedValue;
         })
-        .catch((rejectedReason) => {
+        .catch(rejectedReason => {
           if (abortController.signal.aborted) {
             return;
           }
@@ -177,12 +172,12 @@ export function signal<T>(initialValue: T) {
     set value(newValue) {
       if (value === newValue) {
         if (
-          process.env.NODE_ENV === "development" &&
-          typeof newValue === "object" &&
+          process.env.NODE_ENV === 'development' &&
+          typeof newValue === 'object' &&
           newValue !== null
         ) {
           console.warn(
-            "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
+            'You are setting the same object in a signal, which will not trigger observers. Did you mutate it?',
             newValue,
           );
         }
@@ -212,7 +207,7 @@ export function signal<T>(initialValue: T) {
         // already done it in "createPromise". So we run our own micro task to check if the promise
         // is still pending, where we do want to notify
         Promise.resolve().then(() => {
-          if (value instanceof Promise && value.status === "pending") {
+          if (value instanceof Promise && value.status === 'pending') {
             signal.notify();
           }
         });
@@ -224,16 +219,16 @@ export function signal<T>(initialValue: T) {
 }
 
 type PendingPromise<T> = Promise<T> & {
-  status: "pending";
+  status: 'pending';
 };
 
 type FulfilledPromise<T> = Promise<T> & {
-  status: "fulfilled";
+  status: 'fulfilled';
   value: T;
 };
 
 type RejectedPromise<T> = Promise<T> & {
-  status: "rejected";
+  status: 'rejected';
   reason: unknown;
 };
 
@@ -244,7 +239,7 @@ export type ObservablePromise<T> =
 
 function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
   return Object.assign(promise, {
-    status: "pending" as const,
+    status: 'pending' as const,
   });
 }
 
@@ -253,7 +248,7 @@ function createFulfilledPromise<T>(
   value: T,
 ): FulfilledPromise<T> {
   return Object.assign(promise, {
-    status: "fulfilled" as const,
+    status: 'fulfilled' as const,
     value,
   });
 }
@@ -263,17 +258,17 @@ function createRejectedPromise<T>(
   reason: unknown,
 ): RejectedPromise<T> {
   return Object.assign(promise, {
-    status: "rejected" as const,
+    status: 'rejected' as const,
     reason,
   });
 }
 
 export function use<T>(promise: ObservablePromise<T>): T {
-  if (promise.status === "pending") {
+  if (promise.status === 'pending') {
     throw promise;
   }
 
-  if (promise.status === "rejected") {
+  if (promise.status === 'rejected') {
     throw promise.reason;
   }
 
@@ -301,16 +296,18 @@ export function derived<T>(cb: () => T) {
       if (isDirty) {
         disposer?.();
 
-        const context = new ObserverContext("derived", () => {
-          isDirty = true;
-
-          signal.notify();
-        });
+        const context = new ObserverContext('derived');
 
         value = cb();
 
         // @ts-ignore
-        disposer = context[Symbol.dispose]();
+        context[Symbol.dispose]();
+
+        disposer = context.subscribe(() => {
+          isDirty = true;
+
+          signal.notify();
+        });
 
         isDirty = false;
 
@@ -328,18 +325,19 @@ export function effect(cb: () => void) {
   let currentSubscriptionDisposer: () => void;
 
   const updater = () => {
-    const context = new ObserverContext("effect", () => {
-      currentSubscriptionDisposer();
-      currentSubscriptionDisposer = updater();
-    });
+    const context = new ObserverContext('effect');
 
     cb();
+    context[Symbol.dispose]();
 
     if (signalDebugHooks.onEffectRun) {
       signalDebugHooks.onEffectRun(cb);
     }
 
-    return context[Symbol.dispose]();
+    return context.subscribe(() => {
+      currentSubscriptionDisposer();
+      currentSubscriptionDisposer = updater();
+    });
   };
 
   currentSubscriptionDisposer = updater();
@@ -348,7 +346,13 @@ export function effect(cb: () => void) {
 }
 
 export function observer() {
-  const [_, setState] = useState<unknown>();
+  const context = new ObserverContext('component');
 
-  return new ObserverContext("component", setState);
+  useSyncExternalStore(
+    update => context.subscribe(update),
+    () => context.snapshot,
+    () => context.snapshot,
+  );
+
+  return context;
 }
