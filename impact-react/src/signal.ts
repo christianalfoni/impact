@@ -1,40 +1,40 @@
-import {useSyncExternalStore} from 'react';
-import {cleanup, getActiveStoreContainer} from './store';
+import { useRef, useSyncExternalStore } from "react";
+import { cleanup, getActiveStoreContainer } from "./store";
 
 // @ts-ignore
-Symbol.dispose ??= Symbol('Symbol.dispose');
+Symbol.dispose ??= Symbol("Symbol.dispose");
 
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
 
-export type ObserverContextType = 'component' | 'derived' | 'effect';
+export type ObserverContextType = "component" | "derived" | "effect";
 
 export const signalDebugHooks: {
   onGetValue?: (context: ObserverContext, signal: SignalTracker) => void;
   onSetValue?: (
     signal: SignalTracker,
     value: unknown,
-    derived?: boolean,
+    derived?: boolean
   ) => void;
   onEffectRun?: (effect: () => void) => void;
 } = {};
 
 export class ObserverContext {
-  static version = 0;
   static stack: ObserverContext[] = [];
   static get current(): ObserverContext | undefined {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
   private _getters = new Set<SignalTracker>();
   private _setters = new Set<SignalTracker>();
-  private _onUpdate?: (version: number) => void;
-  public stack = '';
-  snapshot = ObserverContext.version;
-  constructor(public type: 'component' | 'derived' | 'effect') {
+  private _onUpdate?: () => void;
+  public stack = "";
+  snapshot = 0;
+
+  constructor(public type: "component" | "derived" | "effect") {
     ObserverContext.stack.push(this);
 
     if (signalDebugHooks.onGetValue) {
-      this.stack = new Error().stack || '';
+      this.stack = new Error().stack || "";
     }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
@@ -46,7 +46,21 @@ export class ObserverContext {
       return;
     }
 
+    if (this._getters.has(signal)) {
+      return;
+    }
+
     this._getters.add(signal);
+
+
+    /**
+     * A context can be notified about an update between consumption
+     * and subscription of a signal. We keep track of the latest signal snapshot
+     * tracked to enable React to see a stale subscription and render again 
+     */
+    this.snapshot = Math.max(
+      ...Array.from(this._getters).map((signal) => signal.snapshot)
+    );
   }
   registerSetter(signal: SignalTracker) {
     // We do not allow having getters when setting a signal, the reason is to ensure
@@ -60,29 +74,50 @@ export class ObserverContext {
   /**
    * There is only a single subscriber to any ObserverContext
    */
-  subscribe(onUpdate: (version: number) => void) {
+  subscribe(onUpdate: () => void) {
     this._onUpdate = onUpdate;
-    this._getters.forEach(signal => {
+
+    this._getters.forEach((signal) => {
       signal.addContext(this);
     });
 
     return () => {
-      this._getters.forEach(signal => {
+      this._getters.forEach((signal) => {
         signal.removeContext(this);
       });
     };
   }
-  notify() {
-    this._onUpdate?.((this.snapshot = ++ObserverContext.version));
+  /**
+   * Here we alway know that we get the very latest snapshot as it was just
+   * generated, we immediately apply it and React will now re-render on subscription
+   * because the snapshot changed
+   */
+  notify(snapshot: number) {
+    this.snapshot = snapshot;
+    const update = this._onUpdate;
+
+    if (update) {
+      this._getters = new Set();
+      this._setters = new Set();
+      this._onUpdate = undefined;
+      update?.();
+    }
   }
   [Symbol.dispose]() {
     ObserverContext.stack.pop();
   }
 }
 
+/**
+ * This global counter makes sure that every signal update is unqiue and
+ * can be tracked by React
+ */
+let nextSignalSnapshot = 0;
+
 export class SignalTracker {
   private contexts = new Set<ObserverContext>();
   constructor(public getValue: () => unknown) {}
+  snapshot = ++nextSignalSnapshot;
   addContext(context: ObserverContext) {
     this.contexts.add(context);
   }
@@ -90,10 +125,14 @@ export class SignalTracker {
     this.contexts.delete(context);
   }
   notify() {
+    // We always keep the snapshot up to date
+    this.snapshot = ++nextSignalSnapshot;
+
     // A context can be synchronously added back to this signal related to firing the signal, which
     // could cause a loop. We only want to notify the current contexts
     const contexts = Array.from(this.contexts);
-    contexts.forEach(context => context.notify());
+
+    contexts.forEach((context) => context.notify(this.snapshot));
   }
 }
 
@@ -104,8 +143,8 @@ export type Signal<T> = {
 
 // We resolving contexts with an active ObserverContext, where we do not
 // want to track any signals accessed
-function isResolvingContextFromComponent(context: ObserverContext) {
-  return context.type === 'component' && getActiveStoreContainer();
+function isResolvingStoreFromComponent(context: ObserverContext) {
+  return context.type === "component" && getActiveStoreContainer();
 }
 
 export function signal<T>(initialValue: T) {
@@ -132,14 +171,14 @@ export function signal<T>(initialValue: T) {
 
           value = createFulfilledPromise(
             Promise.resolve(resolvedValue),
-            resolvedValue,
+            resolvedValue
           );
 
           signal.notify();
 
           return resolvedValue;
         })
-        .catch(rejectedReason => {
+        .catch((rejectedReason) => {
           if (abortController.signal.aborted) {
             return;
           }
@@ -151,7 +190,7 @@ export function signal<T>(initialValue: T) {
           signal.notify();
 
           return rejectedPromise;
-        }),
+        })
     );
   }
 
@@ -159,7 +198,7 @@ export function signal<T>(initialValue: T) {
     get value() {
       if (
         ObserverContext.current &&
-        !isResolvingContextFromComponent(ObserverContext.current)
+        !isResolvingStoreFromComponent(ObserverContext.current)
       ) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
@@ -172,13 +211,13 @@ export function signal<T>(initialValue: T) {
     set value(newValue) {
       if (value === newValue) {
         if (
-          process.env.NODE_ENV === 'development' &&
-          typeof newValue === 'object' &&
+          process.env.NODE_ENV === "development" &&
+          typeof newValue === "object" &&
           newValue !== null
         ) {
           console.warn(
-            'You are setting the same object in a signal, which will not trigger observers. Did you mutate it?',
-            newValue,
+            "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
+            newValue
           );
         }
 
@@ -207,7 +246,7 @@ export function signal<T>(initialValue: T) {
         // already done it in "createPromise". So we run our own micro task to check if the promise
         // is still pending, where we do want to notify
         Promise.resolve().then(() => {
-          if (value instanceof Promise && value.status === 'pending') {
+          if (value instanceof Promise && value.status === "pending") {
             signal.notify();
           }
         });
@@ -219,16 +258,16 @@ export function signal<T>(initialValue: T) {
 }
 
 type PendingPromise<T> = Promise<T> & {
-  status: 'pending';
+  status: "pending";
 };
 
 type FulfilledPromise<T> = Promise<T> & {
-  status: 'fulfilled';
+  status: "fulfilled";
   value: T;
 };
 
 type RejectedPromise<T> = Promise<T> & {
-  status: 'rejected';
+  status: "rejected";
   reason: unknown;
 };
 
@@ -239,36 +278,36 @@ export type ObservablePromise<T> =
 
 function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
   return Object.assign(promise, {
-    status: 'pending' as const,
+    status: "pending" as const,
   });
 }
 
 function createFulfilledPromise<T>(
   promise: Promise<T>,
-  value: T,
+  value: T
 ): FulfilledPromise<T> {
   return Object.assign(promise, {
-    status: 'fulfilled' as const,
+    status: "fulfilled" as const,
     value,
   });
 }
 
 function createRejectedPromise<T>(
   promise: Promise<T>,
-  reason: unknown,
+  reason: unknown
 ): RejectedPromise<T> {
   return Object.assign(promise, {
-    status: 'rejected' as const,
+    status: "rejected" as const,
     reason,
   });
 }
 
 export function use<T>(promise: ObservablePromise<T>): T {
-  if (promise.status === 'pending') {
+  if (promise.status === "pending") {
     throw promise;
   }
 
-  if (promise.status === 'rejected') {
+  if (promise.status === "rejected") {
     throw promise.reason;
   }
 
@@ -285,7 +324,7 @@ export function derived<T>(cb: () => T) {
     get value() {
       if (
         ObserverContext.current &&
-        !isResolvingContextFromComponent(ObserverContext.current)
+        !isResolvingStoreFromComponent(ObserverContext.current)
       ) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
@@ -296,7 +335,7 @@ export function derived<T>(cb: () => T) {
       if (isDirty) {
         disposer?.();
 
-        const context = new ObserverContext('derived');
+        const context = new ObserverContext("derived");
 
         value = cb();
 
@@ -325,7 +364,7 @@ export function effect(cb: () => void) {
   let currentSubscriptionDisposer: () => void;
 
   const updater = () => {
-    const context = new ObserverContext('effect');
+    const context = new ObserverContext("effect");
 
     cb();
     context[Symbol.dispose]();
@@ -346,12 +385,22 @@ export function effect(cb: () => void) {
 }
 
 export function observer() {
-  const context = new ObserverContext('component');
+  const contextRef = useRef<ObserverContext>();
+
+  if (!contextRef.current) {
+    contextRef.current = new ObserverContext("component");
+  }
+
+  const context = contextRef.current;
 
   useSyncExternalStore(
-    update => context.subscribe(update),
+    // This is only a notifier, it does not cause a render
+    (update) => context.subscribe(update),
+    // This value needs to change for a render to happen. It is also
+    // used to detect a stale subscription. If snapshot changed between
+    // last time and the subscription it will do a new render
     () => context.snapshot,
-    () => context.snapshot,
+    () => context.snapshot
   );
 
   return context;
