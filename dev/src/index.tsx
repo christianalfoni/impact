@@ -22,7 +22,7 @@ function CounterStore() {
 
 export default function App() {
   const {count, increase} = useStore(CounterStore);
-  console.log("COUNT", count)
+  console.log("RENDERING")
   return <button onClick={increase}>Increase ({count})</button>;
 }
 
