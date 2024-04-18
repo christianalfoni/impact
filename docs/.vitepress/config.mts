@@ -55,6 +55,10 @@ export default defineConfig({
             text: "Queries and Mutations",
             link: "/advanced/queries-and-mutations",
           },
+          {
+            text: "Debugger",
+            link: "/debugger",
+          },
         ],
       },
       {
