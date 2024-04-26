@@ -9,8 +9,12 @@
     "dev": "vite"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-explicit-resource-management": "^7.24.1",
     "@vitejs/plugin-react": "^4.2.1",
     "react-dom": "^18.2.0",
     "vite": "^5.0.11"
+  },
+  "dependencies": {
+    "react-dom": "^19.0.0-beta-94eed63c49-20240425"
   }
 }

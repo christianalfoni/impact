@@ -1,25 +1,27 @@
-import {
+import React, {
   Component,
   ReactNode,
   createContext,
   useContext,
-  // @ts-ignore-next-line
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED as ReactInternals,
   createElement,
 } from "react";
-import type { useReducer, useEffect } from "react";
+import { observer, ObserverContext } from "./signal";
 
 const currentStoreContainer: StoreContainer[] = [];
 const registeredProvidedStores = new Set<Store<any, any>>();
+const isProduction =
+  (typeof process !== "undefined" && process.env.NODE_ENV === "production") ||
+  // @ts-ignore
+  (import.meta && import.meta?.env?.PROD);
 
 export function getActiveStoreContainer() {
   return currentStoreContainer[currentStoreContainer.length - 1];
 }
 
-export type Store<T, A extends Record<string, unknown> | void> = (
-  props: A
-) => T;
+export type Store<
+  T extends Record<string, unknown>,
+  A extends Record<string, unknown> | void,
+> = (props: A) => T;
 
 export type StoreState =
   | {
@@ -59,7 +61,10 @@ class StoreContainer {
   registerCleanup(cleaner: () => void) {
     this._disposers.add(cleaner);
   }
-  resolve<T, A extends Record<string, unknown> | void>(store: Store<T, A>): T {
+  resolve<
+    T extends Record<string, unknown>,
+    A extends Record<string, unknown> | void,
+  >(store: Store<T, A>): T {
     if (this._resolvementError) {
       throw this._resolvementError;
     }
@@ -168,29 +173,24 @@ export function cleanup(cleaner: () => void) {
   activeStoreContainer.registerCleanup(cleaner);
 }
 
-export const componentConsumptionHooks = {
-  isConsuming: false,
-  onConsume: () => {},
-  onConsumed: () => {},
-};
-
 const globalStores = new Map<Store<any, any>, any>();
 
-export function useStore<T, A extends Record<string, unknown> | void>(
-  store: Store<T, A>
-): T {
+let activeComponentObserverContext: ObserverContext | null = null;
+
+export function useStore<
+  T extends Record<string, unknown>,
+  A extends Record<string, unknown> | void,
+>(store: Store<T, A>): T & { [Symbol.dispose](): void } {
   const activeStoreContainer = getActiveStoreContainer();
+  let resolvedStore: T;
 
   if (!activeStoreContainer) {
-    if (!componentConsumptionHooks.isConsuming) {
-      componentConsumptionHooks.isConsuming = true;
-      componentConsumptionHooks.onConsume();
-    }
-
     const storeContainer = useContext(storeContainerContext);
 
-    if (!storeContainer) {
-      let resolvedStore = globalStores.get(store);
+    if (storeContainer) {
+      resolvedStore = storeContainer.resolve<T, A>(store);
+    } else {
+      resolvedStore = globalStores.get(store);
 
       if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
@@ -203,18 +203,64 @@ export function useStore<T, A extends Record<string, unknown> | void>(
         resolvedStore = store();
         globalStores.set(store, resolvedStore);
       }
+    }
 
+    if (activeComponentObserverContext) {
+      console.log("WUUUUT?");
+      // @ts-ignore
+      resolvedStore[Symbol.dispose] = () => {
+        // @ts-ignore
+        delete resolvedStore[Symbol.dispose];
+      };
+
+      // @ts-ignore
       return resolvedStore;
     }
 
-    return storeContainer.resolve<T, A>(store);
+    const observerContext = (activeComponentObserverContext = observer());
+
+    let popObserverContextStack: string | undefined;
+
+    if (!isProduction) {
+      popObserverContextStack = new Error().stack;
+
+      Promise.resolve().then(() => {
+        if (popObserverContextStack) {
+          throw new Error(`You did not use the "using" keyword, observability will not work:
+
+${popObserverContextStack}`);
+        }
+      });
+    }
+
+    // @ts-ignore
+    resolvedStore[Symbol.dispose] = () => {
+      popObserverContextStack = undefined;
+      activeComponentObserverContext = null;
+      // @ts-ignore
+      delete resolvedStore[Symbol.dispose];
+      observerContext.pop();
+    };
+
+    // @ts-ignore
+    return resolvedStore;
   }
 
-  return activeStoreContainer.resolve(store);
+  resolvedStore = activeStoreContainer.resolve(store);
+
+  // @ts-ignore
+  resolvedStore[Symbol.dispose] = () => {
+    // @ts-ignore
+    delete resolvedStore[Symbol.dispose];
+    console.warn('There is no need to use "using" in stores');
+  };
+
+  // @ts-ignore
+  return resolvedStore;
 }
 
 export function createStoreProvider<
-  T,
+  T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
 >(store: Store<T, A>) {
   registeredProvidedStores.add(store);
@@ -253,39 +299,4 @@ export function createStoreProvider<
   };
 
   return StoreProvider;
-}
-
-interface ReactDispatcher {
-  useReducer: typeof useReducer;
-  useEffect: typeof useEffect;
-}
-
-const isClientEnvironment =
-  // @ts-ignore
-  typeof document !== "undefined" ||
-  // @ts-ignore
-  (typeof navigator !== "undefined" && navigator.product === "ReactNative");
-
-if (isClientEnvironment) {
-  let currentDispatcher: ReactDispatcher | null =
-    ReactInternals.ReactCurrentDispatcher.current;
-
-  Object.defineProperty(ReactInternals.ReactCurrentDispatcher, "current", {
-    get() {
-      return currentDispatcher;
-    },
-    set(nextDispatcher: ReactDispatcher) {
-      currentDispatcher = nextDispatcher;
-
-      if (
-        componentConsumptionHooks.isConsuming &&
-        // When the hooks has the same implementation, it is to throw an error, meaning
-        // we are done consuming a hooks context
-        currentDispatcher.useReducer === currentDispatcher.useEffect
-      ) {
-        componentConsumptionHooks.isConsuming = false;
-        componentConsumptionHooks.onConsumed();
-      }
-    },
-  });
 }

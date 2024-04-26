@@ -52,11 +52,10 @@ export class ObserverContext {
 
     this._getters.add(signal);
 
-
     /**
      * A context can be notified about an update between consumption
      * and subscription of a signal. We keep track of the latest signal snapshot
-     * tracked to enable React to see a stale subscription and render again 
+     * tracked to enable React to see a stale subscription and render again
      */
     this.snapshot = Math.max(
       ...Array.from(this._getters).map((signal) => signal.snapshot)
@@ -103,7 +102,7 @@ export class ObserverContext {
       update?.();
     }
   }
-  [Symbol.dispose]() {
+  pop() {
     ObserverContext.stack.pop();
   }
 }
@@ -339,8 +338,7 @@ export function derived<T>(cb: () => T) {
 
         value = cb();
 
-        // @ts-ignore
-        context[Symbol.dispose]();
+        context.pop();
 
         disposer = context.subscribe(() => {
           isDirty = true;
@@ -367,7 +365,7 @@ export function effect(cb: () => void) {
     const context = new ObserverContext("effect");
 
     cb();
-    context[Symbol.dispose]();
+    context.pop();
 
     if (signalDebugHooks.onEffectRun) {
       signalDebugHooks.onEffectRun(cb);
