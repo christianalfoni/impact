@@ -1,6 +1,3 @@
-import { componentConsumptionHooks } from "./store";
-import { ObserverContext, observer } from "./signal";
-
 export type { Signal, ObserverContextType, ObservablePromise } from "./signal";
 export {
   signal,
@@ -14,8 +11,3 @@ export {
 
 export type { Store } from "./store";
 export { useStore, createStoreProvider, cleanup } from "./store";
-
-componentConsumptionHooks.onConsume = observer;
-componentConsumptionHooks.onConsumed = () => {
-  ObserverContext.current?.[Symbol.dispose]();
-};
