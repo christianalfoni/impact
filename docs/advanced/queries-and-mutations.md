@@ -47,7 +47,7 @@ import { use } from 'react'
 import { usePostsStore } from './postsStore'
 
 function Posts({ id }) {
-  const postsStore = usePostsStore()
+  using postsStore = usePostsStore()
   const post = use(postsStore.fetchPost(id))
 
   return (
@@ -67,7 +67,7 @@ But maybe you do not want to use suspense, you just want to deal with the status
 import { usePostsStore } from './postsStore'
 
 const Post = ({ id }) => {
-  const postsStore = usePostsStore()
+  using postsStore = usePostsStore()
   const postPromise = postsStore.fetchPost(id)
 
   if (postPromise.status === 'pending') {
@@ -137,7 +137,8 @@ We can now consume this mutation signal to evaluate the state of the mutation de
 import { usePostStore, PostProvider } from './'
 
 function PostTitle() {
-  const { post, changingTitle, changeTitle } = usePostStore()
+  using postStore = usePostStore()
+  const { post, changingTitle, changeTitle } = postStore
   const [newTitle, setNewTitle] = useState(post.title)
 
   return (
@@ -159,7 +160,7 @@ function PostTitle() {
 }
 
 function Post({ id }) {
-  const postsStore = usePostsStore()
+  using postsStore = usePostsStore()
   const postData = use(postsStore.fetchPost(id))
 
   return (

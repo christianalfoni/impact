@@ -72,7 +72,9 @@ code: |
   }
 
   export default function App() {
-    const { tick, isTicking, toggle } = useStore(Store)
+    using store = useStore(Store)
+
+    const { tick, isTicking, toggle } = store
 
     return (
       <div>
@@ -117,6 +119,8 @@ pnpm add impact-react
 ```
 
 :::
+
+:warning: **impact-react** requires [Explicit Resource Management](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management) which is currently a **Stage 3** proposal. 
 
 ## Install debugger
 

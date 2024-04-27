@@ -26,7 +26,8 @@ code: |
   const useCounterStore = () => useStore(CounterStore)
 
   function Counter() {
-    const { count, increase } = useCounterStore()
+    using counterStore = useCounterStore()
+    const { count, increase } = counterStore
 
     return (
       <button onClick={increase}>
@@ -36,7 +37,8 @@ code: |
   }
 
   function Enabler() {
-    const { enabled, toggleEnabled } = useCounterStore()
+    using counterStore = useCounterStore()
+    const { enabled, toggleEnabled } = counterStore
 
     return (
       <button onClick={toggleEnabled}>
