@@ -38,7 +38,8 @@ function MyStore() {
 }
 
 function App() {
-  const { asyncValue } = useStore(MyStore)
+  using myStore = useStore(MyStore)
+  const { asyncValue } = myStore
 
   if (asyncValue.status === 'pending') {
     return 'Loading...'
@@ -56,7 +57,8 @@ Or yoou could have consumed it with the `use` hook, in combination with a suspen
 
 ```tsx
 function App() {
-  const { asyncValue } = useStore(MyStore)
+  using myStore = useStore(MyStore)
+  const { asyncValue } = myStore
 
   const value = use(asyncValue)
 

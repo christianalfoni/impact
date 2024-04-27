@@ -25,7 +25,8 @@ function MyStore({ initialCount }) {
 const MyStoreProvider = createStoreProvider(MyStore)
 
 function Counter() {
-  const { count, increase } = useStore(MyStore)
+  using myStore = useStore(MyStore)
+  const { count, increase } = myStore
 
   return (
     <button onClick={increase}>
@@ -47,7 +48,8 @@ Alternatively use the higher order component:
 
 ```tsx
 const App = MyStoreProvider.provide(function App() {
-  const { count, increase } = useStore(MyStore)
+  using myStore = useStore(MyStore)
+  const { count, increase } = myStore
 
   return (
     <button onClick={increase}>

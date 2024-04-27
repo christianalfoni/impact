@@ -23,7 +23,8 @@ code: |
   }
 
   export default function App() {
-    const { count, increase } = useStore(CounterStore)
+    using counterStore = useStore(CounterStore)
+    const { count, increase } = counterStore
 
     return (
       <button onClick={increase}>

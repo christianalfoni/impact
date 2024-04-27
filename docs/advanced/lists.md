@@ -38,9 +38,9 @@ code: |
   // You memoize so that when the list changes the component does
   // not need to reconcile
   const Item = memo(function Item({ id }) {
-    const { getItemById } = useListStore()
-    // You consume the specific item directly from the context
-    const item = getItemById(id)
+    using listStore = useListStore()
+    // You consume the specific item directly from the store
+    const item = listStore.getItemById(id)
 
     return (
       <li>
@@ -50,9 +50,9 @@ code: |
   })
 
   function List() {
-    const { listById } = useListStore()
+    using listStore = useListStore()
 
-    return <ul>{listById.map((id) => <Item key={id} id={id} />)}</ul>
+    return <ul>{listStore.listById.map((id) => <Item key={id} id={id} />)}</ul>
   }
 
   export default function App() {

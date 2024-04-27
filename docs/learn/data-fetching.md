@@ -18,7 +18,8 @@ code: |
   const DataStoreProvider = createStoreProvider(DataStore)
 
   function Data() {
-    const { data } = useStore(DataStore)
+    using dataStore = useStore(DataStore)
+    const { data } = dataStore
 
     if (data.status === 'pending') {
       return <h4>Loading...</h4>
@@ -36,8 +37,8 @@ code: |
   }
 
   function SuspendedData() {
-    const store = useStore(DataStore)
-    const data = use(store.data)
+    using dataStore = useStore(DataStore)
+    const data = use(dataStore.data)
 
     return <h1>{data}</h1>
   }
