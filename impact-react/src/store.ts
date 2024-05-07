@@ -6,13 +6,10 @@ import React, {
   createElement,
 } from "react";
 import { observer, ObserverContext } from "./signal";
+import { isDevelopment } from "./env";
 
 const currentStoreContainer: StoreContainer[] = [];
 const registeredProvidedStores = new Set<Store<any, any>>();
-const isProduction =
-  (typeof process !== "undefined" && process.env.NODE_ENV === "production") ||
-  // @ts-ignore
-  (import.meta && import.meta?.env?.PROD);
 
 export function getActiveStoreContainer() {
   return currentStoreContainer[currentStoreContainer.length - 1];
@@ -50,7 +47,7 @@ class StoreContainer {
   constructor(
     ref: Store<any, any>,
     constr: () => any,
-    private _parent: StoreContainer | null
+    private _parent: StoreContainer | null,
   ) {
     this._state = {
       isResolved: false,
@@ -100,7 +97,7 @@ ${String(e)}`);
 
     if (!resolvedStore && registeredProvidedStores.has(store)) {
       throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`
+        `The store ${store.name} should be provided on a context, but no provider was found`,
       );
     }
 
@@ -147,7 +144,7 @@ export class StoreContainerProvider<
         () => this.props.store(this.props.props),
         // eslint-disable-next-line
         // @ts-ignore
-        this.context
+        this.context,
       );
     }
 
@@ -156,7 +153,7 @@ export class StoreContainerProvider<
       {
         value: this.container,
       },
-      this.props.children
+      this.props.children,
     );
   }
 }
@@ -194,7 +191,7 @@ export function useStore<
 
       if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`
+          `The store ${store.name} should be provided on a context, but no provider was found`,
         );
       }
 
@@ -221,7 +218,7 @@ export function useStore<
 
     let popObserverContextStack: string | undefined;
 
-    if (!isProduction) {
+    if (isDevelopment) {
       popObserverContextStack = new Error().stack;
 
       Promise.resolve().then(() => {
@@ -278,7 +275,7 @@ export function createStoreProvider<
         props: extendedProps,
         store,
       },
-      children
+      children,
     );
   };
 
@@ -293,7 +290,7 @@ export function createStoreProvider<
         // @ts-ignore
         props,
         // @ts-ignore
-        createElement(component, props)
+        createElement(component, props),
       );
     };
   };
