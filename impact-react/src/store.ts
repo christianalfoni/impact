@@ -5,11 +5,11 @@ import React, {
   useContext,
   createElement,
 } from "react";
-import { observer, ObserverContext } from "./signal";
-import { isDevelopment } from "./env";
+import { observer, ObserverContext, signalDebugHooks } from "./signal";
 
 const currentStoreContainer: StoreContainer[] = [];
 const registeredProvidedStores = new Set<Store<any, any>>();
+const isDevelopment = () => typeof signalDebugHooks.onSetValue === "function";
 
 export function getActiveStoreContainer() {
   return currentStoreContainer[currentStoreContainer.length - 1];
@@ -17,7 +17,7 @@ export function getActiveStoreContainer() {
 
 export type Store<
   T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
+  A extends Record<string, unknown> | void
 > = (props: A) => T;
 
 export type StoreState =
@@ -47,7 +47,7 @@ class StoreContainer {
   constructor(
     ref: Store<any, any>,
     constr: () => any,
-    private _parent: StoreContainer | null,
+    private _parent: StoreContainer | null
   ) {
     this._state = {
       isResolved: false,
@@ -60,7 +60,7 @@ class StoreContainer {
   }
   resolve<
     T extends Record<string, unknown>,
-    A extends Record<string, unknown> | void,
+    A extends Record<string, unknown> | void
   >(store: Store<T, A>): T {
     if (this._resolvementError) {
       throw this._resolvementError;
@@ -82,8 +82,9 @@ class StoreContainer {
 
         return this._state.value;
       } catch (e) {
-        this._resolvementError =
-          new Error(`Could not initialize store "${store?.name}":
+        this._resolvementError = new Error(`Could not initialize store "${
+          store?.name
+        }":
 ${String(e)}`);
         throw this._resolvementError;
       }
@@ -97,7 +98,7 @@ ${String(e)}`);
 
     if (!resolvedStore && registeredProvidedStores.has(store)) {
       throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
+        `The store ${store.name} should be provided on a context, but no provider was found`
       );
     }
 
@@ -123,7 +124,7 @@ ${String(e)}`);
 const storeContainerContext = createContext<StoreContainer | null>(null);
 
 export class StoreContainerProvider<
-  T extends Record<string, unknown> | void,
+  T extends Record<string, unknown> | void
 > extends Component<{
   store: Store<any, any>;
   props: T;
@@ -144,7 +145,7 @@ export class StoreContainerProvider<
         () => this.props.store(this.props.props),
         // eslint-disable-next-line
         // @ts-ignore
-        this.context,
+        this.context
       );
     }
 
@@ -153,7 +154,7 @@ export class StoreContainerProvider<
       {
         value: this.container,
       },
-      this.props.children,
+      this.props.children
     );
   }
 }
@@ -176,7 +177,7 @@ let activeComponentObserverContext: ObserverContext | null = null;
 
 export function useStore<
   T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
+  A extends Record<string, unknown> | void
 >(store: Store<T, A>): T & { [Symbol.dispose](): void } {
   const activeStoreContainer = getActiveStoreContainer();
   let resolvedStore: T;
@@ -191,7 +192,7 @@ export function useStore<
 
       if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`,
+          `The store ${store.name} should be provided on a context, but no provider was found`
         );
       }
 
@@ -218,7 +219,7 @@ export function useStore<
 
     let popObserverContextStack: string | undefined;
 
-    if (isDevelopment) {
+    if (isDevelopment()) {
       popObserverContextStack = new Error().stack;
 
       Promise.resolve().then(() => {
@@ -258,7 +259,7 @@ ${popObserverContextStack}`);
 
 export function createStoreProvider<
   T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
+  A extends Record<string, unknown> | void
 >(store: Store<T, A>) {
   registeredProvidedStores.add(store);
   const StoreProvider = (props: A & { children: React.ReactNode }) => {
@@ -275,7 +276,7 @@ export function createStoreProvider<
         props: extendedProps,
         store,
       },
-      children,
+      children
     );
   };
 
@@ -290,7 +291,7 @@ export function createStoreProvider<
         // @ts-ignore
         props,
         // @ts-ignore
-        createElement(component, props),
+        createElement(component, props)
       );
     };
   };

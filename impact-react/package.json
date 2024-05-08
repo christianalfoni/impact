@@ -1,6 +1,6 @@
 {
   "name": "impact-react",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -18,8 +18,8 @@
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
     "build": "yarn clean && yarn build:cjs && yarn build:esm && bash ./fixModuleTypes",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && echo \"'use strict';\nexports.isDevelopment = typeof process === 'undefined' || process.env.NODE_ENV === 'development'\" > ./dist/cjs/env.js",
-    "build:esm": "tsc -p ./tsconfig.build-esm.json && echo \"export const isDevelopment = import.meta && import.meta?.env?.DEV\" > ./dist/esm/env.js",
+    "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
+    "build:esm": "tsc -p ./tsconfig.build-esm.json",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
     "prepublish": "yarn build"
@@ -33,9 +33,7 @@
     "state",
     "global"
   ],
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "peerDependencies": {
     "react": "*"
   },

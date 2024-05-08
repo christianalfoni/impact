@@ -27,7 +27,7 @@ if (isActive) {
   mount();
 } else {
   console.log(
-    "The Impact debugger is initialized, hit SHIFT twice toggle activation",
+    "The Impact debugger is initialized, hit SHIFT twice toggle activation"
   );
 }
 document.addEventListener("keyup", (event) => {
@@ -51,7 +51,7 @@ document.addEventListener("keydown", (event) => {
     console.log(
       isActive
         ? "Signal debugging is active"
-        : "Signal debugging is deactivated",
+        : "Signal debugging is deactivated"
     );
     if (isActive) {
       localStorage.setItem("impact.debugger.isActive", "true");
@@ -101,7 +101,7 @@ function createStackFrameData(stack: string) {
           !line.includes("createGetterDebugEntry") &&
           !line.includes("impact-app") &&
           // Vite
-          !line.includes("@fs"),
+          !line.includes("@fs")
       );
 
     const stackFrameData: Array<{
@@ -146,7 +146,7 @@ function createSourceMappedStackFrame(
   file: string,
   functionName: string,
   line: number,
-  column: number,
+  column: number
 ) {
   const stackframe = new StackFrame({
     fileName: file,
@@ -167,7 +167,7 @@ function createSourceMappedStackFrame(
 
 export function createGetterDebugEntry(
   context: ObserverContext,
-  signal: SignalTracker,
+  signal: SignalTracker
 ) {
   if (!isActive) {
     return;
@@ -182,7 +182,7 @@ export function createGetterDebugEntry(
     const contextStackEffect = context.stack.split("\n")[3];
     const debugStack = stack.split("\n");
     const debugStacEffectIndex = debugStack.findIndex(
-      (line) => line === contextStackEffect,
+      (line) => line === contextStackEffect
     );
 
     stack = debugStack.slice(0, debugStacEffectIndex).join("\n");
@@ -209,7 +209,7 @@ export function createGetterDebugEntry(
         delete cache[cacheKey];
         console.error({ file, stack });
         throw error;
-      },
+      }
     );
 
   const observedSignal = observedSignals.get(signal);
@@ -257,7 +257,7 @@ let debugDataId = 0;
 export function createSetterDebugEntry(
   signal: SignalTracker,
   value: unknown,
-  isDerived = false,
+  isDerived = false
 ) {
   if (!isActive) {
     return;
@@ -284,7 +284,7 @@ export function createSetterDebugEntry(
       sourceFrame.file,
       sourceFrame.functionName,
       sourceFrame.line,
-      sourceFrame.column,
+      sourceFrame.column
     );
 
   const targetCacheKey =
@@ -296,7 +296,7 @@ export function createSetterDebugEntry(
       targetFrame.file,
       targetFrame.functionName,
       targetFrame.line,
-      targetFrame.column,
+      targetFrame.column
     );
 
   queue.add(() =>
@@ -322,7 +322,7 @@ export function createSetterDebugEntry(
                     type: observedSignal[observers[index]],
                     name: cleanFunctionName(observingStackFrame.functionName),
                     path: cleanFilePath(observingStackFrame),
-                  }),
+                  })
                 ),
                 source: {
                   name: cleanFunctionName(functionName),
@@ -330,7 +330,7 @@ export function createSetterDebugEntry(
                 },
                 target: {
                   name: cleanFunctionName(
-                    targetFrame?.functionName || "ANONYMOUS",
+                    targetFrame?.functionName || "ANONYMOUS"
                   ),
                   path: cleanFilePath(targetFrame),
                 },
@@ -339,13 +339,13 @@ export function createSetterDebugEntry(
 
               return;
             });
-          },
+          }
         );
       },
       (error) => {
         console.log("ERROR SETTER", error, sourceCacheKey);
-      },
-    ),
+      }
+    )
   );
 }
 
@@ -377,7 +377,7 @@ function createEffectDebugEntry(effect: () => void) {
       targetFrame.file,
       targetFrame.functionName,
       targetFrame.line,
-      targetFrame.column,
+      targetFrame.column
     );
 
     effectsCachedStackFrame.set(effect, stackFramePromise);
@@ -395,7 +395,7 @@ function createEffectDebugEntry(effect: () => void) {
           path: cleanFilePath(stackFrame),
         },
       });
-    }),
+    })
   );
 }
 
