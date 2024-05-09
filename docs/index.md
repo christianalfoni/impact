@@ -124,6 +124,10 @@ pnpm add impact-react
 
 ## Install debugger
 
+The Debugger will show you what signals and effects are being executed. With sourcemaps you'll see the exact point in the file where signals are changed.
+
+The debugger will also enable warnings when observation is not enabled using the `using` keyword.
+
 ::: code-group
 
 ```sh [npm]
