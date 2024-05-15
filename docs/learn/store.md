@@ -18,6 +18,7 @@ code: |
 
     export default function App() {
       using counterStore = useStore(CounterStore)
+
       const { count, increase } = counterStore
 
       return (
@@ -34,6 +35,14 @@ Moving back to our initial example we implement an **Impact** store with the sam
 
 The `useStore` is used inside components to consume **Impact** stores and they are global by default.
 
+
 <ClientOnly>
   <Playground />
 </ClientOnly>
+
+:::tip
+
+The `using` keyword is a JavaScript feature that enables the component to track access to signals in the component scope. When using
+the impact debugger you will be warned if you forget to use the keyword.
+
+:::
