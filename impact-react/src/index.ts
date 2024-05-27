@@ -208,7 +208,6 @@ export function useStore<
     }
 
     if (activeComponentObserverContext) {
-      console.log("WUUUUT?");
       // @ts-ignore
       resolvedStore[Symbol.dispose] = () => {
         // @ts-ignore
