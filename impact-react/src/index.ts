@@ -478,7 +478,7 @@ export function store<T extends Record<string, unknown>>(
 
       return readonlyWrapper;
     },
-  };
+  }  as T & { readonly(): T }
 
   Object.keys(state).forEach((key) => {
     const descriptor = Object.getOwnPropertyDescriptor(state, key);
