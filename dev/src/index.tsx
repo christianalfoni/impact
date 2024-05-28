@@ -1,23 +1,25 @@
 import React, { Suspense, use } from "react";
 import { createRoot } from "react-dom/client";
 
-import { useStore, signal } from "impact-react";
+import { useStore, signal, state } from "impact-react";
 
 function CounterStore() {
-  const count = signal(0);
-  const time = signal(
-    new Promise<string>((resolve) => setTimeout(() => resolve("foo"), 5000))
-  );
+  const counter = state({
+    count: 0,
+    time: new Promise<string>((resolve) =>
+      setTimeout(() => resolve("foo"), 5000),
+    ),
+  });
 
   return {
     get count() {
-      return count.value;
+      return counter.count;
     },
     get time() {
-      return time.value;
+      return counter.time;
     },
     increase() {
-      count.value++;
+      counter.count++;
     },
   };
 }
