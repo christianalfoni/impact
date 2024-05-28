@@ -1,27 +1,23 @@
-import React, { Suspense, use } from "react";
+import React, { Suspense, memo, use } from "react";
 import { createRoot } from "react-dom/client";
 
-import { useStore, signal, state } from "impact-react";
+import { useStore, signal, store } from "impact-react";
 
 function CounterStore() {
-  const counter = state({
+  const counter = store({
     count: 0,
+    get double() {
+      return counter.count * 2;
+    },
     time: new Promise<string>((resolve) =>
       setTimeout(() => resolve("foo"), 5000),
     ),
-  });
-
-  return {
-    get count() {
-      return counter.count;
-    },
-    get time() {
-      return counter.time;
-    },
     increase() {
       counter.count++;
     },
-  };
+  });
+
+  return counter.readonly();
 }
 
 function OtherStore() {
@@ -30,25 +26,29 @@ function OtherStore() {
 
 function Test() {
   using counterStore = useStore(CounterStore);
+
   const time = use(counterStore.time);
 
   return <h1>Hi {time}</h1>;
 }
 
+const Test2 = memo(function Test2() {
+  using counterStore = useStore(CounterStore);
+
+  return <h1>Hi {counterStore.double}</h1>;
+});
+
 export default function App() {
   using counterStore = useStore(CounterStore);
-  using otherStore = useStore(OtherStore);
 
   console.log("RENDERING");
   return (
     <div>
       <Suspense fallback={<div>Loading...</div>}>
         <Test />
+        <Test2 />
       </Suspense>
-      <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
-      </button>
-      ;
+      <button onClick={counterStore.increase}>Increase</button>;
     </div>
   );
 }
