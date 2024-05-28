@@ -89,29 +89,22 @@ But data fetching is not only about getting and displaying data, it is also abou
 We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and reverting.
 
 ```ts
-import { useStore, signal, createStoreProvider } from 'impact-app'
+import { useStore, store, createStoreProvider } from 'impact-app'
 
 // We create a store for the Post displayed on the page and
 // pass it the fetched data
-function PostStore({ postData }) {
-  const post = signal(postData)
-  // The value of the mutation signal starts out as undefined
-  const changingTitle = signal()
-
-  return {
-    get post() {
-      return post.value
-    },
-    get changingTitle() {
-      return changingTitle.value
-    },
+function PostStore({ data }) {
+  const post = store({
+    ...data,
+    // The value of the mutation state starts out as undefined
+    changingTitle: undefined,
     changeTitle(id, newTitle) {
-      const oldTitle = post.value.title
+      const oldTitle = post.data.title
 
       // Optimistically change the title
-      post.value = { ...post.value, title: newTitle }
+      post.title = newTitle
 
-      changingTitle.value = fetch({
+      post.changingTitle = fetch({
         method: 'PUT',
         url: '/posts/' + id,
         data: {
@@ -120,11 +113,14 @@ function PostStore({ postData }) {
       })
 
       // Revert to the previous value
-      changingTitle.value.catch(() => {
-        post.value = { ...post.value, title: oldTitle }
+      post.changingTitle.catch(() => {
+        post.title = oldTitle
       })
     }
-  }
+  })
+  
+
+  return post
 }
 
 export const usePostStore = () => useStore(PostStore)
@@ -138,8 +134,9 @@ import { usePostStore, PostProvider } from './'
 
 function PostTitle() {
   using postStore = usePostStore()
-  const { post, changingTitle, changeTitle } = postStore
-  const [newTitle, setNewTitle] = useState(post.title)
+
+  const { title, changingTitle, changeTitle } = postStore
+  const [newTitle, setNewTitle] = useState(title)
 
   return (
     <div>
@@ -164,7 +161,7 @@ function Post({ id }) {
   const postData = use(postsStore.fetchPost(id))
 
   return (
-    <PostProvider postData={postData}>
+    <PostProvider data={postData}>
       <PostTitle />
     </PostProvider>
   )
