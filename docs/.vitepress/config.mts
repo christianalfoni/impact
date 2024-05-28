@@ -36,9 +36,10 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "Store", link: "/learn/store" },
+          { text: "Reactive context", link: "/learn/reactive-context" },
           { text: "Signals", link: "/learn/signals" },
           { text: "Derived", link: "/learn/derived" },
+          { text: "Stores", link: "/learn/stores" },
           { text: "Effects", link: "/learn/effects" },
           { text: "Scoping", link: "/learn/scoping" },
           { text: "Data Fetching", link: "/learn/data-fetching" },
@@ -61,16 +62,12 @@ export default defineConfig({
         text: "API Reference",
         items: [
           {
-            text: "useStore",
-            link: "/useStore",
+            text: "cleanup",
+            link: "/cleanup",
           },
           {
             text: "createStoreProvider",
             link: "/createStoreProvider",
-          },
-          {
-            text: "signal",
-            link: "/signal",
           },
           {
             text: "derived",
@@ -81,8 +78,16 @@ export default defineConfig({
             link: "/effect",
           },
           {
-            text: "cleanup",
-            link: "/cleanup",
+            text: "signal",
+            link: "/signal",
+          },
+          {
+            text: "store",
+            link: "/store",
+          },
+          {
+            text: "useStore",
+            link: "/useStore",
           },
         ],
       },

@@ -4,19 +4,17 @@ outline: deep
 
 # useStore
 
-The hook the allows you to consume your store in a component or from other stores.
+The hook that allows you to consume your store in a component or from other stores.
 
 ```ts
-import { useStore, signal } from 'impact-react'
+import { useStore, store } from 'impact-react'
 
 function MyStore() {
-  const count = signal()
+  const counter = store({
+    count: 0
+  })
 
-  return {
-    get count() {
-      return count.value
-    }
-  }
+  return counter.readonly()
 }
 
 export const useMyStore = () => useStore(MyStore)
@@ -30,13 +28,11 @@ import { useGlobalStore } from '../globalStore'
 
 function MyStore() {
   const globalStore = useGlobalStore()
-  const count = signal(globalStore.initialCount)
+  const counter = store({
+    count: globalStore.initialCount
+  })
 
-  return {
-    get count() {
-      return count.value
-    }
-  }
+  return counter.readonly()
 }
 
 export const useMyStore = () => useStore(MyStore)

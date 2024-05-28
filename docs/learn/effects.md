@@ -1,29 +1,28 @@
 ---
 codeCaption: Using effects
 code: |
-  import { useStore, signal, effect } from 'impact-react'
+  import { useStore, store, effect } from 'impact-react'
 
   function CounterStore() {
-    const count = signal(0)
+    const counter = store({
+      count: 0,
+      increase() {
+        counter.count++
+      }
+    })
 
     effect(() => {
-      if (count.value === 5) {
+      if (counter.count === 5) {
         alert("You hit 5, yeah")
       }
     })
 
-    return {
-      get count() {
-        return count.value
-      },
-      increase() {
-        count.value++
-      }
-    }
+    return counter.readonly()
   }
 
   export default function App() {
     using counterStore = useStore(CounterStore)
+
     const { count, increase } = counterStore
 
     return (
@@ -47,47 +46,43 @@ Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscrib
 
 
 ```ts
-function CountStore() {
-  const count = signal(0)
+function CounterStore() {
+  const counter = store({
+    count: 0,
+    increase() {
+      counter.count++
+    }
+  })
 
   effect(() => {
-    if (count.value === 10) {
+    if (counter.count === 10) {
       alert("you gotz to 10")
     }
   })
 
-  return {
-    get count() {
-      return count.value
-    },
-    increase() {
-      count.value++
-    }
-  }
+  return counter.readonly()
 }
 ```
 
 You can rather write the same logic as:
 
 ```ts
-function CountStore() {
-  const count = signal(0)
-
-  return {
-    get count() {
-      return count.value
-    },
+function CounterStore() {
+  const counter = store({
+    count: 0,
     increase() {
-      count.value++
+      counter.count++
 
-      if (count.value === 10) {
+      if (counter.count === 10) {
         alert("you gotz to 10")
       }
     }
-  }
+  })
+
+  return counter.readonly()
 }
 ```
 
 Now we have co located where the count actually changes and what effect that can happen because of that change. This makes it easier for the next developer, including you in the future, to understand what actually happens when `increase` is called.
 
-Avoiding effects generally improves readability and understanding of what happens when state changes. An effect can be useful if multiple locations are updating the same state and you want some effect to happen regardless of where the state changed.
+Avoiding effects generally improves readability and understanding of what happens when state changes. An effect can be useful if multiple locations are updating the same state and you want some effect to happen regardless of where the state changed. An other scenario can be when you compose multiple stores together and you want an effect of a state change in one store to cause a change in an other store.

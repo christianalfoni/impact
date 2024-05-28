@@ -28,53 +28,49 @@ By CodeSandbox team
 
 features:
   - title: The best of both worlds
-    details: Use Impacts modern reactive model to manage state and Reacts component model to manage UI.
+    details: Use Impacts reactive model to manage state and Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
     details: Expose state management globally, or scope it to component trees to take advantage of modern React data fetching patterns.
 codeCaption: Example store 
 code: |
-  import { useStore, signal } from 'impact-react'
+  import { useStore, store } from 'impact-react'
 
-  function Store() {
-    let interval
-    const tick = signal(0)
-    const isTicking = signal(false)
-
-    const start = () => {
-      interval = setInterval(() => {
-        tick.value++
-      }, 500)
-      isTicking.value = true
-    }
-
-    const stop = () => {
-      clearInterval(interval)
-      isTicking.value = false
-    }
-    
-    return {
-      get tick() {
-        return tick.value
-      },
-      get isTicking() {
-        return isTicking.value
-      },
+  function CounterStore() {
+    const counter = store({
+      tick: 0,
+      isTicking: false,
       toggle() {
-        if (isTicking.value) {
+        if (counter.isTicking) {
           stop()
         } else {
           start()
         }
       }
+    })
+
+    let interval
+
+    function start() {
+      interval = setInterval(() => {
+        counter.tick++
+      }, 500)
+      counter.isTicking = true
     }
+
+    function stop() {
+      clearInterval(interval)
+      counter.isTicking = false
+    }
+    
+    return counter
   }
 
   export default function App() {
-    using store = useStore(Store)
+    using counter = useStore(CounterStore)
 
-    const { tick, isTicking, toggle } = store
+    const { tick, isTicking, toggle } = counter
 
     return (
       <div>
