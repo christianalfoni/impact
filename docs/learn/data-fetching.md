@@ -2,7 +2,7 @@
 codeCaption: Managing promises
 code: |
   import { Suspense } from 'react'
-  import { useStore, signal, cleanup, createStoreProvider, use } from 'impact-react'
+  import { useStore, store, cleanup, createStoreProvider, use } from 'impact-react'
 
   function DataStore() {
     const fetchData = () => new Promise((resolve) => setTimeout(() => resolve('DATA'), 2000))

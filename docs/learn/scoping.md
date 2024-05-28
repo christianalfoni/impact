@@ -1,21 +1,20 @@
 ---
 codeCaption: Scoping stores
 code: |
-  import { useStore, signal, createStoreProvider, cleanup } from 'impact-react'
+  import { useStore, store, createStoreProvider, cleanup } from 'impact-react'
 
   function CounterStore({ initialCount }) {
-    const count = signal(initialCount)
+    const counter = store({
+      count: initialCount
+    })
+
     const interval = setInterval(() => {
-      count.value++
+      counter.count++
     }, 1000)
 
     cleanup(() => clearInterval(interval))
 
-    return {
-      get count() {
-        return count.value
-      }
-    }
+    return counter.readonly()
   }
 
   const CounterStoreProvider = createStoreProvider(CounterStore)

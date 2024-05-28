@@ -61,6 +61,9 @@ code: |
 
 Just like `useState` the value of a signal is considered immutable and needs to *strictly* change the `.value` to trigger observation.
 
+:::tip
+Even though you will normally use the [store](../store.md) primitive to define your state and related logic, using a low level [signal](../signal.md) gives more flexibility when needed.
+:::
 
 <ClientOnly>
   <Playground />
