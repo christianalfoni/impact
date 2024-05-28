@@ -451,6 +451,25 @@ function isResolvingStoreFromComponent(context: ObserverContext) {
   return context.type === "component" && getActiveStoreContainer();
 }
 
+export function state<T extends Record<string, unknown>>(state: T): T {
+  const wrappedState = {};
+
+  Object.keys(state).forEach((key) => {
+    const stateSignal = signal(state[key]);
+
+    Object.defineProperty(wrappedState, key, {
+      get() {
+        return stateSignal.value;
+      },
+      set(value) {
+        stateSignal.value = value;
+      },
+    });
+  });
+
+  return wrappedState as T;
+}
+
 export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
 
