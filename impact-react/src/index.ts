@@ -451,23 +451,64 @@ function isResolvingStoreFromComponent(context: ObserverContext) {
   return context.type === "component" && getActiveStoreContainer();
 }
 
-export function state<T extends Record<string, unknown>>(state: T): T {
-  const wrappedState = {};
+export function store<T extends Record<string, unknown>>(
+  state: T,
+): T & { readonly(): T } {
+  const wrappedState = {
+    readonly() {
+      const readonlyWrapper = {} as T;
+      const propertyNames = Object.getOwnPropertyNames(wrappedState);
+
+      propertyNames.forEach((key) => {
+        if (key === "readonly") {
+          return;
+        }
+
+        if (typeof wrappedState[key] === "function") {
+          // @ts-ignore
+          readonlyWrapper[key] = wrappedState[key].bind(wrappedState);
+        } else {
+          Object.defineProperty(readonlyWrapper, key, {
+            get() {
+              return wrappedState[key];
+            },
+          });
+        }
+      });
+
+      return readonlyWrapper;
+    },
+  };
 
   Object.keys(state).forEach((key) => {
-    const stateSignal = signal(state[key]);
+    const descriptor = Object.getOwnPropertyDescriptor(state, key);
 
-    Object.defineProperty(wrappedState, key, {
-      get() {
-        return stateSignal.value;
-      },
-      set(value) {
-        stateSignal.value = value;
-      },
-    });
+    if (descriptor?.get) {
+      const derivedSignal = derived(descriptor.get.bind(wrappedState));
+
+      Object.defineProperty(wrappedState, key, {
+        get() {
+          return derivedSignal.value;
+        },
+      });
+    } else if (typeof state[key] === "function") {
+      // @ts-ignore
+      wrappedState[key] = state[key].bind(wrappedState);
+    } else {
+      const stateSignal = signal(state[key]);
+
+      Object.defineProperty(wrappedState, key, {
+        get() {
+          return stateSignal.value;
+        },
+        set(value) {
+          stateSignal.value = value;
+        },
+      });
+    }
   });
 
-  return wrappedState as T;
+  return wrappedState as T & { readonly(): T };
 }
 
 export function signal<T>(initialValue: T) {
