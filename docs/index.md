@@ -28,7 +28,7 @@ By CodeSandbox team
 
 features:
   - title: The best of both worlds
-    details: Use Impacts reactive model to manage state and Reacts reconciliation model to manage UI.
+    details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
