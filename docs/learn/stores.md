@@ -18,9 +18,7 @@ code: |
         }
     })
 
-    // It is common to use the "readonly" method of a store
-    // to return a readonly version of it to components
-    return counter.readonly()
+    return counter
   }
 
   const useCounterStore = () => useStore(CounterStore)
@@ -102,8 +100,8 @@ function AppStore() {
     })
 
     return {
-        counter: counter.readonly(),
-        shouter: shouter.readonly()
+        counter,
+        shouter
     }
 }
 ```
