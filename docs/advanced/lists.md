@@ -69,35 +69,31 @@ code: |
 Creating observable lists in **Impact** is straight forward. It is just a signal with an array.
 
 ```ts
-import { signal } from 'impact-react'
+import { store } from 'impact-react'
 
 function ListStore() {
-  const list = signal([])
+  const list = store({
+    items: []
+  })
 
-  return {
-    get list() {
-      return list.value
-    }
-  }
+  return list
 }
 ```
 
 Since signal values are considered immutable, like in React, you update that list by:
 
 ```ts
-import { signal } from 'impact-react'
+import { store } from 'impact-react'
 
 function ListStore() {
-  const list = signal([])
-
-  return {
-    get list() {
-      return list.value
-    },
+  const list = store({
+    items: [],
     addToList(item) {
-      list.value = [item, ...list.value]
+      list.items = [item, ...list.items]
     }
-  }
+  })
+
+  return list
 }
 ```
 
@@ -105,27 +101,25 @@ But sometimes lists needs to update complex objects within that list. In this sc
 
 
 ```ts
-import { signal } from 'impact-react'
+import { store } from 'impact-react'
 import { produce } from 'immer'
 
 function ListStore() {
-  const list = signal([])
-
-  return {
-    get list() {
-      return list.value
-    },
+  const list = store({
+    items: [],
     addToList(item) {
-      produce(list.value, (draft) => {
+      list.items = produce(list.items, (draft) => {
         draft.unshift(item)
       })
     },
     changeTitle(index, newTitle) {
-      produce(list.value, (draft) => {
+      list.items = produce(list.items, (draft) => {
         draft[index].title = newTitle
       })
     }
-  }
+  })
+
+  return list
 }
 ```
 
