@@ -14,7 +14,7 @@ function MyStore() {
     count: 0
   })
 
-  return counter.readonly()
+  return counter
 }
 
 export const useMyStore = () => useStore(MyStore)
@@ -32,7 +32,7 @@ function MyStore() {
     count: globalStore.initialCount
   })
 
-  return counter.readonly()
+  return counter
 }
 
 export const useMyStore = () => useStore(MyStore)

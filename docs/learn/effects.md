@@ -17,7 +17,7 @@ code: |
       }
     })
 
-    return counter.readonly()
+    return counter
   }
 
   export default function App() {
@@ -60,7 +60,7 @@ function CounterStore() {
     }
   })
 
-  return counter.readonly()
+  return counter
 }
 ```
 
@@ -79,7 +79,7 @@ function CounterStore() {
     }
   })
 
-  return counter.readonly()
+  return counter
 }
 ```
 

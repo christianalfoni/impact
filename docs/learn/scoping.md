@@ -14,7 +14,7 @@ code: |
 
     cleanup(() => clearInterval(interval))
 
-    return counter.readonly()
+    return counter
   }
 
   const CounterStoreProvider = createStoreProvider(CounterStore)

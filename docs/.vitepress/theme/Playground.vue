@@ -51,7 +51,7 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         dependencies: {
           react: "18.2.0",
           "react-dom": "18.2.0",
-          "impact-react": "1.5.0",
+          "impact-react": "1.6.0",
         },
       }),
     },
@@ -161,7 +161,7 @@ export default defineComponent({
       loadSandpack(iframe.value, frontmatter.code).then(
         (updateCodeCallback) => {
           updateCode = updateCodeCallback;
-        },
+        }
       );
       observer = new MutationObserver(setDark);
       observer.observe(document.documentElement, {
