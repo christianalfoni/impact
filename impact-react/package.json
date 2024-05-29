@@ -1,6 +1,6 @@
 {
   "name": "impact-react",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -33,9 +33,7 @@
     "state",
     "global"
   ],
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "peerDependencies": {
     "react": "*"
   },

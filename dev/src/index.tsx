@@ -1,10 +1,16 @@
 import React, { Suspense, memo, use } from "react";
 import { createRoot } from "react-dom/client";
 
-import { useStore, signal, store } from "impact-react";
+import { useStore, signal, store, readonlyStore } from "impact-react";
+
+type CounterStore = {
+  count: number;
+  double: number;
+  time: Promise<string>;
+  increase: () => void;}
 
 function CounterStore() {
-  const counter = store({
+  const counter: CounterStore = store({
     count: 0,
     get double() {
       return counter.count * 2;
@@ -17,7 +23,7 @@ function CounterStore() {
     },
   });
 
-  return counter.readonly();
+  return readonlyStore(counter);
 }
 
 function OtherStore() {
@@ -26,6 +32,8 @@ function OtherStore() {
 
 function Test() {
   using counterStore = useStore(CounterStore);
+
+  
 
   const time = use(counterStore.time);
 
