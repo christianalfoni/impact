@@ -98,28 +98,29 @@ function PostStore({ data }) {
     ...data,
     // The value of the mutation state starts out as undefined
     changingTitle: undefined,
-    changeTitle(id, newTitle) {
-      const oldTitle = post.data.title
-
-      // Optimistically change the title
-      post.title = newTitle
-
-      post.changingTitle = fetch({
-        method: 'PUT',
-        url: '/posts/' + id,
-        data: {
-          title: newTitle
-        }
-      })
-
-      // Revert to the previous value
-      post.changingTitle.catch(() => {
-        post.title = oldTitle
-      })
-    }
+    changeTitle
   })
-  
 
+  function changeTitle(id, newTitle) {
+    const oldTitle = post.data.title
+
+    // Optimistically change the title
+    post.title = newTitle
+
+    post.changingTitle = fetch({
+      method: 'PUT',
+      url: '/posts/' + id,
+      data: {
+        title: newTitle
+      }
+    })
+
+    // Revert to the previous value
+    post.changingTitle.catch(() => {
+      post.title = oldTitle
+    })
+  }
+  
   return post
 }
 
@@ -136,7 +137,7 @@ function PostTitle() {
   using postStore = usePostStore()
 
   const { title, changingTitle, changeTitle } = postStore
-  const [newTitle, setNewTitle] = useState(title)
+  const [ newTitle, setNewTitle ] = useState(title)
 
   return (
     <div>
@@ -158,6 +159,7 @@ function PostTitle() {
 
 function Post({ id }) {
   using postsStore = usePostsStore()
+  
   const postData = use(postsStore.fetchPost(id))
 
   return (
