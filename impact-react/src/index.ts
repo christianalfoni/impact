@@ -52,7 +52,7 @@ class StoreContainer {
   constructor(
     ref: Store<any, any>,
     constr: () => any,
-    private _parent: StoreContainer | null,
+    private _parent: StoreContainer | null
   ) {
     this._state = {
       isResolved: false,
@@ -102,7 +102,7 @@ ${String(e)}`);
 
     if (!resolvedStore && registeredProvidedStores.has(store)) {
       throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
+        `The store ${store.name} should be provided on a context, but no provider was found`
       );
     }
 
@@ -149,7 +149,7 @@ export class StoreContainerProvider<
         () => this.props.store(this.props.props),
         // eslint-disable-next-line
         // @ts-ignore
-        this.context,
+        this.context
       );
     }
 
@@ -158,7 +158,7 @@ export class StoreContainerProvider<
       {
         value: this.container,
       },
-      this.props.children,
+      this.props.children
     );
   }
 }
@@ -196,7 +196,7 @@ export function useStore<
 
       if (!resolvedStore && registeredProvidedStores.has(store)) {
         throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`,
+          `The store ${store.name} should be provided on a context, but no provider was found`
         );
       }
 
@@ -279,7 +279,7 @@ export function createStoreProvider<
         props: extendedProps,
         store,
       },
-      children,
+      children
     );
   };
 
@@ -294,7 +294,7 @@ export function createStoreProvider<
         // @ts-ignore
         props,
         // @ts-ignore
-        createElement(component, props),
+        createElement(component, props)
       );
     };
   };
@@ -319,7 +319,7 @@ export const signalDebugHooks: {
   onSetValue?: (
     signal: SignalTracker,
     value: unknown,
-    derived?: boolean,
+    derived?: boolean
   ) => void;
   onEffectRun?: (effect: () => void) => void;
 } = {};
@@ -363,7 +363,7 @@ export class ObserverContext {
      * tracked to enable React to see a stale subscription and render again
      */
     this.snapshot = Math.max(
-      ...Array.from(this._getters).map((signal) => signal.snapshot),
+      ...Array.from(this._getters).map((signal) => signal.snapshot)
     );
   }
   registerSetter(signal: SignalTracker) {
@@ -451,34 +451,32 @@ function isResolvingStoreFromComponent(context: ObserverContext) {
   return context.type === "component" && getActiveStoreContainer();
 }
 
-export function store<T extends Record<string, unknown>>(
-  state: T,
-): T & { readonly(): T } {
-  const wrappedState = {
-    readonly() {
-      const readonlyWrapper = {} as T;
-      const propertyNames = Object.getOwnPropertyNames(wrappedState);
+export function readonlyStore<T extends Record<string, unknown>>(store: T) {
+  const readonlyWrapper = {} as Readonly<T>;
+  const propertyNames = Object.getOwnPropertyNames(store);
 
-      propertyNames.forEach((key) => {
-        if (key === "readonly") {
-          return;
-        }
+  propertyNames.forEach((key) => {
+    if (key === "readonly") {
+      return;
+    }
 
-        if (typeof wrappedState[key] === "function") {
-          // @ts-ignore
-          readonlyWrapper[key] = wrappedState[key].bind(wrappedState);
-        } else {
-          Object.defineProperty(readonlyWrapper, key, {
-            get() {
-              return wrappedState[key];
-            },
-          });
-        }
+    if (typeof store[key] === "function") {
+      // @ts-ignore
+      readonlyWrapper[key] = store[key].bind(store);
+    } else {
+      Object.defineProperty(readonlyWrapper, key, {
+        get() {
+          return store[key];
+        },
       });
+    }
+  });
 
-      return readonlyWrapper;
-    },
-  }  as T & { readonly(): T }
+  return readonlyWrapper;
+}
+
+export function store<T extends Record<string, unknown>>(state: T): T {
+  const wrappedState = {} as T;
 
   Object.keys(state).forEach((key) => {
     const descriptor = Object.getOwnPropertyDescriptor(state, key);
@@ -535,7 +533,7 @@ export function signal<T>(initialValue: T) {
 
           value = createFulfilledPromise(
             Promise.resolve(resolvedValue),
-            resolvedValue,
+            resolvedValue
           );
 
           signal.notify();
@@ -554,7 +552,7 @@ export function signal<T>(initialValue: T) {
           signal.notify();
 
           return rejectedPromise;
-        }),
+        })
     );
   }
 
@@ -581,7 +579,7 @@ export function signal<T>(initialValue: T) {
         ) {
           console.warn(
             "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
-            newValue,
+            newValue
           );
         }
 
@@ -648,7 +646,7 @@ function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
 
 function createFulfilledPromise<T>(
   promise: Promise<T>,
-  value: T,
+  value: T
 ): FulfilledPromise<T> {
   return Object.assign(promise, {
     status: "fulfilled" as const,
@@ -658,7 +656,7 @@ function createFulfilledPromise<T>(
 
 function createRejectedPromise<T>(
   promise: Promise<T>,
-  reason: unknown,
+  reason: unknown
 ): RejectedPromise<T> {
   return Object.assign(promise, {
     status: "rejected" as const,
@@ -763,7 +761,7 @@ export function observer() {
     // used to detect a stale subscription. If snapshot changed between
     // last time and the subscription it will do a new render
     () => context.snapshot,
-    () => context.snapshot,
+    () => context.snapshot
   );
 
   return context;
