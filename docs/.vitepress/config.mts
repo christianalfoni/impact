@@ -25,7 +25,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Advanced", link: "/advanced/lists" },
-      { text: "API Reference", link: "/useStore" },
+      { text: "API Reference", link: "/cleanup" },
     ],
 
     sidebar: [
