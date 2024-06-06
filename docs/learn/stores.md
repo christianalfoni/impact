@@ -57,7 +57,7 @@ code: |
 
 # Stores
 
-Now that you have learned about the low level [signal](../signal.md) and [derived](../derived.md) we can introduce a higher abstraction called `store`. A store is just an object where the keys are converted into signals (values) and derived (getters) under the hood. The immediate benefit of this is that you will access the keys of the store object as opposed to the signal `.value`. A `readonly` method is also available to expose the store in a readonly mode, which is recommended.
+Now that you have learned about the low level [signal](../signal.md) and [derived](../derived.md) we can introduce a higher abstraction called `store`. A store is just an object where the keys are converted into signals (values) and derived (getters) under the hood. The immediate benefit of this is that you will access the keys of the store object as opposed to the signal `.value`. A [readonlyStore](../store.md) utility is also available to expose the store as readonly.
 
 <ClientOnly>
   <Playground />
@@ -71,38 +71,39 @@ function useCounter() {
   const counter = store({
     count: 0,
     increase() {
-      counter.count++
-    }
-  })
+      counter.count++;
+    },
+  });
 
-  return counter
+  return counter;
 }
 
 function useShouter() {
   const shouter = store({
     shout: "",
     updateShout(shout) {
-      shouter.shout = shout
-    }
-  })
+      shouter.shout = shout;
+    },
+  });
 
-  return shouter
+  return shouter;
 }
 
 function AppStore() {
-    const counter = useCounter()
-    const shouter = useShouter()
+  const counter = useCounter();
+  const shouter = useShouter();
 
-    effect(() => {
-      if (counter.count === 10) {
-        shouter.updateShout("Oh my, we hit 10!!!")
-      }
-    })
-
-    return {
-        counter,
-        shouter
+  effect(() => {
+    if (counter.count === 10) {
+      shouter.updateShout("Oh my, we hit 10!!!");
     }
+  });
+
+  return {
+    counter,
+    shouter,
+  };
 }
 ```
+
 :::
