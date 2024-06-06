@@ -81,7 +81,6 @@ code: |
   }
 ---
 
-
 <HomeContent>
 
 <hr/>
@@ -100,55 +99,42 @@ code: |
 
 ## Install impact-react
 
-::: code-group
-
 ```sh [npm]
 npm install impact-react
 ```
 
-```sh [yarn]
-yarn add impact-react
+:warning: **impact-react** requires [Explicit Resource Management](https://github.com/tc39/proposal-explicit-resource-management), which is currently a **Stage 3** proposal. It is implemented in TypeScript, with pending implementations in browsers.
+
+```sh [npm]
+npm install --save-dev @babel/plugin-proposal-explicit-resource-management
 ```
 
-```sh [pnpm]
-pnpm add impact-react
+**Configure babel**
+
+```json
+{
+  "plugins": ["@babel/plugin-proposal-explicit-resource-management"]
+}
 ```
-
-:::
-
-:warning: **impact-react** requires [Explicit Resource Management](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management) which is currently a **Stage 3** proposal. 
 
 ## Install debugger
 
 The Debugger will show you what signals and effects are being executed. With sourcemaps you'll see the exact point in the file where signals are changed.
 
-The debugger will also enable warnings when observation is not enabled using the `using` keyword.
-
-::: code-group
+By importing the debugger package it will enable warnings when observation is not enabled using the `using` keyword.
 
 ```sh [npm]
 npm install impact-react-debugger
 ```
 
-```sh [yarn]
-yarn add impact-react-debugger
-```
-
-```sh [pnpm]
-pnpm add impact-react-debugger
-```
-
-:::
-
 ```ts
 if (import.meta.env.DEV) {
-  import('impact-react-debugger')
+  import("impact-react-debugger");
 }
 ```
 
 ::: tip
 Hit SHIFT twice to toggle the debugger
 :::
-
 
 </HomeContent>
