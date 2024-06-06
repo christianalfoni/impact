@@ -364,19 +364,20 @@ export default defineComponent({
   outline: none !important;
 }
 
+.playground.horizontal {
+  .cm-editor {
+    border-right: 0;
+    border-bottom-width: 1px;
+    border-bottom-left-radius: 8px;
+  }
+}
+
 .cm-editor {
   border: 1px solid var(--vp-c-divider);
   border-top: 0;
   border-bottom-width: 0px;
   background-color: var(--vp-c-bg-alt) !important;
   height: calc(100% - var(--caption-height));
-
-  @media (min-width: 1280px) {
-    border-right: 0;
-    border-bottom-width: 1px;
-
-    border-bottom-left-radius: 8px;
-  }
 
   .cm-activeLineGutter,
   .cm-gutters {
