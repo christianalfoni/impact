@@ -295,33 +295,36 @@ export default defineComponent({
   align-items: stretch;
 }
 
-.playground.horizontal {
-  flex-direction: row;
+@media (min-width: 1280px) {
+  .playground.horizontal {
+    flex-direction: row;
 
-  .codemirror-wrapper {
-    flex: 0 50%;
-    width: 50%;
-    min-height: var(--height);
-  }
+    .codemirror-wrapper {
+      flex: 0 50%;
+      width: 50%;
+      min-height: var(--height);
+    }
 
-  .iframe {
-    flex: 0 50%;
-    width: 50%;
-    border-bottom-left-radius: 0px;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
+    .iframe {
+      flex: 0 50%;
+      width: 50%;
+      border-bottom-left-radius: 0px;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
 
-    & iframe {
-      position: sticky;
-      top: calc(var(--vp-nav-height) + 10px);
+      & iframe {
+        position: sticky;
+        top: calc(var(--vp-nav-height) + 10px);
+      }
+    }
+
+    .code-caption {
+      border-top-right-radius: 0px;
+      border-right: 0;
     }
   }
-
-  .code-caption {
-    border-top-right-radius: 0px;
-    border-right: 0;
-  }
 }
+
 
 .iframe {
   border: 1px solid var(--vp-c-divider);
@@ -364,11 +367,13 @@ export default defineComponent({
   outline: none !important;
 }
 
-.playground.horizontal {
-  .cm-editor {
-    border-right: 0;
-    border-bottom-width: 1px;
-    border-bottom-left-radius: 8px;
+@media (min-width: 1280px) {
+  .playground.horizontal {
+    .cm-editor {
+      border-right: 0;
+      border-bottom-width: 1px;
+      border-bottom-left-radius: 8px;
+    }
   }
 }
 
