@@ -236,7 +236,7 @@ export default defineComponent({
 });
 </script>
 <template>
-  <div class="playground">
+  <div :class="$frontmatter.horizontalPlayground ? 'playground horizontal' : 'playground'">
     <div
       class="codemirror-wrapper"
       autocorrect="off"
@@ -295,17 +295,31 @@ export default defineComponent({
   align-items: stretch;
 }
 
-@media (min-width: 1280px) {
-  .playground {
-    flex-direction: row;
-  }
-}
+.playground.horizontal {
+  flex-direction: row;
 
-@media (min-width: 1280px) {
   .codemirror-wrapper {
     flex: 0 50%;
     width: 50%;
     min-height: var(--height);
+  }
+
+  .iframe {
+    flex: 0 50%;
+    width: 50%;
+    border-bottom-left-radius: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+
+    & iframe {
+      position: sticky;
+      top: calc(var(--vp-nav-height) + 10px);
+    }
+  }
+
+  .code-caption {
+    border-top-right-radius: 0px;
+    border-right: 0;
   }
 }
 
@@ -318,20 +332,8 @@ export default defineComponent({
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 
-  @media (min-width: 1280px) {
-    flex: 0 50%;
-    width: 50%;
-    border-bottom-left-radius: 0px;
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-  }
-
   & iframe {
     border: 0;
-    @media (min-width: 1280px) {
-      position: sticky;
-      top: calc(var(--vp-nav-height) + 10px);
-    }
   }
 }
 
@@ -351,11 +353,6 @@ export default defineComponent({
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   border: 1px solid var(--vp-c-divider);
-
-  @media (min-width: 1280px) {
-    border-top-right-radius: 0px;
-    border-right: 0;
-  }
 }
 </style>
 <style>
