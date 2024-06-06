@@ -33,7 +33,8 @@ features:
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
   - title: Globally or scoped
     details: Expose state management globally, or scope it to component trees to take advantage of modern React data fetching patterns.
-codeCaption: Example store 
+codeCaption: Example store
+horizontalPlayground: true
 code: |
   import { useStore, store } from 'impact-react'
 
