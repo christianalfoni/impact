@@ -27,6 +27,7 @@ code: |
 
   function Counter() {
     using counterStore = useCounterStore()
+
     const { count, increase } = counterStore
 
     return (
@@ -38,6 +39,7 @@ code: |
 
   function Enabler() {
     using counterStore = useCounterStore()
+    
     const { enabled, toggleEnabled } = counterStore
 
     return (
@@ -59,14 +61,10 @@ code: |
 
 `signal` is the primitive representing an observable state value. When a component accesses the `.value` of a signal during its reconciliation, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store, only the ones actually accessed in a component will cause that component to reconcile.
 
-Just like `useState` the value of a signal is considered immutable and needs to *strictly* change the `.value` to trigger observation.
+Just like `useState` the value of a signal is considered immutable and needs to _strictly_ change the `.value` to trigger observation. Even though you will normally use the [store](../store.md) primitive to define your state and related logic, using a low level [signal](../signal.md) gives more flexibility when needed.
 
-:::tip
-Even though you will normally use the [store](../store.md) primitive to define your state and related logic, using a low level [signal](../signal.md) gives more flexibility when needed.
-:::
+As the example shows it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component.
 
 <ClientOnly>
   <Playground />
 </ClientOnly>
-
-As the example shows it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component.
