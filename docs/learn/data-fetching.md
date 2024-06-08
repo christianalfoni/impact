@@ -19,6 +19,7 @@ code: |
 
   function Data() {
     using dataStore = useStore(DataStore)
+    
     const { data } = dataStore
 
     if (data.status === 'pending') {
@@ -38,6 +39,7 @@ code: |
 
   function SuspendedData() {
     using dataStore = useStore(DataStore)
+    
     const data = use(dataStore.data)
 
     return <h1>{data}</h1>
