@@ -74,10 +74,10 @@ code: |
 
 # Derived
 
-Derived signals will calculate a value based on other signals and cache it. The benefit `derived` has over `useMemo` is that it does not immediately recalculate when a dependent signal changes, but rather flag itself as dirty. Only when the value is accessed it will recompute the value.
-
-Derived is consumed just like a plain signal, using the `.value` property. You can **not** assign a value to a derived.
-
 <ClientOnly>
   <Playground />
 </ClientOnly>
+
+Derived signals will calculate a value based on other signals and cache it. The benefit `derived` has over `useMemo` is that it does not immediately recalculate when a dependent signal changes, but rather flag itself as dirty. Only when the value is accessed it will recompute the value.
+
+Derived is consumed just like a plain signal, using the `.value` property. You can **not** assign a value to a derived.

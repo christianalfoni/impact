@@ -57,6 +57,10 @@ code: |
 
 # Stores
 
+<ClientOnly>
+  <Playground />
+</ClientOnly>
+
 Now that you have learned about the low level [signal](../signal.md) and [derived](../derived.md) we can introduce a higher abstraction called `store`. A store is just an object where the keys are converted into signals (values) and derived (getters) under the hood. The immediate benefit of this is that you will access the keys of the store object as opposed to the signal `.value`. A [readonlyStore](../store.md) utility is also available to expose the store as readonly.
 
 As your stores grow you can take advantage of the same hooks pattern as React to allow full flexibility in composition.
@@ -100,7 +104,3 @@ function AppStore() {
   };
 }
 ```
-
-<ClientOnly>
-  <Playground />
-</ClientOnly>
