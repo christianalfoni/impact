@@ -293,6 +293,7 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  margin: 24px auto;
 }
 
 @media (min-width: 1280px) {
