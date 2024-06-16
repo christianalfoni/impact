@@ -104,19 +104,7 @@ code: |
 npm install impact-react
 ```
 
-:warning: **impact-react** requires [Explicit Resource Management](https://github.com/tc39/proposal-explicit-resource-management), which is currently a **Stage 3** proposal. It is implemented in TypeScript, with pending implementations in browsers.
-
-```sh [npm]
-npm install --save-dev @babel/plugin-proposal-explicit-resource-management
-```
-
-**Configure babel**
-
-```json
-{
-  "plugins": ["@babel/plugin-proposal-explicit-resource-management"]
-}
-```
+:warning: **Impact** requires [Explicit Resource Management](https://github.com/tc39/proposal-explicit-resource-management) which is currently a **Stage 3** proposal. It works out of the box with [TypeScript](https://www.typescriptlang.org/), [SWC](https://swc.rs/) and [ESBuild](https://esbuild.github.io/). Implementations in browsers is on its way. **Babel** currently requires a [Plugin](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management).
 
 ## Install debugger
 
