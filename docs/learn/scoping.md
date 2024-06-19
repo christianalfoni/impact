@@ -40,10 +40,10 @@ code: |
  <Playground />
 </ClientOnly>
 
-By default the stores are global, but you can scope them to specific component trees by using a provider.
+Stores are global by default, but you can scope them to specific component trees by using a provider.
 
 You create a provider for a store using the `createStoreProvider` function. The store is instantiated when the provider mounts and any `cleanup` is called when the provider unmounts.
 
-Scoping stores allows you to instantiate state management related to specific pages, features or even for each item in a list. You can start subscriptions and instantiate classes which can be disposed with `cleanup` when unmounting the provider. The store can now also receive props from the provider to initialise itself. This is especially useful to take advantage of modern React data fetching patterns, as you will see next.
+Scoping stores allows you to instantiate state management related to specific pages, features, or even each item on a list. You can start subscriptions and instantiate classes that can be disposed of with `cleanup` when unmounting the provider. The store can now also receive props from the provider to initialize itself. As you will see next, this is especially useful for taking advantage of modern React data fetching patterns.
 
-Another aspect of scoping state management is related to typing. When you scope state management you can receive resolved asynchronous state as a prop. The consumers of scoped state management can safely consume resolved asynchronous state, instead of having to check if the state is there, is pending or has an error.
+Another aspect of scoping state management is related to typing. When you scope state management, you can receive resolved asynchronous state as a prop. The consumers of scoped state management can safely consume resolved asynchronous state, instead of having to check if the state is there, is pending, or has an error.

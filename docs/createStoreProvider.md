@@ -4,7 +4,7 @@ outline: deep
 
 # createStoreProvider
 
-A store can be scoped to a component tree. This allows for passing props to the store and [cleanup](./cleanup.md) when the related component tree unmounts.
+A store can be scoped to a component tree. This allows you to pass props to the store and [cleanup](./cleanup.md) when the related component tree unmounts.
 
 ```tsx
 import { store, signal, createStoreProvider } from 'impact-react'
@@ -44,7 +44,7 @@ function App() {
 }
 ```
 
-Alternatively use the higher order component:
+Alternatively, use the higher order component:
 
 ```tsx
 const App = MyStoreProvider.provide(function App() {

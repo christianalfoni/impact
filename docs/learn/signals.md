@@ -63,8 +63,8 @@ code: |
   <Playground />
 </ClientOnly>
 
-`signal` is the primitive representing an observable state value. When a component accesses the `.value` of a signal during its reconciliation, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store, only the ones actually accessed in a component will cause that component to reconcile.
+`signal` is the primitive representing an observable state value. When a component accesses the `.value` of a signal during its reconciliation, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store; only the ones accessed in a component will cause that component to reconcile.
 
-Just like `useState` the value of a signal is considered immutable and needs to _strictly_ change the `.value` to trigger observation. Even though you will normally use the [store](../store.md) primitive to define your state and related logic, using a low level [signal](../signal.md) gives more flexibility when needed.
+Just like `useState`, the value of a signal is considered immutable and needs to _strictly_ change the `.value` to trigger observation. Even though you will normally use the [store](../store.md) primitive to define your state and related logic, using a low-level [signal](../signal.md) gives more flexibility when needed.
 
-As the example shows it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component.
+As the example above shows, it is common to expose signals using `getters`, meaning that accessing `.value` becomes implicit when consuming a signal from a component.

@@ -66,69 +66,68 @@ code: |
 
 # Lists
 
-Creating observable lists in **Impact** is straight forward. It is just a signal with an array.
+Creating observable lists in **Impact** is straightforward. They are essentially a signal with an array.
 
 ```ts
-import { store } from 'impact-react'
+import { store } from "impact-react";
 
 function ListStore() {
   const list = store({
-    items: []
-  })
+    items: [],
+  });
 
-  return list
+  return list;
 }
 ```
 
-Since signal values are considered immutable, like in React, you update that list by:
+Since signal values are considered immutable (like in React), you update that list by:
 
 ```ts
-import { store } from 'impact-react'
+import { store } from "impact-react";
 
 function ListStore() {
   const list = store({
     items: [],
     addToList(item) {
-      list.items = [item, ...list.items]
-    }
-  })
+      list.items = [item, ...list.items];
+    },
+  });
 
-  return list
+  return list;
 }
 ```
 
-But sometimes lists needs to update complex objects within that list. In this scenario it can be a good idea to use something like [immer](https://immerjs.github.io/immer/):
-
+But sometimes lists need to update complex objects within that list. In this scenario, it can be a good idea to use something like [immer](https://immerjs.github.io/immer/):
 
 ```ts
-import { store } from 'impact-react'
-import { produce } from 'immer'
+import { store } from "impact-react";
+import { produce } from "immer";
 
 function ListStore() {
   const list = store({
     items: [],
     addToList(item) {
       list.items = produce(list.items, (draft) => {
-        draft.unshift(item)
-      })
+        draft.unshift(item);
+      });
     },
     changeTitle(index, newTitle) {
       list.items = produce(list.items, (draft) => {
-        draft[index].title = newTitle
-      })
-    }
-  })
+        draft[index].title = newTitle;
+      });
+    },
+  });
 
-  return list
+  return list;
 }
 ```
 
-Most lists can be managed this way, but you might have much bigger lists. Lists with sorting, filters and other states. You want to ensure maximum performance so that the component managing the list does not reconcile when items in the list updates and you want full control of what items are shown in the list at any moment.
+Most simple lists can be managed this way. However, you might have much bigger lists with sorting, filters and other states. In those cases, you want to ensure maximum performance so that the component managing the list does not reconcile when items in the list update. Plus, you will want full control of what items are shown in the list at any moment.
 
 <ClientOnly>
  <Playground />
 </ClientOnly>
 
-Now you are free to choose how to produce the list to display. By iterating the `items` record you can sort, filter or even add items to the list based on certain interactions. Each item is memoized on its id and the item is only consumed from within the `Item` component, isolating updates.
+Now you are free to choose how to produce the list to display. By iterating the `items` record, you can sort, filter or even add items to the list based on certain interactions. Each item is memoized on its id and the item is only consumed from within the `Item` component, isolating updates.
 
-If each item in and of itself is complex you can consider providing a store around each item in the list, but at this point it would be surprising if each item in the list could not depend on normal props passing and memoization of nested components to optimise reconciliation.
+If each individual item is complex, you can consider providing a store around each list item. However, at this point it would be surprising if each list item could not depend on normal props passing and memoization of nested components to optimise reconciliation.

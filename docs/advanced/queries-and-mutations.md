@@ -1,12 +1,12 @@
 # Queries and Mutations
 
-One of the most common things you do in any web application is to fetch data from the server and change data on the server. Under the hood this is based on promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but managing these promises is not something React is good at or should even consider doing.
+One of the most common things you do in any web application is fetching data from the server and changing data on the server. Under the hood, this is based on promises. A suggested [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but managing these promises is not something React is good at or should even consider doing.
 
-There are several data fetching solutions for React, like [react-query](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [swr](https://swr.vercel.app/) and you can use these in combination with **Impact**. But you can also choose to use signals.
+There are several data fetching solutions for React, like [react-query](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [swr](https://swr.vercel.app/), which you can use in combination with **Impact**. But you can also choose to use signals.
 
-**Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a lower abstraction than the above mentioned tools, but that makes them flexible and they can be used for all kinds of async state management, including queries and mutations.
+**Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a lower abstraction than the above mentioned tools, but that makes them flexible and usable for all kinds of async state management, including queries and mutations.
 
-Traditionally with global state management you would do the data fetching inside your stores, but with **Impact** you have the choice to embrace React to do declarative data fetching. 
+Traditionally, with global state management, you would do the data fetching inside your stores, but with **Impact**, you can choose to embrace React to do declarative data fetching. 
 
 ```ts
 import { useStore, signal } from 'impact-react'
@@ -38,9 +38,9 @@ function PostsStore() {
 export const usePostsStore = () => useStore(PostsStore)
 ```
 
-The store acts as a cache for the initial data of posts. You choose how this cache operates. In this example we never invalidate the cache, but you are free to do so by any means.
+The store acts as a cache for the initial data of posts. You choose how this cache operates. In this example, we never invalidate the cache, but you are free to do so at any time.
 
-When a signal initialises with a promise it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally the status details added to the promise allows you to suspend the promise using the `use` hook.
+When a signal initializes with a promise, it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally, the status details added to the promise allow you to suspend the promise using the `use` hook.
 
 ```tsx
 import { use } from 'react'
@@ -61,7 +61,7 @@ function Posts({ id }) {
 }
 ```
 
-But maybe you do not want to use suspense, you just want to deal with the status of the promise directly in the component:
+But maybe you do not want to use suspense and prefer to deal with the status of the promise directly in the component:
 
 ```tsx
 import { usePostsStore } from './postsStore'
@@ -84,7 +84,7 @@ const Post = ({ id }) => {
 }
 ```
 
-But data fetching is not only about getting and displaying data, it is also about mutations. We can use a promise signal to track the state of mutations.
+However, data fetching is not only about getting and displaying data; it is also about mutations. We can use a promise signal to track the state of mutations.
 
 We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and reverting.
 

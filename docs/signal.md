@@ -22,7 +22,7 @@ function MyStore() {
 
 ## Promises
 
-Assigning a promise to a signal will enhance that promise to comply with the [use](https://react.dev/reference/react/use) specification of React. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
+Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
 import { signal, useStore } from 'impact-react'
@@ -53,7 +53,7 @@ function App() {
 }
 ```
 
-Or yoou could have consumed it with the `use` hook, in combination with a suspense and error boundary.
+Or you could have consumed it with the `use` hook, in combination with a suspense and error boundary.
 
 ```tsx
 function App() {
@@ -68,6 +68,6 @@ function App() {
 
 ::: tip
 
-The signal will catch the error of the promise to set its new status, but will then reject the promise with the original reason. To **catch** an error you should either use async try/catch when assigning the promise to a signal, or use a `catch` on the promise after it has been assigned to the signal.
+The signal will catch the error of the promise to set its new status, but will then reject the promise with the original reason. To **catch** an error, you should either use async try/catch when assigning the promise to a signal, or use a `catch` on the promise after it has been assigned to the signal.
 
 :::
