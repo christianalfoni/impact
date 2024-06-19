@@ -20,7 +20,7 @@ function MyStore() {
 export const useMyStore = () => useStore(MyStore)
 ```
 
-When a store is provided to the component tree it can consume other parent stores directly.
+When a store is provided to the component tree, it can consume other parent stores directly.
 
 ```ts
 import { useStore, signal } from 'impact-react'

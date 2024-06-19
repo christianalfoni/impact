@@ -4,7 +4,7 @@ outline: deep
 
 # cleanup
 
-When stores are scoped to component trees you can use `cleanup` to dispose of any subscriptions, class instances etc. when the related provider unmounts from the component tree.
+When stores are scoped to component trees, you can use `cleanup` to dispose of any subscriptions, class instances, etc., when the related provider unmounts from the component tree.
 
 ```ts
 import { useStore, signal, createStoreProvider } from 'impact-react'

@@ -25,7 +25,7 @@ function MyStore() {
 ```
 
 :::tip
-With TypeScript it is recommended to type your variable, as opposed to the generic. This ensures usage of getters does not cause indirect reference error.
+With TypeScript, it is recommended that you type your variable rather than the generic. This ensures that using getters does not cause an indirect reference error.
 
 ```ts
 import { store, readonlyStore } from 'impact-react'
