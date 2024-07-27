@@ -21,7 +21,7 @@ By CodeSandbox team
     #   link: /advanced/lists
     - theme: alt
       text: API Reference
-      link: /cleanup
+      link: /derived
     - theme: alt
       text: Start from template 
       link: https://codesandbox.io/p/devbox/impact-template-fp6gd9

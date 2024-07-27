@@ -24,8 +24,8 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Advanced", link: "/advanced/lists" },
-      { text: "API Reference", link: "/cleanup" },
+      { text: "Advanced", link: "/advanced/patterns" },
+      { text: "API Reference", link: "/derived" },
     ],
 
     sidebar: [
