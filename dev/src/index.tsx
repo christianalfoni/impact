@@ -21,7 +21,7 @@ function createApp() {
       return time();
     },
     increase() {
-      count((current) => current + 1);
+      count(10);
     },
   };
 }

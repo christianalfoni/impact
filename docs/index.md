@@ -75,7 +75,7 @@ code: |
   
   const app = createApp()
 
-  const App = observe(() => (
+  export default observe(() => (
     <div>
       <h4>Tick count: {app.tick}</h4>
       <button onClick={app.toggle}>
