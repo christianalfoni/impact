@@ -4,7 +4,7 @@ outline: deep
 
 # observe
 
-Components needs to observe any signals that are consumed. They do this with the `observe` function, which is used simialar to the `memo` function.
+Components needs to observe any signals that are consumed. They do this with the `observe` function, which is used similar to the `memo` function.
 
 ```ts
 import { observe, signal } from "impact-react";

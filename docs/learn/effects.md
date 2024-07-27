@@ -28,7 +28,7 @@ code: |
 
   const app = createApp()
 
-  const App = observe(() => (
+  export default observe(() => (
     <>
       <button onClick={app.increase}>
         Increase ({app.count})

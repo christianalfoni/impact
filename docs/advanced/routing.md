@@ -5,7 +5,7 @@ The term "single page application" does not mean there is necessarily only a sin
 There are many different client side routers and we will be using [typed-client-router](https://github.com/christianalfoni/typed-client-router) in this example.
 
 ```ts
-import { createRouter, TRoutes } from "typed-client-router";
+import { createRouter, TRoute } from "typed-client-router";
 import { observe, signal } from "impact-react";
 import { createMain, Main } from "./main";
 import { createItems, Items } from "./items";
@@ -16,7 +16,7 @@ const routes = {
   item: "/items/:id",
 } as const;
 
-type Route = TRoutes<typeof routes>;
+type Route = TRoute<typeof routes>;
 
 type Page =
   | {
@@ -35,25 +35,23 @@ function createApp() {
   // We create the router
   const router = createRouter(routes);
   // We create a signal representing the route with the page
-  const route = signal(createPage(router.current));
+  const currentPage = signal(createPage(router.current));
   // We listen to route changes and create the relevant page
-  router.listen((route) => route(createPage(route)));
+  router.listen((route) => currentPage(createPage(route)));
 
   return {
     router,
-    get route() {
-      return route();
+    get currentPage() {
+      return currentPage();
     },
   };
 
   // Private functions can be defined below the return statement to more clearly see
   // what signals and public interface the application exposes
   function createPage(route?: Route): Page {
-    const currentRoute = route();
-
     // If we are already on a page we dispose of it
-    if (currentRoute) {
-      currentRoute.page.dispose();
+    if (currentPage()) {
+      currentPage().page.dispose();
     }
 
     // There might not be a matching route, where we set a "not found" state
@@ -80,7 +78,8 @@ function createApp() {
       case "item": {
         return {
           name: "items",
-          // Notice that routing does not need to be nested into your app. It is translating url params/queries into state
+          // Notice that routing does not need to be nested into your
+          // app. It is translating url params/queries into state
           page: createItems(route.params.id),
         };
       }
@@ -92,12 +91,12 @@ const app = createApp();
 
 export const useApp = () => app;
 export const useMain = () => {
-  if (app.route.name === "main") return app.route.page;
+  if (app.currentPage.name === "main") return app.currentPage.page;
 
   throw new Error("The application is not on the MAIN page");
 };
 export const useMain = () => {
-  if (app.route.name === "items") return app.route.page;
+  if (app.currentPage.name === "items") return app.currentPage.page;
 
   throw new Error("The application is not on the ITEMS page");
 };
@@ -118,15 +117,15 @@ import { useApp, useMain, useItems } from "./app";
 const App = observe(() => {
   const app = useApp();
 
-  if (app.page.name === "notFound") {
+  if (app.currentPage.name === "notFound") {
     return <h4>Not Found</h4>;
   }
 
-  if (app.page.name === "main") {
+  if (app.currentPage.name === "main") {
     return <Main />;
   }
 
-  if (app.page.name === "items" || app.page.name === "item") {
+  if (app.currentPage.name === "items" || app.currentPage.name === "item") {
     return <Items />;
   }
 });

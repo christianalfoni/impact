@@ -44,18 +44,6 @@ code: |
 
     let interval
 
-    function start() {
-      interval = setInterval(() => {
-        tick(current => current + 1)
-      }, 500)
-      isTicking(true)
-    }
-
-    function stop() {
-      clearInterval(interval)
-      isTicking(false)
-    }
-    
     return {
       get tick() {
         return tick()
@@ -71,11 +59,23 @@ code: |
         }
       }
     }
+    
+    function start() {
+      interval = setInterval(() => {
+        tick(current => current + 1)
+      }, 500)
+      isTicking(true)
+    }
+
+    function stop() {
+      clearInterval(interval)
+      isTicking(false)
+    }
   }
   
   const app = createApp()
 
-  const App = observe(() => (
+  export default observe(() => (
     <div>
       <h4>Tick count: {app.tick}</h4>
       <button onClick={app.toggle}>

@@ -36,8 +36,8 @@ code: |
   // You observe and memoize so that when the App reconciles
   // the component does not need to reconcile, but if the
   // item changes it will reconcile
-  const Item = observe(
-    memo(({ id }) => {
+  const Item = memo(
+    observe(({ id }) => {
       // You consume the specific item directly from the app
       const item = app.getItemById(id)
 
