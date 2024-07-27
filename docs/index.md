@@ -44,18 +44,6 @@ code: |
 
     let interval
 
-    function start() {
-      interval = setInterval(() => {
-        tick(current => current + 1)
-      }, 500)
-      isTicking(true)
-    }
-
-    function stop() {
-      clearInterval(interval)
-      isTicking(false)
-    }
-    
     return {
       get tick() {
         return tick()
@@ -70,6 +58,18 @@ code: |
           start()
         }
       }
+    }
+    
+    function start() {
+      interval = setInterval(() => {
+        tick(current => current + 1)
+      }, 500)
+      isTicking(true)
+    }
+
+    function stop() {
+      clearInterval(interval)
+      isTicking(false)
     }
   }
   

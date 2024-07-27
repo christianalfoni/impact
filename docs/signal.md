@@ -4,19 +4,25 @@ outline: deep
 
 # signal
 
-Reactive state. The value is considered immutable and needs to be replaced. If replaced with the same value, the signal will not trigger.
+Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value. This callback is executed by [Immer](https://immerjs.github.io/immer/) and allows you to use the normal JavaScript mutation API for complex objects.
 
 ```ts
-import { signal } from 'impact-react'
+import { signal } from "impact-react";
 
-function MyStore() {
-  const count = signal(0)
+function createApp() {
+  const count = signal(0);
 
   return {
-    get counter() {
-      return count.value
-    }
-  }
+    get count() {
+      return count();
+    },
+    increase() {
+      count((current) => current + 1);
+    },
+    setCount(newCount) {
+      count(newCount);
+    },
+  };
 }
 ```
 
@@ -25,45 +31,41 @@ function MyStore() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, useStore } from 'impact-react'
+import { signal, observe } from "impact-react";
 
-function MyStore() {
-  const asyncValue = signal(createSomePromise())
+function createApp() {
+  const asyncValue = signal(createSomePromise());
 
   return {
     get asyncValue() {
-      return asyncValue.value
-    }
-  }
+      return asyncValue();
+    },
+  };
 }
 
-function App() {
-  using myStore = useStore(MyStore)
-  const { asyncValue } = myStore
+const app = createApp();
 
-  if (asyncValue.status === 'pending') {
-    return 'Loading...'
+const App = observe(() => {
+  if (app.asyncValue.status === "pending") {
+    return "Loading...";
   }
 
-  if (asyncValue.status === 'rejected') {
-    return 'Ops, ' + asyncValue.reason
+  if (app.asyncValue.status === "rejected") {
+    return "Ops, " + app.asyncValue.reason;
   }
 
-  return 'Yeah, ' + asyncValue.value
-}
+  return "Yeah, " + app.asyncValue.value;
+});
 ```
 
 Or you could have consumed it with the `use` hook, in combination with a suspense and error boundary.
 
 ```tsx
-function App() {
-  using myStore = useStore(MyStore)
-  const { asyncValue } = myStore
+const App = observe(() => {
+  const value = use(app.asyncValue);
 
-  const value = use(asyncValue)
-
-  return 'Yeah, ' + value
-}
+  return "Yeah, " + value;
+});
 ```
 
 ::: tip

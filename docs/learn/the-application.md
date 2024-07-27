@@ -43,7 +43,5 @@ You might ask why something like [Mobx]() is not good enough. Mobx is great, but
 - It encourages class based paradigm which is a different paradigm from React
 - By default Mobx forces you to create action wrappers to change observables, which is especially inconvient with async functions
 - It exposes all observables as a proxy which is not ideal to debug and can cause issues with 3rd parties
-- The API surface of Mobx is large
-- It has a larger payload
 
 :::

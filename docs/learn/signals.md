@@ -70,3 +70,13 @@ list((current) => current.push("foo"));
 ```
 
 :::
+
+::: info
+
+The API of a signal is inspired by [Solid JS](https://www.solidjs.com/). It was chosen for the following reasons:
+
+- Using a `.get/.set/.update` imperative API does not match the paradigm of functional React
+- Using a `.value` getter/setter fits the paradigm, but bloats the code with a lot of `.value` references, making it harder to read what is being accessed and changed
+- The function API just adds a couple of parenthesis and keeps the naming of the signal clear and concise in the code. It also naturally enables the use of a callback to update the value
+
+:::

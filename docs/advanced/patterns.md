@@ -103,7 +103,7 @@ function createApp() {
 
 ## Private functions
 
-JavaScript has a feature called [function hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting), but it is not common knowledge that you can define functions after the return statemenet of a function.
+JavaScript has a feature called [function hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting), but it is not common knowledge that you can define functions after the return statement of a function.
 
 ```ts
 import { signal } from "impact-react";

@@ -5,15 +5,18 @@ code: |
   import { observe, signal, use } from 'impact-react'
 
   function createApp() {
-    const fetchData = () => new Promise((resolve) =>
-      setTimeout(() => resolve('DATA'), 2000)
-    )
     const data = signal(fetchData())
 
     return {
       get data() {
         return data()
       }
+    }
+    
+    function fetchData() => {
+      return new Promise((resolve) =>
+        setTimeout(() => resolve('DATA'), 2000)
+      )
     }
   }
 

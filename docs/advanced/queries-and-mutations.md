@@ -128,9 +128,10 @@ function createPost(initialData) {
 We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
 
 ```tsx
+import { observe } from "impact-react";
 import { usePosts } from "./app";
 
-function Post({ id }) {
+const Post = observe(({ id }) => {
   const posts = usePosts();
   const post = use(posts.fetchPost(id));
   const [newTitle, setNewTitle] = useState(post.title);
@@ -153,5 +154,5 @@ function Post({ id }) {
         : null}
     </div>
   );
-}
+});
 ```
