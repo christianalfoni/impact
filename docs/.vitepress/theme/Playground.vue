@@ -51,7 +51,7 @@ async function loadSandpack(iframe: HTMLIFrameElement, code: string) {
         dependencies: {
           react: "18.2.0",
           "react-dom": "18.2.0",
-          "impact-react": "1.6.0",
+          "impact-react": "1.7.0",
         },
       }),
     },
@@ -161,7 +161,7 @@ export default defineComponent({
       loadSandpack(iframe.value, frontmatter.code).then(
         (updateCodeCallback) => {
           updateCode = updateCodeCallback;
-        }
+        },
       );
       observer = new MutationObserver(setDark);
       observer.observe(document.documentElement, {
@@ -236,7 +236,11 @@ export default defineComponent({
 });
 </script>
 <template>
-  <div :class="$frontmatter.horizontalPlayground ? 'playground horizontal' : 'playground'">
+  <div
+    :class="
+      $frontmatter.horizontalPlayground ? 'playground horizontal' : 'playground'
+    "
+  >
     <div
       class="codemirror-wrapper"
       autocorrect="off"
@@ -325,7 +329,6 @@ export default defineComponent({
     }
   }
 }
-
 
 .iframe {
   border: 1px solid var(--vp-c-divider);
