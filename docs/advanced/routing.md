@@ -103,7 +103,7 @@ export const useMain = () => {
 };
 ```
 
-Implementing a state first router is a lower abstraction than for example [react-router](), but it gives you more flexibility with less API surface. In the example above you can choose to:
+Implementing a state first router is a lower abstraction than for example [react-router](https://reactrouter.com/en/main), but it gives you more flexibility with less API surface. In the example above you can choose to:
 
 - Expose your own stricter and typed navigation interface to React
 - Cache pages

@@ -103,7 +103,7 @@ function createApp() {
 
 ## Private functions
 
-JavaScript has a feature called [function hoisting](), but it is not common knowledge that you can define functions after the return statemenet of a function.
+JavaScript has a feature called [function hoisting](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting), but it is not common knowledge that you can define functions after the return statemenet of a function.
 
 ```ts
 import { signal } from "impact-react";
@@ -141,7 +141,7 @@ function createApp() {
 }
 ```
 
-Just like props passing in React, this can be somewhat tedious. With classes you can take advantage of [dependency injection]() and there are similar concepts for functions, but it is discouraged. If you have multiple dependencies, you can rather combine them in a `utils` object etc. and pass that around.
+Just like props passing in React, this can be somewhat tedious. With classes you can take advantage of [dependency injection](https://dev.to/ruben_alapont/the-power-of-dependency-injection-in-typescript-3m5e) and there are similar concepts for functions, but it is discouraged. If you have multiple dependencies, you can rather combine them in a `utils` object etc. and pass that around.
 
 ## Lazy loading
 
