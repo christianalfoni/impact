@@ -4,7 +4,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Impact",
   head: [["link", { rel: "icon", href: "/favicon.ico" }]],
-  description: "Reactive state management for React",
+  description: "Complex single page applications with React",
   cleanUrls: true,
   themeConfig: {
     footer: {
@@ -36,18 +36,24 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "Reactive context", link: "/learn/reactive-context" },
+          { text: "The Application", link: "/learn/the-application" },
           { text: "Signals", link: "/learn/signals" },
           { text: "Derived", link: "/learn/derived" },
-          { text: "Stores", link: "/learn/stores" },
           { text: "Effects", link: "/learn/effects" },
-          { text: "Scoping", link: "/learn/scoping" },
-          { text: "Data Fetching", link: "/learn/data-fetching" },
+          { text: "Promises", link: "/learn/promises" },
         ],
       },
       {
         text: "Advanced",
         items: [
+          {
+            text: "Patterns",
+            link: "/advanced/patterns",
+          },
+          {
+            text: "Routing",
+            link: "/advanced/routing",
+          },
           {
             text: "Lists",
             link: "/advanced/lists",
@@ -62,14 +68,6 @@ export default defineConfig({
         text: "API Reference",
         items: [
           {
-            text: "cleanup",
-            link: "/cleanup",
-          },
-          {
-            text: "createStoreProvider",
-            link: "/createStoreProvider",
-          },
-          {
             text: "derived",
             link: "/derived",
           },
@@ -78,16 +76,12 @@ export default defineConfig({
             link: "/effect",
           },
           {
+            text: "observe",
+            link: "/observe",
+          },
+          {
             text: "signal",
             link: "/signal",
-          },
-          {
-            text: "store",
-            link: "/store",
-          },
-          {
-            text: "useStore",
-            link: "/useStore",
           },
         ],
       },

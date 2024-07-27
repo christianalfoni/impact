@@ -2,9 +2,9 @@
 codeCaption: Managing promises
 code: |
   import { Suspense } from 'react'
-  import { useStore, signal, cleanup, createStoreProvider, use } from 'impact-react'
+  import { observe, signal, use } from 'impact-react'
 
-  function DataStore() {
+  function createApp() {
     const fetchData = () => new Promise((resolve) =>
       setTimeout(() => resolve('DATA'), 2000)
     )
@@ -12,54 +12,48 @@ code: |
 
     return {
       get data() {
-        return data.value
+        return data()
       }
     }
   }
 
-  const DataStoreProvider = createStoreProvider(DataStore)
+  const app = createApp()
 
-  function Data() {
-    using dataStore = useStore(DataStore)
-    
-    const { data } = dataStore
-
-    if (data.status === 'pending') {
+  const Data = observe(() => {
+    if (app.data.status === 'pending') {
       return <h4>Loading...</h4>
     }
 
-    if (data.status === 'rejected') {
-      return <h4>Error: ${data.reason}</h4>
+    if (app.data.status === 'rejected') {
+      return <h4>Error: ${app.data.reason}</h4>
     }
 
     return (
       <h1>
-        {data.value}
+        {app.data.value}
       </h1>
     )
-  }
+  })
 
-  function SuspendedData() {
-    using dataStore = useStore(DataStore)
-    
-    const data = use(dataStore.data)
+  const SuspendedData = observe(() => {
+    const data = use(app.data)
 
     return <h1>{data}</h1>
-  }
+  })
 
   export default function App() {
     return (
-      <DataStoreProvider>
+      <>
         <Data />
         <Suspense fallback={<h4>Suspending...</h4>}>
           <SuspendedData />
         </Suspense>
-      </DataStoreProvider>
+      </>
     )
   }
 ---
 
-# Data Fetching
+# Promises
 
 <ClientOnly>
   <Playground />

@@ -1,45 +1,43 @@
 ---
 codeCaption: Using effects
 code: |
-  import { useStore, store, effect } from 'impact-react'
+  import { signal, effect, observe } from 'impact-react'
 
-  function CounterStore() {
-    const counter = store({
-      count: 0,
-      shouldAlert: false,
-      increase() {
-        counter.count++
-      },
-      toggleShouldAlert() {
-        counter.shouldAlert = !counter.shouldAlert
-      }
-    })
+  function createApp() {
+    const count = signal(0)
+    const shouldAlert = signal(false)
 
     effect(() => {
-      if (counter.count === 5 && counter.shouldAlert) {
+      if (count() === 5 && shouldAlert()) {
         alert("You hit 5, yeah")
       }
     })
 
-    return counter
+    return {
+      get count() {
+        return count()
+      },
+      increase() {
+        count(current => current + 1)
+      },
+      toggleShouldAlert() {
+        shouldAlert(current => !current)
+      }
+    }
   }
 
-  export default function App() {
-    using counterStore = useStore(CounterStore)
+  const app = createApp()
 
-    const { count, increase, shouldAlert, toggleShouldAlert } = counterStore
-
-    return (
-      <>
-        <button onClick={increase}>
-          Increase ({count})
-        </button>
-        <button onClick={toggleShouldAlert}>
-          Will {shouldAlert ? '' : 'not '}alert
-        </button>
-      </>
-    )
-  }
+  const App = observe(() => (
+    <>
+      <button onClick={app.increase}>
+        Increase ({app.count})
+      </button>
+      <button onClick={app.toggleShouldAlert}>
+        Will {app.shouldAlert ? '' : 'not '}alert
+      </button>
+    </>
+  ))
 ---
 
 # Effects
@@ -48,45 +46,49 @@ code: |
  <Playground />
 </ClientOnly>
 
-**Impact** effects allow you to run logic related to signal changes observed in the effect. You can safely change signal values from effects and always get the current value of any signal you access.
+**Impact** effects allow you to run logic related to signal changes observed in the effect. You can safely change signal values from effects.
 
-Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it; subscriptions can be defined with the store definition itself. Actually, the use of effects is discouraged because they create indirection in your code. For example:
+Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it; subscriptions can be defined with the rest of your signals. Actually, the use of effects is discouraged because they create indirection in your code. For example:
 
 ```ts
-function CounterStore() {
-  const counter = store({
-    count: 0,
-    increase() {
-      counter.count++;
-    },
-  });
+function createApp() {
+  const count = signal(0);
 
   effect(() => {
-    if (counter.count === 10) {
+    if (count() === 10) {
       alert("you gotz to 10");
     }
   });
 
-  return counter;
+  return {
+    get count() {
+      return count();
+    },
+    increase() {
+      count((current) => current + 1);
+    },
+  };
 }
 ```
 
 Instead, you can write the same logic as:
 
 ```ts
-function CounterStore() {
-  const counter = store({
-    count: 0,
-    increase() {
-      counter.count++;
+function createApp() {
+  const count = signal(0);
 
-      if (counter.count === 10) {
+  return {
+    get count() {
+      return count();
+    },
+    increase() {
+      count((current) => current + 1);
+
+      if (count() === 10) {
         alert("you gotz to 10");
       }
     },
-  });
-
-  return counter;
+  };
 }
 ```
 

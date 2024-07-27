@@ -1,62 +1,45 @@
-import React, { Suspense, memo, use } from "react";
+import React, { Suspense, memo } from "react";
 import { createRoot } from "react-dom/client";
 
-import { useStore, signal, store, readonlyStore } from "impact-react";
+import { derived, observe, signal, use } from "impact-react";
 
-type CounterStore = {
-  count: number;
-  double: number;
-  time: Promise<string>;
-  increase: () => void;}
+function createApp() {
+  const count = signal(0);
+  const double = derived(() => count() * 2);
+  const time = signal(
+    new Promise<string>((resolve) => setTimeout(() => resolve("foo"), 1000)),
+  );
 
-function CounterStore() {
-  const counter: CounterStore = store({
-    count: 0,
+  return {
+    get count() {
+      return count();
+    },
     get double() {
-      return counter.count * 2;
+      return double();
     },
-    time: new Promise<string>((resolve) =>
-      setTimeout(() => resolve("foo"), 5000),
-    ),
+    get time() {
+      return time();
+    },
     increase() {
-      counter.count++;
+      count((current) => current + 1);
     },
-  });
-
-  return readonlyStore(counter);
+  };
 }
 
-function OtherStore() {
-  return {};
-}
+const app = createApp();
 
-function Test() {
-  using counterStore = useStore(CounterStore);
+const Test = observe(() => <h1>Hi {use(app.time)}</h1>);
 
-  
-
-  const time = use(counterStore.time);
-
-  return <h1>Hi {time}</h1>;
-}
-
-const Test2 = memo(function Test2() {
-  using counterStore = useStore(CounterStore);
-
-  return <h1>Hi {counterStore.double}</h1>;
-});
+const Test2 = memo(observe(() => <h1>Hi {app.double}</h1>));
 
 export default function App() {
-  using counterStore = useStore(CounterStore);
-
-  console.log("RENDERING");
   return (
     <div>
       <Suspense fallback={<div>Loading...</div>}>
         <Test />
         <Test2 />
       </Suspense>
-      <button onClick={counterStore.increase}>Increase</button>;
+      <button onClick={app.increase}>Increase</button>;
     </div>
   );
 }

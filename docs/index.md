@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Impact"
   tagline: "/** \n
-  * Reactive state management for React \n
+  * Complex single page applications with React \n
 */
 \n\n
 By CodeSandbox team
@@ -31,55 +31,58 @@ features:
     details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
-  - title: Globally or scoped
-    details: Expose state management globally, or scope it to component trees to take advantage of modern React data fetching patterns.
-codeCaption: Example store
+  - title: Rigid, but loose
+    details: Rigid and coupled application with loose and decoupled components.
+codeCaption: Example
 horizontalPlayground: true
 code: |
-  import { useStore, store } from 'impact-react'
+  import { signal, observe } from 'impact-react'
 
-  function CounterStore() {
-    const counter = store({
-      tick: 0,
-      isTicking: false,
-      toggle() {
-        if (counter.isTicking) {
-          stop()
-        } else {
-          start()
-        }
-      }
-    })
+  function createApp() {
+    const tick = signal(0)
+    const isTicking = signal(false)
 
     let interval
 
     function start() {
       interval = setInterval(() => {
-        counter.tick++
+        tick(current => current + 1)
       }, 500)
-      counter.isTicking = true
+      isTicking(true)
     }
 
     function stop() {
       clearInterval(interval)
-      counter.isTicking = false
+      isTicking(false)
     }
     
-    return counter
+    return {
+      get tick() {
+        return tick()
+      },
+      get isTicking() {
+        return isTicking()
+      },
+      toggle() {
+        if (isTicking()) {
+          stop()
+        } else {
+          start()
+        }
+      }
+    }
   }
+  
+  const app = createApp()
 
-  export default function App() {
-    using counter = useStore(CounterStore)
-
-    const { tick, isTicking, toggle } = counter
-
-    return (
-      <div>
-        <h4>Tick count: {tick}</h4>
-        <button onClick={toggle}>{isTicking ? "Stop" : "Start"}</button>
-      </div>
-    )
-  }
+  const App = observe(() => (
+    <div>
+      <h4>Tick count: {app.tick}</h4>
+      <button onClick={app.toggle}>
+        {app.isTicking ? "Stop" : "Start"}
+      </button>
+    </div>
+  ))
 ---
 
 <HomeContent>
@@ -100,23 +103,15 @@ code: |
 
 ## Install impact-react
 
-```sh [npm]
+```sh
 npm install impact-react
 ```
-
-::: warning
-
-**Impact** requires [Explicit Resource Management](https://github.com/tc39/proposal-explicit-resource-management) which is currently a **Stage 3** proposal. It works out of the box with latest [TypeScript](https://www.typescriptlang.org/), [SWC](https://swc.rs/) and [ESBuild](https://esbuild.github.io/). Implementations in browsers is on its way. **Babel** currently requires a [Plugin](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management)
-
-:::
 
 ## Install debugger
 
 The Debugger will show you what signals and effects are being executed. With sourcemaps you'll see the exact point in the file where signals are changed.
 
-By importing the debugger package it will enable warnings when observation is not enabled using the `using` keyword.
-
-```sh [npm]
+```sh
 npm install impact-react-debugger
 ```
 
@@ -127,7 +122,9 @@ if (import.meta.env.DEV) {
 ```
 
 ::: tip
+
 Hit SHIFT twice to toggle the debugger
+
 :::
 
 </HomeContent>

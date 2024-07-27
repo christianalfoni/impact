@@ -1,313 +1,9 @@
-import React, {
-  Component,
-  ReactNode,
-  createContext,
-  useContext,
-  createElement,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import { FunctionComponent, useRef, useSyncExternalStore } from "react";
+import { produce } from "immer";
 
 /**
  * ### STORE ###
  */
-
-const currentStoreContainer: StoreContainer[] = [];
-const registeredProvidedStores = new Set<Store<any, any>>();
-const isDevelopment = () => typeof signalDebugHooks.onSetValue === "function";
-
-export function getActiveStoreContainer() {
-  return currentStoreContainer[currentStoreContainer.length - 1];
-}
-
-export type Store<
-  T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
-> = (props: A) => T;
-
-export type StoreState =
-  | {
-      isResolved: true;
-      value: any;
-      ref: Store<any, any>;
-    }
-  | {
-      isResolved: false;
-      constr: () => any;
-      ref: Store<any, any>;
-    };
-
-class StoreContainer {
-  // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
-  // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
-  private _resolvementError?: Error;
-  private _state: StoreState;
-  private _disposers = new Set<() => void>();
-  private _isDisposed = false;
-
-  get isDisposed() {
-    return this._isDisposed;
-  }
-
-  constructor(
-    ref: Store<any, any>,
-    constr: () => any,
-    private _parent: StoreContainer | null
-  ) {
-    this._state = {
-      isResolved: false,
-      ref,
-      constr,
-    };
-  }
-  registerCleanup(cleaner: () => void) {
-    this._disposers.add(cleaner);
-  }
-  resolve<
-    T extends Record<string, unknown>,
-    A extends Record<string, unknown> | void,
-  >(store: Store<T, A>): T {
-    if (this._resolvementError) {
-      throw this._resolvementError;
-    }
-
-    if (this._state.isResolved && store === this._state.ref) {
-      return this._state.value;
-    }
-
-    if (!this._state.isResolved && this._state.ref === store) {
-      try {
-        currentStoreContainer.push(this);
-        this._state = {
-          isResolved: true,
-          value: this._state.constr(),
-          ref: store,
-        };
-        currentStoreContainer.pop();
-
-        return this._state.value;
-      } catch (e) {
-        this._resolvementError =
-          new Error(`Could not initialize store "${store?.name}":
-${String(e)}`);
-        throw this._resolvementError;
-      }
-    }
-
-    if (this._parent) {
-      return this._parent.resolve(store);
-    }
-
-    let resolvedStore = globalStores.get(store);
-
-    if (!resolvedStore && registeredProvidedStores.has(store)) {
-      throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`
-      );
-    }
-
-    if (!resolvedStore) {
-      // @ts-ignore
-      resolvedStore = store();
-      globalStores.set(store, resolvedStore);
-    }
-
-    return resolvedStore;
-  }
-  clear() {
-    this._disposers.forEach((cleaner) => {
-      cleaner();
-    });
-  }
-  dispose() {
-    this.clear();
-    this._isDisposed = true;
-  }
-}
-
-const storeContainerContext = createContext<StoreContainer | null>(null);
-
-export class StoreContainerProvider<
-  T extends Record<string, unknown> | void,
-> extends Component<{
-  store: Store<any, any>;
-  props: T;
-  children: React.ReactNode;
-}> {
-  static contextType = storeContainerContext;
-  container!: StoreContainer;
-  componentWillUnmount(): void {
-    this.container.dispose();
-  }
-  render(): ReactNode {
-    // React can keep the component reference and mount/unmount it multiple times. Because of that
-    // we need to ensure to always have a hooks container instantiated when rendering, as it could
-    // have been disposed due to an unmount
-    if (!this.container || this.container.isDisposed) {
-      this.container = new StoreContainer(
-        this.props.store,
-        () => this.props.store(this.props.props),
-        // eslint-disable-next-line
-        // @ts-ignore
-        this.context
-      );
-    }
-
-    return createElement(
-      storeContainerContext.Provider,
-      {
-        value: this.container,
-      },
-      this.props.children
-    );
-  }
-}
-
-export function cleanup(cleaner: () => void) {
-  const activeStoreContainer = getActiveStoreContainer();
-
-  // We do not want to clean up if we are not in a context, which
-  // means we are just globally running the store
-  if (!activeStoreContainer) {
-    return;
-  }
-
-  activeStoreContainer.registerCleanup(cleaner);
-}
-
-const globalStores = new Map<Store<any, any>, any>();
-
-let activeComponentObserverContext: ObserverContext | null = null;
-
-export function useStore<
-  T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
->(store: Store<T, A>): T & { [Symbol.dispose](): void } {
-  const activeStoreContainer = getActiveStoreContainer();
-  let resolvedStore: T;
-
-  if (!activeStoreContainer) {
-    const storeContainer = useContext(storeContainerContext);
-
-    if (storeContainer) {
-      resolvedStore = storeContainer.resolve<T, A>(store);
-    } else {
-      resolvedStore = globalStores.get(store);
-
-      if (!resolvedStore && registeredProvidedStores.has(store)) {
-        throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`
-        );
-      }
-
-      if (!resolvedStore) {
-        // @ts-ignore
-        resolvedStore = store();
-        globalStores.set(store, resolvedStore);
-      }
-    }
-
-    if (activeComponentObserverContext) {
-      // @ts-ignore
-      resolvedStore[Symbol.dispose] = () => {
-        // @ts-ignore
-        delete resolvedStore[Symbol.dispose];
-      };
-
-      // @ts-ignore
-      return resolvedStore;
-    }
-
-    const observerContext = (activeComponentObserverContext = observer());
-
-    let popObserverContextStack: string | undefined;
-
-    if (isDevelopment()) {
-      popObserverContextStack = new Error().stack;
-
-      Promise.resolve().then(() => {
-        if (popObserverContextStack) {
-          throw new Error(`You did not use the "using" keyword, observability will not work:
-
-${popObserverContextStack}`);
-        }
-      });
-    }
-
-    // @ts-ignore
-    resolvedStore[Symbol.dispose] = () => {
-      popObserverContextStack = undefined;
-      activeComponentObserverContext = null;
-      // @ts-ignore
-      delete resolvedStore[Symbol.dispose];
-      observerContext.pop();
-    };
-
-    // @ts-ignore
-    return resolvedStore;
-  }
-
-  resolvedStore = activeStoreContainer.resolve(store);
-
-  // @ts-ignore
-  resolvedStore[Symbol.dispose] = () => {
-    // @ts-ignore
-    delete resolvedStore[Symbol.dispose];
-    console.warn('There is no need to use "using" in stores');
-  };
-
-  // @ts-ignore
-  return resolvedStore;
-}
-
-export function createStoreProvider<
-  T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
->(store: Store<T, A>) {
-  registeredProvidedStores.add(store);
-  const StoreProvider = (props: A & { children: React.ReactNode }) => {
-    // To avoid TSLIB
-    const extendedProps = Object.assign({}, props);
-    const children = extendedProps.children;
-
-    delete extendedProps.children;
-
-    return createElement(
-      StoreContainerProvider,
-      // @ts-ignore
-      {
-        props: extendedProps,
-        store,
-      },
-      children
-    );
-  };
-
-  StoreProvider.displayName = store.name
-    ? `${store.name}Provider`
-    : "AnonymousStoreProvider";
-
-  StoreProvider.provide = (component: React.FC<A>) => {
-    return (props: A) => {
-      return createElement(
-        StoreProvider,
-        // @ts-ignore
-        props,
-        // @ts-ignore
-        createElement(component, props)
-      );
-    };
-  };
-
-  return StoreProvider;
-}
-
-/**
- * ### SIGNAL ###
- */
-
-// @ts-ignore
-Symbol.dispose ??= Symbol("Symbol.dispose");
 
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
@@ -319,7 +15,7 @@ export const signalDebugHooks: {
   onSetValue?: (
     signal: SignalTracker,
     value: unknown,
-    derived?: boolean
+    derived?: boolean,
   ) => void;
   onEffectRun?: (effect: () => void) => void;
 } = {};
@@ -363,7 +59,7 @@ export class ObserverContext {
      * tracked to enable React to see a stale subscription and render again
      */
     this.snapshot = Math.max(
-      ...Array.from(this._getters).map((signal) => signal.snapshot)
+      ...Array.from(this._getters).map((signal) => signal.snapshot),
     );
   }
   registerSetter(signal: SignalTracker) {
@@ -441,73 +137,10 @@ export class SignalTracker {
 }
 
 export type Signal<T> = {
-  get value(): T extends Promise<infer V> ? ObservablePromise<V> : T;
-  set value(value: T);
+  (): T extends Promise<infer V> ? ObservablePromise<V> : T;
+  (value: T): T;
+  (update: (current: T) => T | void): T;
 };
-
-// We resolving contexts with an active ObserverContext, where we do not
-// want to track any signals accessed
-function isResolvingStoreFromComponent(context: ObserverContext) {
-  return context.type === "component" && getActiveStoreContainer();
-}
-
-export function readonlyStore<T extends Record<string, unknown>>(store: T) {
-  const readonlyWrapper = {} as Readonly<T>;
-  const propertyNames = Object.getOwnPropertyNames(store);
-
-  propertyNames.forEach((key) => {
-    if (key === "readonly") {
-      return;
-    }
-
-    if (typeof store[key] === "function") {
-      // @ts-ignore
-      readonlyWrapper[key] = store[key].bind(store);
-    } else {
-      Object.defineProperty(readonlyWrapper, key, {
-        get() {
-          return store[key];
-        },
-      });
-    }
-  });
-
-  return readonlyWrapper;
-}
-
-export function store<T extends Record<string, unknown>>(state: T): T {
-  const wrappedState = {} as T;
-
-  Object.keys(state).forEach((key) => {
-    const descriptor = Object.getOwnPropertyDescriptor(state, key);
-
-    if (descriptor?.get) {
-      const derivedSignal = derived(descriptor.get.bind(wrappedState));
-
-      Object.defineProperty(wrappedState, key, {
-        get() {
-          return derivedSignal.value;
-        },
-      });
-    } else if (typeof state[key] === "function") {
-      // @ts-ignore
-      wrappedState[key] = state[key].bind(wrappedState);
-    } else {
-      const stateSignal = signal(state[key]);
-
-      Object.defineProperty(wrappedState, key, {
-        get() {
-          return stateSignal.value;
-        },
-        set(value) {
-          stateSignal.value = value;
-        },
-      });
-    }
-  });
-
-  return wrappedState as T & { readonly(): T };
-}
 
 export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
@@ -533,7 +166,7 @@ export function signal<T>(initialValue: T) {
 
           value = createFulfilledPromise(
             Promise.resolve(resolvedValue),
-            resolvedValue
+            resolvedValue,
           );
 
           signal.notify();
@@ -552,16 +185,13 @@ export function signal<T>(initialValue: T) {
           signal.notify();
 
           return rejectedPromise;
-        })
+        }),
     );
   }
 
-  return {
-    get value() {
-      if (
-        ObserverContext.current &&
-        !isResolvingStoreFromComponent(ObserverContext.current)
-      ) {
+  return ((...args: any[]) => {
+    if (!args.length) {
+      if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(ObserverContext.current, signal);
@@ -569,54 +199,48 @@ export function signal<T>(initialValue: T) {
       }
 
       return value;
-    },
-    set value(newValue) {
-      if (value === newValue) {
-        if (
-          process.env.NODE_ENV === "development" &&
-          typeof newValue === "object" &&
-          newValue !== null
-        ) {
-          console.warn(
-            "You are setting the same object in a signal, which will not trigger observers. Did you mutate it?",
-            newValue
-          );
+    }
+
+    let newValue: any;
+
+    if (typeof args[0] === "function") {
+      newValue = produce(value, args[0]);
+    }
+
+    if (value === newValue) {
+      return;
+    }
+
+    if (newValue instanceof Promise) {
+      newValue = createPromise(newValue);
+    }
+
+    const prevValue = value;
+
+    value = newValue;
+
+    if (signalDebugHooks.onSetValue) {
+      signalDebugHooks.onSetValue(signal, value);
+      ObserverContext.current?.registerSetter(signal);
+    }
+
+    if (value === prevValue) {
+      return;
+    }
+
+    if (value instanceof Promise) {
+      // We might set a Promise.resolve, in which case we do not want to notify as the micro task has
+      // already done it in "createPromise". So we run our own micro task to check if the promise
+      // is still pending, where we do want to notify
+      Promise.resolve().then(() => {
+        if (value instanceof Promise && value.status === "pending") {
+          signal.notify();
         }
-
-        return;
-      }
-
-      if (newValue instanceof Promise) {
-        newValue = createPromise(newValue);
-      }
-
-      const prevValue = value;
-
-      value = newValue;
-
-      if (signalDebugHooks.onSetValue) {
-        signalDebugHooks.onSetValue(signal, value);
-        ObserverContext.current?.registerSetter(signal);
-      }
-
-      if (value === prevValue) {
-        return;
-      }
-
-      if (value instanceof Promise) {
-        // We might set a Promise.resolve, in which case we do not want to notify as the micro task has
-        // already done it in "createPromise". So we run our own micro task to check if the promise
-        // is still pending, where we do want to notify
-        Promise.resolve().then(() => {
-          if (value instanceof Promise && value.status === "pending") {
-            signal.notify();
-          }
-        });
-      } else {
-        signal.notify();
-      }
-    },
-  } as Signal<T>;
+      });
+    } else {
+      signal.notify();
+    }
+  }) as Signal<T>;
 }
 
 type PendingPromise<T> = Promise<T> & {
@@ -646,7 +270,7 @@ function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
 
 function createFulfilledPromise<T>(
   promise: Promise<T>,
-  value: T
+  value: T,
 ): FulfilledPromise<T> {
   return Object.assign(promise, {
     status: "fulfilled" as const,
@@ -656,7 +280,7 @@ function createFulfilledPromise<T>(
 
 function createRejectedPromise<T>(
   promise: Promise<T>,
-  reason: unknown
+  reason: unknown,
 ): RejectedPromise<T> {
   return Object.assign(promise, {
     status: "rejected" as const,
@@ -682,42 +306,37 @@ export function derived<T>(cb: () => T) {
   let isDirty = true;
   const signal = new SignalTracker(() => value);
 
-  return {
-    get value() {
-      if (
-        ObserverContext.current &&
-        !isResolvingStoreFromComponent(ObserverContext.current)
-      ) {
-        ObserverContext.current.registerGetter(signal);
-        if (signalDebugHooks.onGetValue) {
-          signalDebugHooks.onGetValue(ObserverContext.current, signal);
-        }
+  return () => {
+    if (ObserverContext.current?.type === "component") {
+      ObserverContext.current.registerGetter(signal);
+      if (signalDebugHooks.onGetValue) {
+        signalDebugHooks.onGetValue(ObserverContext.current, signal);
       }
+    }
 
-      if (isDirty) {
-        disposer?.();
+    if (isDirty) {
+      disposer?.();
 
-        const context = new ObserverContext("derived");
+      const context = new ObserverContext("derived");
 
-        value = cb();
+      value = cb();
 
-        context.pop();
+      context.pop();
 
-        disposer = context.subscribe(() => {
-          isDirty = true;
+      disposer = context.subscribe(() => {
+        isDirty = true;
 
-          signal.notify();
-        });
+        signal.notify();
+      });
 
-        isDirty = false;
+      isDirty = false;
 
-        if (signalDebugHooks.onSetValue) {
-          signalDebugHooks.onSetValue(signal, value, true);
-        }
+      if (signalDebugHooks.onSetValue) {
+        signalDebugHooks.onSetValue(signal, value, true);
       }
+    }
 
-      return value;
-    },
+    return value;
   };
 }
 
@@ -742,27 +361,35 @@ export function effect(cb: () => void) {
 
   currentSubscriptionDisposer = updater();
 
-  return cleanup(currentSubscriptionDisposer);
+  return currentSubscriptionDisposer;
 }
 
-export function observer() {
-  const contextRef = useRef<ObserverContext>();
+export function observe<T>(
+  component: FunctionComponent<T>,
+): FunctionComponent<T> {
+  return (props: T) => {
+    const contextRef = useRef<ObserverContext>();
 
-  if (!contextRef.current) {
-    contextRef.current = new ObserverContext("component");
-  }
+    if (!contextRef.current) {
+      contextRef.current = new ObserverContext("component");
+    }
 
-  const context = contextRef.current;
+    const context = contextRef.current;
 
-  useSyncExternalStore(
-    // This is only a notifier, it does not cause a render
-    (update) => context.subscribe(update),
-    // This value needs to change for a render to happen. It is also
-    // used to detect a stale subscription. If snapshot changed between
-    // last time and the subscription it will do a new render
-    () => context.snapshot,
-    () => context.snapshot
-  );
+    useSyncExternalStore(
+      // This is only a notifier, it does not cause a render
+      (update) => context.subscribe(update),
+      // This value needs to change for a render to happen. It is also
+      // used to detect a stale subscription. If snapshot changed between
+      // last time and the subscription it will do a new render
+      () => context.snapshot,
+      () => context.snapshot,
+    );
 
-  return context;
+    try {
+      return component(props);
+    } finally {
+      context.pop();
+    }
+  };
 }
