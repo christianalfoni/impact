@@ -1,6 +1,6 @@
 # Routing
 
-The term "single page application" does not mean there is necessarily only a single page or view of the application. It just means that there is a single HTML file that bootstraps the application on the client. That means you will still need a client side router to handle page transitions, use URL queries to persist state etc.
+The term "single page application" does not mean there is necessarily only a single page or view of the application. It just means that there is a single HTML file that bootstraps the application on the client. You will still need a client side router to handle page transitions, use URL queries to persist state etc.
 
 There are many different client side routers and we will be using [typed-client-router](https://github.com/christianalfoni/typed-client-router) in this example.
 
@@ -80,6 +80,7 @@ function createApp() {
       case "item": {
         return {
           name: "items",
+          // Notice that routing does not need to be nested into your app. It is translating url params/queries into state
           page: createItems(route.params.id),
         };
       }
@@ -91,6 +92,7 @@ const app = createApp();
 
 export const useApp = () => app;
 export const useMain = () =>
+  // you might consider throwing an error here instead
   app.route.name === "main" ? app.route.page : null;
 export const useItems = () =>
   app.route.name === "items" ? app.route.page : null;
@@ -135,6 +137,8 @@ const Items = observe(() => {
 
   let itemChildren;
 
+  // When we create items with an ID we created the current
+  // item
   if (items.current) {
     itemChildren = <div>The item</div>;
   }

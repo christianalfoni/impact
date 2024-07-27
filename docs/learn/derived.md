@@ -18,14 +18,14 @@ code: |
       get enabled() {
         return enabled()
       },
+      get multipliedCount() {
+        return multipliedCount()
+      },
       increase() {
         count(current => current + 1)
       },
       enable() {
         enabled(true)
-      },
-      get multipliedCount() {
-        return multipliedCount()
       }
     }
   }
@@ -37,10 +37,10 @@ code: |
       Increase ({app.count})
     </button>  
   ))
-  
+
   const Enabler = observe(() => (
     <button onClick={app.enable}>
-      {app.enabled ? "Disable" : "Enable"}
+      {app.enabled ? "Enabled" : "Enable"}
     </button>
   ))
 

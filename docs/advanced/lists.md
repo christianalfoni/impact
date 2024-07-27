@@ -33,8 +33,9 @@ code: |
 
   const app = createApp([{ id: '123', title: "woop" }])
 
-  // You observe and memoize so that when the list changes the component
-  // does not need to reconcile, but if the item changes it will reconcile
+  // You observe and memoize so that when the App reconciles
+  // the component does not need to reconcile, but if the
+  // item changes it will reconcile
   const Item = observe(
     memo(({ id }) => {
       // You consume the specific item directly from the app
@@ -84,6 +85,8 @@ function createApp() {
       return list();
     },
     addToList(item) {
+      // Immer allows us to use the mutation API to create
+      // a new array
       list((current) => current.push(item));
     },
   };

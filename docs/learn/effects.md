@@ -25,7 +25,7 @@ code: |
       }
     }
   }
-  
+
   const app = createApp()
 
   const App = observe(() => (
@@ -46,13 +46,13 @@ code: |
  <Playground />
 </ClientOnly>
 
-**Impact** effects allow you to run logic related to signal changes observed in the effect. You can safely change signal values from effects and always get the current value of any signal you access.
+**Impact** effects allow you to run logic related to signal changes observed in the effect. You can safely change signal values from effects.
 
-Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it; subscriptions can be defined with the store definition itself. Actually, the use of effects is discouraged because they create indirection in your code. For example:
+Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it; subscriptions can be defined with the rest of your signals. Actually, the use of effects is discouraged because they create indirection in your code. For example:
 
 ```ts
 function createApp() {
-  const count = signal(0)
+  const count = signal(0);
 
   effect(() => {
     if (count() === 10) {
@@ -62,12 +62,12 @@ function createApp() {
 
   return {
     get count() {
-      return count()
+      return count();
     },
     increase() {
-      count(current => current + 1)
-    }
-  }
+      count((current) => current + 1);
+    },
+  };
 }
 ```
 
@@ -75,26 +75,20 @@ Instead, you can write the same logic as:
 
 ```ts
 function createApp() {
-  const count = signal(0)
-
-  effect(() => {
-    if (count() === 10) {
-      alert("you gotz to 10");
-    }
-  });
+  const count = signal(0);
 
   return {
     get count() {
-      return count()
+      return count();
     },
     increase() {
-      count(current => current + 1)
+      count((current) => current + 1);
 
       if (count() === 10) {
         alert("you gotz to 10");
       }
     },
-  }
+  };
 }
 ```
 

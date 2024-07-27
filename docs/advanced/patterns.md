@@ -2,7 +2,7 @@
 
 ## Constructing the application
 
-It is recommended to use functions to construct your application. You can use classes:
+It is recommended to use functions to construct your application. It is possible to use classes though:
 
 ```ts
 import { signal } from "impact-react";
@@ -37,7 +37,7 @@ function createApp() {
 }
 ```
 
-You are free to use classes instead of functions, but as you see already it is less verbose and it is a paradigm closer to component functions.
+You are free to use classes instead of functions, but as you see it is less verbose and it is a paradigm closer to component functions.
 
 To extend your application you simply define more `create` functions (or classes):
 
@@ -196,3 +196,30 @@ const Post = observe(({ id }) => {
 ```
 
 ## Context providers
+
+Even though it is perfectly fine to instantiate your application and consume it directly in components it can be a good idea to use a context provider. This allows you to lazily load component trees and not have a hard dependency to the application itself.
+
+```tsx
+export const context = createContext(null);
+
+export function AppProvider({ app, children }) {
+  return <context.Provider app={app}>{children}</context.Provider>;
+}
+
+export const useApp = () => useContext(context);
+```
+
+```tsx
+import { createApp } from "./app";
+import { AppProvider } from "./context";
+
+const app = createApp();
+
+export function App() {
+  return (
+    <AppProvider app={app}>
+      <TheRestOfTheApp />
+    </AppProvider>
+  );
+}
+```

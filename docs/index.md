@@ -103,7 +103,7 @@ code: |
 
 ## Install impact-react
 
-```sh [npm]
+```sh
 npm install impact-react
 ```
 
@@ -111,9 +111,7 @@ npm install impact-react
 
 The Debugger will show you what signals and effects are being executed. With sourcemaps you'll see the exact point in the file where signals are changed.
 
-By importing the debugger package it will enable warnings when observation is not enabled using the `using` keyword.
-
-```sh [npm]
+```sh
 npm install impact-react-debugger
 ```
 
@@ -124,7 +122,9 @@ if (import.meta.env.DEV) {
 ```
 
 ::: tip
+
 Hit SHIFT twice to toggle the debugger
+
 :::
 
 </HomeContent>
