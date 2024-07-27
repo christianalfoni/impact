@@ -91,11 +91,16 @@ function createApp() {
 const app = createApp();
 
 export const useApp = () => app;
-export const useMain = () =>
-  // you might consider throwing an error here instead
-  app.route.name === "main" ? app.route.page : null;
-export const useItems = () =>
-  app.route.name === "items" ? app.route.page : null;
+export const useMain = () => {
+  if (app.route.name === "main") return app.route.page;
+
+  throw new Error("The application is not on the MAIN page");
+};
+export const useMain = () => {
+  if (app.route.name === "items") return app.route.page;
+
+  throw new Error("The application is not on the ITEMS page");
+};
 ```
 
 Implementing a state first router is a lower abstraction than for example [react-router](), but it gives you more flexibility with less API surface. In the example above you can choose to:

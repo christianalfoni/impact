@@ -177,7 +177,7 @@ function createPosts() {
         post = posts[id] = createPost(id);
       }
 
-      return post();
+      return post;
     },
   };
 }

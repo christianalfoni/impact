@@ -7,8 +7,8 @@ code: |
     const count = signal(0)
     const enabled = signal(false)
     const multipliedCount = derived(() =>
-      enabled.value ?
-        count.value * 4 : count.value * 2
+      enabled() ?
+        count() * 4 : count() * 2
     ))
 
     return {
