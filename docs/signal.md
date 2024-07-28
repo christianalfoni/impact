@@ -4,7 +4,7 @@ outline: deep
 
 # signal
 
-Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value. This callback is executed by [Immer](https://immerjs.github.io/immer/) and allows you to use the normal JavaScript mutation API for complex objects.
+Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value. The callback is executed by [Immer](https://immerjs.github.io/immer/) and allows you to use the normal JavaScript mutation API for complex objects.
 
 ```ts
 import { signal } from "impact-react";
