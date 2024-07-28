@@ -13,7 +13,7 @@ code: |
       }
     }
     
-    function fetchData() => {
+    function fetchData() {
       return new Promise((resolve) =>
         setTimeout(() => resolve('DATA'), 2000)
       )
