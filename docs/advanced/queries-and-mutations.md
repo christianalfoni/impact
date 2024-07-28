@@ -114,10 +114,8 @@ function createPost(initialData) {
             title: newTitle,
           },
         }),
-      );
-
-      // Revert to the previous title on error
-      changingTitle().catch(() => {
+        // Revert to the previous title on error
+      ).catch(() => {
         title(oldTitle);
       });
     },

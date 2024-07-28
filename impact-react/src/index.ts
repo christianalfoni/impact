@@ -138,8 +138,10 @@ export class SignalTracker {
 
 export type Signal<T> = {
   (): T extends Promise<infer V> ? ObservablePromise<V> : T;
-  (value: T): T;
-  (update: (current: T) => T | void): T;
+  (value: T): T extends Promise<infer V> ? ObservablePromise<V> : T;
+  (
+    update: (current: T) => T | void,
+  ): T extends Promise<infer V> ? ObservablePromise<V> : T;
 };
 
 export function signal<T>(initialValue: T) {
@@ -208,24 +210,18 @@ export function signal<T>(initialValue: T) {
     }
 
     if (value === newValue) {
-      return;
+      return value;
     }
 
     if (newValue instanceof Promise) {
       newValue = createPromise(newValue);
     }
 
-    const prevValue = value;
-
     value = newValue;
 
     if (signalDebugHooks.onSetValue) {
       signalDebugHooks.onSetValue(signal, value);
       ObserverContext.current?.registerSetter(signal);
-    }
-
-    if (value === prevValue) {
-      return;
     }
 
     if (value instanceof Promise) {
@@ -240,6 +236,8 @@ export function signal<T>(initialValue: T) {
     } else {
       signal.notify();
     }
+
+    return value;
   }) as Signal<T>;
 }
 
