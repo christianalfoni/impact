@@ -9,7 +9,7 @@ code: |
     const multipliedCount = derived(() =>
       enabled() ?
         count() * 4 : count() * 2
-    ))
+    )
 
     return {
       get count() {

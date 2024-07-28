@@ -31,8 +31,8 @@ features:
     details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
-  - title: Rigid, but loose
-    details: Rigid and coupled application with loose and decoupled components.
+  - title: Untangle your state management
+    details: Build your application with Impact and derive a UI from it using React.
 codeCaption: Example
 horizontalPlayground: true
 code: |
