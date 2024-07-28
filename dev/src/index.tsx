@@ -1,7 +1,7 @@
 import React, { Suspense, memo } from "react";
 import { createRoot } from "react-dom/client";
 
-import { derived, observe, signal, use } from "impact-react";
+import { derived, observer, signal, use } from "impact-react";
 
 function createApp() {
   const count = signal(0);
@@ -21,16 +21,22 @@ function createApp() {
       return time();
     },
     increase() {
-      count(10);
+      count((current) => current + 1);
     },
   };
 }
 
 const app = createApp();
 
-const Test = observe(() => <h1>Hi {use(app.time)}</h1>);
+function Test() {
+  return <h1>Hi {use(app.time)}</h1>;
+}
 
-const Test2 = memo(observe(() => <h1>Hi {app.double}</h1>));
+const Test2 = memo(function Test2() {
+  using _ = observer();
+
+  return <h1>Hi {app.double}</h1>;
+});
 
 export default function App() {
   return (

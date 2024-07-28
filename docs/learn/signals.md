@@ -1,7 +1,7 @@
 ---
 codeCaption: Introducing signals
 code: |
-  import { signal, observe } from 'impact-react'
+  import { signal, observer } from 'impact-react'
 
   function createApp() {
     const count = signal(0)
@@ -25,13 +25,13 @@ code: |
 
   const app = createApp()
 
-  const Counter = observe(() => (
+  const Counter = observer(() => (
     <button onClick={app.increase}>
       Increase ({app.count})
     </button>
   ))
 
-  const Enabler = observe(() => (
+  const Enabler = observer(() => (
     <button onClick={app.enable}>
       {app.enabled ? "Enabled" : "Enable"}
     </button>
@@ -68,7 +68,9 @@ The callback of signals uses [Immer]() under the hood and allows you to use the 
 ```ts
 const list = signal([]);
 
-list((current) => current.push("foo"));
+list((current) => {
+  current.push("foo");
+});
 ```
 
 :::

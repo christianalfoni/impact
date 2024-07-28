@@ -2,7 +2,7 @@
 codeCaption: Working with lists
 code: |
   import { memo } from 'react'
-  import { signal, observe } from 'impact-react'
+  import { signal, observer } from 'impact-react'
 
   function createApp(initialItems) {
     // We create a dictionary to reference items
@@ -37,7 +37,7 @@ code: |
   // the component does not need to reconcile, but if the
   // item changes it will reconcile
   const Item = memo(
-    observe(({ id }) => {
+    observer(({ id }) => {
       // You consume the specific item directly from the app
       const item = app.getItemById(id)
 
@@ -49,7 +49,7 @@ code: |
     })
   )
 
-  const App = observe(() => (
+  const App = observer(() => (
     <ul>{app.listById.map((id) => <Item key={id} id={id} />)}</ul>
   ))
 ---
@@ -87,7 +87,9 @@ function createApp() {
     addToList(item) {
       // Immer allows us to use the mutation API to create
       // a new array
-      list((current) => current.push(item));
+      list((current) => {
+        current.push(item);
+      });
     },
   };
 }

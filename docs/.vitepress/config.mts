@@ -76,8 +76,8 @@ export default defineConfig({
             link: "/effect",
           },
           {
-            text: "observe",
-            link: "/observe",
+            text: "observer",
+            link: "/observer",
           },
           {
             text: "signal",

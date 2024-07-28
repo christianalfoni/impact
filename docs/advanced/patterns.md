@@ -149,7 +149,7 @@ You can make the `create` functions async. Calling them returns a promise you ca
 
 ```tsx
 import { use } from "react";
-import { signal, observe } from "impact-react";
+import { signal, observer } from "impact-react";
 
 async function createPost(id) {
   const data = await fetch("/posts/" + id);
@@ -184,7 +184,7 @@ function createPosts() {
 
 const posts = createPosts();
 
-const Post = observe(({ id }) => {
+const Post = observer(({ id }) => {
   const post = use(posts.getPost(id));
 
   return (

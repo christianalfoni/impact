@@ -2,7 +2,7 @@
 codeCaption: Managing promises
 code: |
   import { Suspense } from 'react'
-  import { observe, signal, use } from 'impact-react'
+  import { observer, signal, use } from 'impact-react'
 
   function createApp() {
     const data = signal(fetchData())
@@ -22,7 +22,7 @@ code: |
 
   const app = createApp()
 
-  const Data = observe(() => {
+  const Data = observer(() => {
     if (app.data.status === 'pending') {
       return <h4>Loading...</h4>
     }
@@ -38,7 +38,7 @@ code: |
     )
   })
 
-  const SuspendedData = observe(() => {
+  const SuspendedData = observer(() => {
     const data = use(app.data)
 
     return <h1>{data}</h1>

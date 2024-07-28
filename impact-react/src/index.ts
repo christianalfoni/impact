@@ -362,32 +362,62 @@ export function effect(cb: () => void) {
   return currentSubscriptionDisposer;
 }
 
-export function observe<T>(
+export function observer<T>(
   component: FunctionComponent<T>,
-): FunctionComponent<T> {
-  return (props: T) => {
-    const contextRef = useRef<ObserverContext>();
+): FunctionComponent<T>;
+export function observer(): {
+  [Symbol.dispose](): void;
+};
+export function observer<T>(component?: FunctionComponent<T>) {
+  if (component) {
+    return (props: T) => {
+      const contextRef = useRef<ObserverContext>();
 
-    if (!contextRef.current) {
-      contextRef.current = new ObserverContext("component");
-    }
+      if (!contextRef.current) {
+        contextRef.current = new ObserverContext("component");
+      }
 
-    const context = contextRef.current;
+      const context = contextRef.current;
 
-    useSyncExternalStore(
-      // This is only a notifier, it does not cause a render
-      (update) => context.subscribe(update),
-      // This value needs to change for a render to happen. It is also
-      // used to detect a stale subscription. If snapshot changed between
-      // last time and the subscription it will do a new render
-      () => context.snapshot,
-      () => context.snapshot,
-    );
+      useSyncExternalStore(
+        // This is only a notifier, it does not cause a render
+        (update) => context.subscribe(update),
+        // This value needs to change for a render to happen. It is also
+        // used to detect a stale subscription. If snapshot changed between
+        // last time and the subscription it will do a new render
+        () => context.snapshot,
+        () => context.snapshot,
+      );
 
-    try {
-      return component(props);
-    } finally {
-      context.pop();
-    }
+      try {
+        return component(props);
+      } finally {
+        context.pop();
+      }
+    };
+  }
+
+  const contextRef = useRef<ObserverContext>();
+
+  if (!contextRef.current) {
+    contextRef.current = new ObserverContext("component");
+  }
+
+  const context = contextRef.current;
+
+  useSyncExternalStore(
+    // This is only a notifier, it does not cause a render
+    (update) => context.subscribe(update),
+    // This value needs to change for a render to happen. It is also
+    // used to detect a stale subscription. If snapshot changed between
+    // last time and the subscription it will do a new render
+    () => context.snapshot,
+    () => context.snapshot,
+  );
+
+  return {
+    [Symbol.dispose]() {
+      contextRef.current?.pop();
+    },
   };
 }
