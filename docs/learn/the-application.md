@@ -18,11 +18,13 @@ code: |
 
   const app = createApp()
 
-  export default observe(() => (
+  const App = observe(() => (
     <button onClick={app.increase}>
       Increase ({app.count})
     </button>
   ))
+
+  export default App
 ---
 
 # The Application

@@ -28,7 +28,7 @@ code: |
 
   const app = createApp()
 
-  export default observe(() => (
+  const App = observe(() => (
     <>
       <button onClick={app.increase}>
         Increase ({app.count})
@@ -38,6 +38,8 @@ code: |
       </button>
     </>
   ))
+
+  export default App
 ---
 
 # Effects

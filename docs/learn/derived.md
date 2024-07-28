@@ -48,7 +48,7 @@ code: |
     <h3>Multiplied: {app.multipliedCount}</h3>
   ))
 
-  export default function App() {
+  const App = () => {
     return (
       <div css={{ display: 'flex', flexDirection: 'column' }}>
         <Counter />
@@ -57,6 +57,8 @@ code: |
       </div>
     )
   }
+
+  export default App
 ---
 
 # Derived
