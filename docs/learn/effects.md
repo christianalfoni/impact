@@ -17,6 +17,9 @@ code: |
       get count() {
         return count()
       },
+      get shouldAlert() {
+        return shouldAlert()
+      },
       increase() {
         count(current => current + 1)
       },
