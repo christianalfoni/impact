@@ -37,7 +37,7 @@ code: |
     </button>
   ))
 
-  export default function App() {
+  const App = () => {
     return (
       <>
         <Counter />
@@ -45,6 +45,8 @@ code: |
       </>
     )
   }
+
+  export default App
 ---
 
 # Signals

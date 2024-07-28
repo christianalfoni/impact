@@ -44,7 +44,7 @@ code: |
     return <h1>{data}</h1>
   })
 
-  export default function App() {
+  const App = () => {
     return (
       <>
         <Data />
@@ -54,6 +54,8 @@ code: |
       </>
     )
   }
+
+  export default App
 ---
 
 # Promises

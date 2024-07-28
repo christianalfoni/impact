@@ -203,7 +203,7 @@ export function signal<T>(initialValue: T) {
 
     let newValue = args[0];
 
-    if (newValue === "function") {
+    if (typeof newValue === "function") {
       newValue = produce(value, newValue);
     }
 
