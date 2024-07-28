@@ -27,12 +27,12 @@ By CodeSandbox team
       link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
+  - title: Untangle your state management
+    details: Build your application with Impact and derive a UI from it using React.
   - title: The best of both worlds
     details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
-  - title: Untangle your state management
-    details: Build your application with Impact and derive a UI from it using React.
 codeCaption: Example
 horizontalPlayground: true
 code: |
