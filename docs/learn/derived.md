@@ -1,7 +1,7 @@
 ---
 codeCaption: Cached derived signals
 code: |
-  import { signal, derived, observe } from 'impact-react'
+  import { signal, derived, observer } from 'impact-react'
 
   function createApp() {
     const count = signal(0)
@@ -32,19 +32,19 @@ code: |
 
   const app = createApp()
 
-  const Counter = observe(() => (
+  const Counter = observer(() => (
     <button onClick={app.increase}>
       Increase ({app.count})
     </button>  
   ))
 
-  const Enabler = observe(() => (
+  const Enabler = observer(() => (
     <button onClick={app.enable}>
       {app.enabled ? "Enabled" : "Enable"}
     </button>
   ))
 
-  const Multiplier = observe(() => (
+  const Multiplier = observer(() => (
     <h3>Multiplied: {app.multipliedCount}</h3>
   ))
 

@@ -36,7 +36,7 @@ features:
 codeCaption: Example
 horizontalPlayground: true
 code: |
-  import { signal, observe } from 'impact-react'
+  import { signal, observer } from 'impact-react'
 
   function createApp() {
     const tick = signal(0)
@@ -75,7 +75,7 @@ code: |
   
   const app = createApp()
 
-  const App = observe(() => (
+  const App = observer(() => (
     <div>
       <h4>Tick count: {app.tick}</h4>
       <button onClick={app.toggle}>

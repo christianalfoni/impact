@@ -6,7 +6,7 @@ There are many different client side routers and we will be using [typed-client-
 
 ```ts
 import { createRouter, TRoute } from "typed-client-router";
-import { observe, signal } from "impact-react";
+import { observer, signal } from "impact-react";
 import { createMain, Main } from "./main";
 import { createItems, Items } from "./items";
 
@@ -111,10 +111,10 @@ Implementing a state first router is a lower abstraction than for example [react
 You can now consume this application in React by:
 
 ```tsx
-import { observe } from "impact-app";
+import { observer } from "impact-app";
 import { useApp, useMain, useItems } from "./app";
 
-const App = observe(() => {
+const App = observer(() => {
   const app = useApp();
 
   if (app.currentPage.name === "notFound") {
@@ -130,13 +130,13 @@ const App = observe(() => {
   }
 });
 
-const Main = observe(() => {
+const Main = observer(() => {
   const main = useMain();
 
   return <h1>Main Page</h1>;
 });
 
-const Items = observe(() => {
+const Items = observer(() => {
   const items = useItems();
 
   let itemChildren;

@@ -31,7 +31,7 @@ function createApp() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, observe } from "impact-react";
+import { signal, observer } from "impact-react";
 
 function createApp() {
   const asyncValue = signal(createSomePromise());
@@ -45,7 +45,7 @@ function createApp() {
 
 const app = createApp();
 
-const App = observe(() => {
+const App = observer(() => {
   if (app.asyncValue.status === "pending") {
     return "Loading...";
   }
@@ -61,7 +61,7 @@ const App = observe(() => {
 Or you could have consumed it with the `use` hook, in combination with a suspense and error boundary.
 
 ```tsx
-const App = observe(() => {
+const App = observer(() => {
   const value = use(app.asyncValue);
 
   return "Yeah, " + value;

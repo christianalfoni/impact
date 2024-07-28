@@ -7,7 +7,7 @@ There are several data fetching solutions for React, like [react-query](https://
 **Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a lower abstraction than the above mentioned tools, but that makes them flexible and usable for all kinds of async state management, including queries and mutations.
 
 ```ts
-import { signal, observe } from "impact-react";
+import { signal } from "impact-react";
 
 // Imagine that we have a posts page where we want to
 // fetch and cache any posts we open
@@ -39,11 +39,11 @@ You choose how this cache operates. In this example, we never invalidate the cac
 When a signal initializes with a promise, it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally, the status details added to the promise allow you to suspend the promise using the `use` hook.
 
 ```tsx
-import { observe } from "impact-react";
+import { observer } from "impact-react";
 import { use } from "react";
 import { usePosts } from "./app";
 
-const Post = observe(({ id }) => {
+const Post = observer(({ id }) => {
   const posts = usePosts();
   const post = use(posts.fetchPost(id));
 
@@ -59,10 +59,10 @@ const Post = observe(({ id }) => {
 But maybe you do not want to use suspense and prefer to deal with the status of the promise directly in the component:
 
 ```tsx
-import { observe } from "impact-react";
+import { observer } from "impact-react";
 import { usePosts } from "./app";
 
-const Post = observe(({ id }) => {
+const Post = observer(({ id }) => {
   const posts = usePosts();
   const postPromise = posts.fetchPost(id);
 
@@ -85,7 +85,7 @@ However, data fetching is not only about getting and displaying data; it is also
 We'll create a store for each Post so that we can manage changing its title, also dealing with optimistic updates and reverting.
 
 ```ts
-import { signal, observe } from "impact-app";
+import { signal, observer } from "impact-app";
 
 // We create a post with some initial data
 function createPost(initialData) {
@@ -126,10 +126,10 @@ function createPost(initialData) {
 We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
 
 ```tsx
-import { observe } from "impact-react";
+import { observer } from "impact-react";
 import { usePosts } from "./app";
 
-const Post = observe(({ id }) => {
+const Post = observer(({ id }) => {
   const posts = usePosts();
   const post = use(posts.fetchPost(id));
   const [newTitle, setNewTitle] = useState(post.title);

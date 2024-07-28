@@ -1,7 +1,7 @@
 ---
 codeCaption: The Application
 code: |
-  import { signal, observe } from 'impact-react'
+  import { signal, observer } from 'impact-react'
 
   function createApp() {
       const count = signal(0)
@@ -18,7 +18,7 @@ code: |
 
   const app = createApp()
 
-  const App = observe(() => (
+  const App = observer(() => (
     <button onClick={app.increase}>
       Increase ({app.count})
     </button>
