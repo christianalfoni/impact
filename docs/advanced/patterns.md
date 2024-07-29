@@ -63,41 +63,15 @@ function createApp() {
 }
 ```
 
-You are free to pass any number of parameters and you can dynamically call `create` functions whenever needed. It is good practice that the returned interface from a `create` function has a `dispose` method. This allows you to clean up subscriptions etc. when needed.
+You are free to pass any number of parameters and you can dynamically call `create` functions whenever needed.
+
+To create a type for a `create` function, simply do this:
 
 ```ts
-import { signal } from "impact-react";
+export type Admin = ReturnType<typeof createAdmin>;
 
-function createTimer() {
-  const tick = signal(0);
-  const interval = setInterval(() => tick((current) => current + 1), 1000);
-
-  return {
-    get tick() {
-      return tick();
-    },
-    dispose() {
-      clearInterval(interval);
-    },
-  };
-}
-
-function createApp() {
-  const count = signal(0);
-  const timer = createTimer();
-
-  return {
-    get count() {
-      return count();
-    },
-    increase() {
-      count((current) => current + 1);
-
-      if (count() === 10) {
-        timer.dispose();
-      }
-    },
-  };
+function createAdmin() {
+  return {};
 }
 ```
 
