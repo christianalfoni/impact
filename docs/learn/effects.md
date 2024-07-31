@@ -1,9 +1,9 @@
 ---
 codeCaption: Using effects
 code: |
-  import { signal, effect, observer } from 'impact-react'
+  import { signal, effect, useStore, observer } from 'impact-react'
 
-  function createApp() {
+  function CounterStore() {
     const count = signal(0)
     const shouldAlert = signal(false)
 
@@ -29,18 +29,22 @@ code: |
     }
   }
 
-  const app = createApp()
+  const useCounterStore = () => useStore(CounterStore)
 
-  const App = observer(() => (
-    <>
-      <button onClick={app.increase}>
-        Increase ({app.count})
-      </button>
-      <button onClick={app.toggleShouldAlert}>
-        Will {app.shouldAlert ? '' : 'not '}alert
-      </button>
-    </>
-  ))
+  const App = observer(() => {
+    const { increase, count, toggleShouldAlert, shouldAlert } = useCounterStore()
+
+    return (
+      <>
+        <button onClick={increase}>
+          Increase ({count})
+        </button>
+        <button onClick={toggleShouldAlert}>
+          Will {shouldAlert ? '' : 'not '}alert
+        </button>
+      </>
+    )
+  })
 
   export default App
 ---
@@ -56,7 +60,7 @@ code: |
 Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscribe to other sources of state. You do not need it; subscriptions can be defined with the rest of your signals. Actually, the use of effects is discouraged because they create indirection in your code. For example:
 
 ```ts
-function createApp() {
+function CounterStore() {
   const count = signal(0);
 
   effect(() => {
@@ -79,7 +83,7 @@ function createApp() {
 Instead, you can write the same logic as:
 
 ```ts
-function createApp() {
+function CounterStore() {
   const count = signal(0);
 
   return {
@@ -87,9 +91,9 @@ function createApp() {
       return count();
     },
     increase() {
-      count((current) => current + 1);
+      const newCount = count((current) => current + 1);
 
-      if (count() === 10) {
+      if (newCount === 10) {
         alert("you gotz to 10");
       }
     },

@@ -9,7 +9,7 @@ Reactive state. The value is considered immutable. If set with the same value, t
 ```ts
 import { signal } from "impact-react";
 
-function createApp() {
+function CounterStore() {
   const count = signal(0);
 
   return {
@@ -31,9 +31,9 @@ function createApp() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, observer } from "impact-react";
+import { signal, observer, useStore } from "impact-react";
 
-function createApp() {
+function AsyncStore() {
   const asyncValue = signal(createSomePromise());
 
   return {
@@ -43,18 +43,20 @@ function createApp() {
   };
 }
 
-const app = createApp();
+const useAsyncStore = () => useStore(AsyncStore);
 
 const App = observer(() => {
-  if (app.asyncValue.status === "pending") {
+  const { asyncValue } = useAsyncStore();
+
+  if (asyncValue.status === "pending") {
     return "Loading...";
   }
 
-  if (app.asyncValue.status === "rejected") {
-    return "Ops, " + app.asyncValue.reason;
+  if (asyncValue.status === "rejected") {
+    return "Ops, " + asyncValue.reason;
   }
 
-  return "Yeah, " + app.asyncValue.value;
+  return "Yeah, " + asyncValue.value;
 });
 ```
 
@@ -62,7 +64,8 @@ Or you could have consumed it with the `use` hook, in combination with a suspens
 
 ```tsx
 const App = observer(() => {
-  const value = use(app.asyncValue);
+  const { asyncValue } = useAsyncStore();
+  const value = use(asyncValue);
 
   return "Yeah, " + value;
 });
@@ -70,6 +73,6 @@ const App = observer(() => {
 
 ::: tip
 
-The signal will catch the error of the promise to set its new status, but will then reject the promise with the original reason. To **catch** an error, you should either use async try/catch when assigning the promise to a signal, or use a `catch` on the promise after it has been assigned to the signal.
+The signal will catch the error of the promise to set its new status, but will then reject the promise with the original reason. To **catch** an error, you should either use async try/catch when assigning the promise to a signal, or use a `catch` on the promise returned from the signal.
 
 :::

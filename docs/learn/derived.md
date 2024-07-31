@@ -1,9 +1,9 @@
 ---
 codeCaption: Cached derived signals
 code: |
-  import { signal, derived, observer } from 'impact-react'
+  import { signal, derived, useStore, observer } from 'impact-react'
 
-  function createApp() {
+  function CounterStore() {
     const count = signal(0)
     const enabled = signal(false)
     const multipliedCount = derived(() =>
@@ -30,23 +30,35 @@ code: |
     }
   }
 
-  const app = createApp()
+  const useCounterStore = () => useStore(CounterStore)
 
-  const Counter = observer(() => (
-    <button onClick={app.increase}>
-      Increase ({app.count})
-    </button>  
-  ))
+  const Counter = observer(() => {
+    const { increase, count } = useCounterStore()
 
-  const Enabler = observer(() => (
-    <button onClick={app.enable}>
-      {app.enabled ? "Enabled" : "Enable"}
-    </button>
-  ))
+    return (
+        <button onClick={increase}>
+        Increase ({count})
+        </button>  
+    )
+  })
 
-  const Multiplier = observer(() => (
-    <h3>Multiplied: {app.multipliedCount}</h3>
-  ))
+  const Enabler = observer(() => {
+    const { enable, enabled } = useCounterStore()
+
+    return (
+        <button onClick={enable}>
+        {enabled ? "Enabled" : "Enable"}
+        </button>
+    )
+  })
+
+  const Multiplier = observer(() => {
+    const { multipliedCount } = useCounterStore()
+
+    return (
+        <h3>Multiplied: {multipliedCount}</h3>
+    )
+  })
 
   const App = () => {
     return (

@@ -9,7 +9,7 @@ Reactive effect. Will observe any signals or derived in its callback. It runs im
 ```ts
 import { effect, signal } from "impact-react";
 
-function createApp() {
+function CounterStore() {
   const count = signal(0);
 
   effect(() => {

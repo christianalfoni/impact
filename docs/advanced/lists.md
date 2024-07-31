@@ -2,9 +2,9 @@
 codeCaption: Working with lists
 code: |
   import { memo } from 'react'
-  import { signal, observer } from 'impact-react'
+  import { signal, observer, useStore, createStoreProvider } from 'impact-react'
 
-  function createApp(initialItems) {
+  function ItemsStore(initialItems) {
     // We create a dictionary to reference items
     const items = initialItems.reduce((acc, item) => {
       // We turn every item into a signal, but we could also do
@@ -31,7 +31,8 @@ code: |
     }
   }
 
-  const app = createApp([{ id: '123', title: "woop" }])
+  const useItemsStore = () => useStore(ItemsStore)
+  const ItemsStoreProvider = createStoreProvider(ItemsStore)
 
   // You observe and memoize so that when the App reconciles
   // the component does not need to reconcile, but if the
@@ -49,9 +50,23 @@ code: |
     })
   )
 
-  const App = observer(() => (
-    <ul>{app.listById.map((id) => <Item key={id} id={id} />)}</ul>
-  ))
+  const Items = observer(() => {
+    const itemsStore = useItemsStore()
+
+    return (
+      <ul>
+        {itemsStore.listById.map((id) => <Item key={id} id={id} />)}
+      </ul>
+    )
+  })
+
+  const App = () => (
+    <ItemsStoreProvider initialItems={[{ id: '123', title: "woop" }]}>
+      <Items />
+    </ItemsStoreProvider>
+  )
+
+  export default App
 ---
 
 # Lists
@@ -61,7 +76,7 @@ Creating observable lists in **Impact** is straightforward. They are essentially
 ```ts
 import { signal } from "impact-react";
 
-function createApp() {
+function ItemsStore() {
   const list = signal([]);
 
   return {
@@ -77,7 +92,7 @@ Since signal values are considered immutable (like in React), you update that li
 ```ts
 import { signal } from "impact-react";
 
-function createApp() {
+function ItemsStore() {
   const list = signal([]);
 
   return {
