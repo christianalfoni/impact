@@ -1,9 +1,9 @@
 ---
 codeCaption: Introducing signals
 code: |
-  import { signal, observer } from 'impact-react'
+  import { signal, useStore, observer } from 'impact-react'
 
-  function createApp() {
+  function CounterStore() {
     const count = signal(0)
     const enabled = signal(false)
 
@@ -23,19 +23,27 @@ code: |
     }
   }
 
-  const app = createApp()
+  const useCounterStore = () => useStore(CounterStore)
 
-  const Counter = observer(() => (
-    <button onClick={app.increase}>
-      Increase ({app.count})
-    </button>
-  ))
+  const Counter = observer(() => {
+    const { increase, count } = useCounterStore()
 
-  const Enabler = observer(() => (
-    <button onClick={app.enable}>
-      {app.enabled ? "Enabled" : "Enable"}
-    </button>
-  ))
+    return (
+      <button onClick={increase}>
+        Increase ({count})
+      </button>
+    )
+  })
+
+  const Enabler = observer(() => {
+    const { enable, enabled } = useCounterStore()
+
+    return (
+      <button onClick={enable}>
+        {enabled ? "Enabled" : "Enable"}
+      </button>
+    )
+  })
 
   const App = () => {
     return (
@@ -55,7 +63,7 @@ code: |
   <Playground />
 </ClientOnly>
 
-`signal` is the primitive representing an observable value. The signal itself is a function and you call it to unwrap the value. When unwrapping a value in a component, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the application; only the ones accessed in a component will cause that component to reconcile.
+`signal` is the primitive representing an observable value. The signal itself is a function and you call it to unwrap the value. When unwrapping a value in a component, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store; only the ones accessed in a component will cause that component to reconcile.
 
 Just like `useState`, the value of a signal is considered immutable and needs to _strictly_ change its value to trigger observation.
 
@@ -63,7 +71,7 @@ As the example above shows, it is common to expose signals using `getters`, mean
 
 ::: tip
 
-The callback of signals uses [Immer]() under the hood and allows you to use the traditional mutation API of JavaScript to make changes to complex objects.
+The callback of signals uses [Immer](https://immerjs.github.io/immer/) under the hood and allows you to use the traditional mutation API of JavaScript to make changes to complex objects.
 
 ```ts
 const list = signal([]);

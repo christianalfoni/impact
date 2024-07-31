@@ -1,9 +1,9 @@
 import React, { Suspense, memo } from "react";
 import { createRoot } from "react-dom/client";
 
-import { derived, observer, signal, use } from "impact-react";
+import { derived, observer, signal, use, useStore } from "impact-react";
 
-function createApp() {
+function CounterStore() {
   const count = signal(0);
   const double = derived(() => count() * 2);
   const time = signal(
@@ -26,26 +26,34 @@ function createApp() {
   };
 }
 
-const app = createApp();
+const useCounter = () => useStore(CounterStore);
 
 function Test() {
-  return <h1>Hi {use(app.time)}</h1>;
+  using _ = observer();
+
+  const counter = useCounter();
+
+  return <h1>Hi {use(counter.time)}</h1>;
 }
 
 const Test2 = memo(function Test2() {
   using _ = observer();
 
-  return <h1>Hi {app.double}</h1>;
+  const counter = useCounter();
+
+  return <h1>Hi {counter.double}</h1>;
 });
 
 export default function App() {
+  const counter = useCounter();
+
   return (
     <div>
       <Suspense fallback={<div>Loading...</div>}>
         <Test />
         <Test2 />
       </Suspense>
-      <button onClick={app.increase}>Increase</button>;
+      <button onClick={counter.increase}>Increase</button>;
     </div>
   );
 }

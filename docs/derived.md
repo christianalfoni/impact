@@ -9,7 +9,7 @@ Derived reactive state. Will observe any signals or other derived in its callbac
 ```ts
 import { signal, derived } from "impact-react";
 
-function createApp() {
+function CounterStore() {
   const count = signal(0);
   const doubleCount = derived(() => count * 2);
 

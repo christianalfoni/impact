@@ -21,14 +21,14 @@ By CodeSandbox team
     #   link: /advanced/lists
     - theme: alt
       text: API Reference
-      link: /derived
+      link: /cleanup
     - theme: alt
       text: Start from template 
       link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
-  - title: Untangle your state management
-    details: Build your application with Impact and derive a UI from it using React.
+  - title: Supercharging the React context
+    details: Expose reactive stores on React contexts, wielding your state management with delight.
   - title: The best of both worlds
     details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
@@ -36,9 +36,9 @@ features:
 codeCaption: Example
 horizontalPlayground: true
 code: |
-  import { signal, observer } from 'impact-react'
+  import { signal, observer, useStore } from 'impact-react'
 
-  function createApp() {
+  function TickStore() {
     const tick = signal(0)
     const isTicking = signal(false)
 
@@ -72,17 +72,19 @@ code: |
       isTicking(false)
     }
   }
-  
-  const app = createApp()
 
-  const App = observer(() => (
-    <div>
-      <h4>Tick count: {app.tick}</h4>
-      <button onClick={app.toggle}>
-        {app.isTicking ? "Stop" : "Start"}
-      </button>
-    </div>
-  ))
+  const App = observer(() => {
+    const { tick, toggle, isTicking } = useStore(TickStore)
+
+    return (
+      <div>
+        <h4>Tick count: {tick}</h4>
+        <button onClick={toggle}>
+          {isTicking ? "Stop" : "Start"}
+        </button>
+      </div>
+    )
+  })
   
   export default App
 ---

@@ -24,8 +24,8 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Advanced", link: "/advanced/patterns" },
-      { text: "API Reference", link: "/derived" },
+      { text: "Advanced", link: "/advanced/stores" },
+      { text: "API Reference", link: "/cleanup" },
     ],
 
     sidebar: [
@@ -36,24 +36,22 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "The Application", link: "/learn/the-application" },
+          { text: "Store", link: "/learn/store" },
+          { text: "Scoping", link: "/learn/scoping" },
           { text: "Signals", link: "/learn/signals" },
           { text: "Derived", link: "/learn/derived" },
           { text: "Effects", link: "/learn/effects" },
-          { text: "Promises", link: "/learn/promises" },
+          { text: "Async", link: "/learn/async" },
         ],
       },
       {
         text: "Advanced",
         items: [
           {
-            text: "Patterns",
-            link: "/advanced/patterns",
+            text: "Stores",
+            link: "/advanced/stores",
           },
-          {
-            text: "Deriving UI",
-            link: "/advanced/deriving-ui",
-          },
+
           {
             text: "Lists",
             link: "/advanced/lists",
@@ -67,6 +65,14 @@ export default defineConfig({
       {
         text: "API Reference",
         items: [
+          {
+            text: "cleanup",
+            link: "/cleanup",
+          },
+          {
+            text: "createStoreProvider",
+            link: "/createStoreProvider",
+          },
           {
             text: "derived",
             link: "/derived",
@@ -82,6 +88,10 @@ export default defineConfig({
           {
             text: "signal",
             link: "/signal",
+          },
+          {
+            text: "useStore",
+            link: "/useStore",
           },
         ],
       },
