@@ -51,8 +51,8 @@ export default defineConfig({
             link: "/advanced/patterns",
           },
           {
-            text: "Routing",
-            link: "/advanced/routing",
+            text: "Deriving UI",
+            link: "/advanced/deriving-ui",
           },
           {
             text: "Lists",
