@@ -42,7 +42,7 @@ code: |
   })
 
   const SuspendedData = observer(() => {
-    const dataStore = useDatastore()
+    const dataStore = useDataStore()
     const data = use(dataStore.data)
 
     return <h1>{data}</h1>
