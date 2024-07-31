@@ -27,12 +27,12 @@ By CodeSandbox team
       link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
-  - title: Supercharging the React context
-    details: Expose reactive stores on React contexts, wielding your state management with delight.
   - title: The best of both worlds
     details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
+  - title: Supercharges the React context
+    details: Expose reactive stores on React contexts, wielding your state management with delight.
 codeCaption: Example
 horizontalPlayground: true
 code: |
