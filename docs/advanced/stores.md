@@ -15,8 +15,6 @@ Return signals using `getters`. This makes them readonly and triggers observatio
 ```ts
 import { signal } from "impact-react";
 
-export type App = ReturnType<typeof AppStore>;
-
 function AppStore() {
   const count = signal(0);
 
@@ -32,8 +30,6 @@ Define any private function _after_ the return statement. This increases readabi
 
 ```ts
 import { signal } from "impact-react";
-
-export type App = ReturnType<typeof AppStore>;
 
 function AppStore() {
   const count = signal(0);
@@ -57,8 +53,6 @@ Compose the store using `create` functions, which are called during instantiatio
 
 ```ts
 import { signal } from "impact-react";
-
-export type App = ReturnType<typeof AppStore>;
 
 function AppStore() {
   const counter = createCounter();
@@ -91,7 +85,8 @@ Export a hook and a provider, unless it is global:
 ```ts
 import { signal, useStore, createStoreProvider } from "impact-react";
 
-export type App = ReturnType<typeof AppStore>;
+export const useAppStore = () => useStore(AppStore);
+export const AppStoreProvider = createStoreProvider(AppStore);
 
 function AppStore() {
   const counter = createCounter();
@@ -117,9 +112,6 @@ function createCounter() {
     count((current) => current + 1);
   }
 }
-
-export const useAppStore = () => useStore(AppStore);
-export const AppStoreProvider = createStoreProvider(AppStore);
 ```
 
 ## Consuming stores in React
@@ -129,6 +121,8 @@ By providing stores you can pass them initial state from React. This is immensel
 ```ts
 import { signal, useStore } from "impact-react";
 import { useApiStore } from "./ApiStore";
+
+export const useSessionStore = () => useStore(SessionStore);
 
 function SessionStore() {
   // We use our global API store
@@ -154,8 +148,6 @@ function SessionStore() {
     },
   };
 }
-
-export const useSessionStore = () => useStore(SessionStore);
 ```
 
 Now that we have the session store we can use it in our top level component:
@@ -192,6 +184,9 @@ In this application there is no reason to show the `<App />` without a user. Now
 import { User, useApiStore } from "./ApiStore";
 import { useStore, signal, cleanup, createStoreProvider } from "impact-react";
 
+export const useAppStore = () => useStore(AppStore);
+export const AppStoreProvider = createStoreProvider(AppStore);
+
 type Props = {
   user: User;
 };
@@ -208,7 +203,4 @@ function AppStore(props: Props) {
     },
   };
 }
-
-export const useAppStore = () => useStore(AppStore);
-export const AppStoreProvider = createStoreProvider(AppStore);
 ```
