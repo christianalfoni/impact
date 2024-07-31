@@ -10,16 +10,6 @@ function AppStore() {
 }
 ```
 
-Type your store using its return type:
-
-```ts
-export type App = ReturnType<typeof AppStore>;
-
-function AppStore() {
-  return {};
-}
-```
-
 Return signals using `getters`. This makes them readonly and triggers observation:
 
 ```ts
@@ -63,7 +53,7 @@ function AppStore() {
 }
 ```
 
-Compose the store using `create` functions:
+Compose the store using `create` functions, which are called during instantiation of the store. That means that they can also use parent stores:
 
 ```ts
 import { signal } from "impact-react";
