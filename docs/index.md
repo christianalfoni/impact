@@ -36,7 +36,7 @@ features:
 codeCaption: Example
 horizontalPlayground: true
 code: |
-  import { signal, observer, useStore } from 'impact-react'
+  import { signal, useStore } from 'impact-react'
 
   function TickStore() {
     const tick = signal(0)
@@ -73,20 +73,18 @@ code: |
     }
   }
 
-  const App = observer(() => {
-    const { tick, toggle, isTicking } = useStore(TickStore)
+  export default App() {
+    using tickStore = useStore(TickStore)
 
     return (
       <div>
-        <h4>Tick count: {tick}</h4>
-        <button onClick={toggle}>
-          {isTicking ? "Stop" : "Start"}
+        <h4>Tick count: {tickStore.tick}</h4>
+        <button onClick={tickStore.toggle}>
+          {tickStore.isTicking ? "Stop" : "Start"}
         </button>
       </div>
     )
-  })
-  
-  export default App
+  }
 ---
 
 <HomeContent>
@@ -110,6 +108,12 @@ code: |
 ```sh
 npm install impact-react
 ```
+
+::: warning
+
+Impact requires Explicit Resource Management which is currently a Stage 3 proposal. It works out of the box with latest TypeScript, SWC and ESBuild. Implementations in browsers is on its way. Babel currently requires a [plugin](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management).
+
+:::
 
 ## Install debugger
 

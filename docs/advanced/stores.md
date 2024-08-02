@@ -114,6 +114,8 @@ function createCounter() {
 }
 ```
 
+It is a good rule of thumb to think about global stores as stores that does not have dependency to other state or stores. If you find yourself defining a store without props at a nested level in the application you should consider implementing it in a parent store with a `create` function instead.
+
 ## Consuming stores in React
 
 By providing stores you can pass them initial state from React. This is immensely useful when dealing with asynchronous state. As an example we might have a store that handles authentication and the application should only mount when you are `AUTHENTICATED`.
@@ -153,14 +155,15 @@ function SessionStore() {
 Now that we have the session store we can use it in our top level component:
 
 ```tsx
-import { observer } from "impact-react";
 import { useSessionStore } from "../stores/SessionStore";
 import { AppStoreProvider } from "../stores/AppStore";
 import { App } from "./App";
 
-const AppSession = observer(() => {
+function AppSession() {
+  using sessionStore = useSessionStore();
+
   // We consume the observable promise directly
-  const { session } = useSessionStore();
+  const session = sessionStore.session;
 
   if (session.status === "pending") {
     return <div>Authenticating...</div>;
@@ -170,12 +173,14 @@ const AppSession = observer(() => {
     return <div>Could not authenticate: {session.reason}</div>;
   }
 
+  const user = session.value;
+
   return (
-    <AppStoreProvider user={session.value}>
+    <AppStoreProvider user={user}>
       <App />
     </AppStoreProvider>
   );
-});
+}
 ```
 
 In this application there is no reason to show the `<App />` without a user. Now we split the asynchronous nature of the session and can isolate the state management of the App around a guaranteed user.

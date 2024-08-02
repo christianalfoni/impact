@@ -9,6 +9,8 @@ The hook that allows you to consume your store in a component or from other stor
 ```ts
 import { useStore, signal } from "impact-react";
 
+export const useMyStore = () => useStore(MyStore);
+
 function MyStore() {
   const count = signal(0);
 
@@ -18,8 +20,6 @@ function MyStore() {
     },
   };
 }
-
-export const useMyStore = () => useStore(MyStore);
 ```
 
 When a store is provided to the component tree it can consume other parent stores directly.
@@ -27,6 +27,9 @@ When a store is provided to the component tree it can consume other parent store
 ```ts
 import { useStore, signal, createStoreProvider } from "impact-react";
 import { useGlobalStore } from "./GlobalStore";
+
+export const useMyStore = () => useStore(MyStore);
+export const MyStoreProvider = createStoreProvider(MyStore);
 
 function MyStore() {
   const globalStore = useGlobalStore();
@@ -39,7 +42,4 @@ function MyStore() {
     },
   };
 }
-
-export const useMyStore = () => useStore(MyStore);
-export const MyStoreProvider = createStoreProvider(MyStore);
 ```

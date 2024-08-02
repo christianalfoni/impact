@@ -9,6 +9,8 @@ There are several data fetching solutions for React, like [react-query](https://
 ```ts
 import { signal, useStore } from "impact-react";
 
+export const usePostsStore = () => useStore(PostsStore);
+
 // Imagine that we have a posts page where we want to
 // fetch and cache any posts we open
 function PostsStore() {
@@ -36,8 +38,6 @@ function PostsStore() {
     return response.json();
   }
 }
-
-export const usePostsStore = () => useStore(PostsStore);
 ```
 
 You choose how this cache operates. In this example, we never invalidate the cache, but you are free to do so at any time. You could also subscribe to the posts to keep them up to date.
@@ -45,11 +45,12 @@ You choose how this cache operates. In this example, we never invalidate the cac
 When a signal initializes with a promise, it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally, the status details added to the promise allow you to suspend the promise using the `use` hook.
 
 ```tsx
-import { observer, use } from "impact-react";
+import { use } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 
-const Post = observer(({ id }) => {
-  const postsStore = usePostsStore();
+function Post({ id }) {
+  using postsStore = usePostsStore();
+
   const post = use(postsStore.fetchPost(id));
 
   return (
@@ -58,7 +59,7 @@ const Post = observer(({ id }) => {
       <p>{post.body}</p>
     </div>
   );
-});
+}
 ```
 
 But maybe you do not want to use suspense and prefer to deal with the status of the promise directly in the component:
@@ -67,8 +68,9 @@ But maybe you do not want to use suspense and prefer to deal with the status of 
 import { observer } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 
-const Post = observer(({ id }) => {
-  const postsStore = usePostsStore();
+function Post({ id }) {
+  using postsStore = usePostsStore();
+
   const postPromise = postsStore.fetchPost(id);
 
   if (postPromise.status === "pending") {
@@ -82,7 +84,7 @@ const Post = observer(({ id }) => {
   const post = postPromise.value;
 
   return <div>{post.title}</div>;
-});
+}
 ```
 
 However, data fetching is not only about getting and displaying data; it is also about mutations. We can use a promise signal to track the state of mutations.
@@ -91,89 +93,92 @@ We'll create a store for any Post so that we can manage the complexity of editin
 
 ```ts
 import { PostDTO, useApiStore } from "./ApiStore";
-import { signal, observer, useStore, createStoreProvider } from "impact-app";
+import { signal, useStore, createStoreProvider } from "impact-app";
+
+export const usePostStore = () => useStore(PostStore);
+export const PostStoreProvider = createStoreProvider(PostStore);
 
 type Props = {
-  initialData: PostDTO;
+  postData: PostDTO;
 };
 
-// We create a post with some initial data
-function PostStore({ initialData }: Props) {
+// We create a store tied to a specific post and optimise editing
+// it by giving each property its own signal
+function PostStore({ postData }: Props) {
   const apiStore = useApiStore();
+  const post = signal(postData);
 
-  const id = initialData.id;
-  const title = signal(initialData.title);
   // The value of the mutation state starts out as undefined
-  const changingTitle = signal<Promise<void> | undefined>(undefined);
+  const savingTitle = signal<Promise<void> | undefined>(undefined);
 
   return {
-    id,
-    get title() {
-      return title();
+    get post() {
+      return post();
     },
-    get changingTitle() {
-      return changingTitle();
+    get savingTitle() {
+      return savingTitle();
     },
-    changeTitle(newTitle) {
-      const oldTitle = title();
+    saveTitle(newTitle) {
+      const currentPost = post();
+      const oldTitle = currentPost.title;
 
       // Optimistically change the title
-      title(newTitle);
+      post({ ...currentPost, title: newTitle });
 
       // Update the mutation signal with the request
       changingTitle(
         apiStore.putPost(id, { title: newTitle }),
         // Revert to the previous title on error
       ).catch(() => {
-        title(oldTitle);
+        post({ ...currentPost, title: oldTitle });
       });
     },
   };
 }
-
-export const usePostStore = () => useStore(PostStore);
-export const PostStoreProvider = createStoreProvider(PostStore);
 ```
 
 We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
 
 ```tsx
-import { observer } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 import { usePostStore, PostStoreProvider } from "../stores/PostStore";
 
-const PostContent = observer(() => {
-  const postStore = usePostStore();
+function PostContent() {
+  using postStore = usePostStore();
+
+  const { post, savingTitle, saveTitle } = postStore;
+
   const [newTitle, setNewTitle] = useState(post.title);
 
   return (
     <div>
       <input
         // Now we can just check if we have a pending changing title
-        disabled={post.changingTitle?.status === "pending" ?? false}
+        disabled={savingTitle?.status === "pending" ?? false}
         value={newTitle}
         onChange={(event) => setNewTitle(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "ENTER") {
-            post.changeTitle(id, newTitle);
+            saveTitle(newTitle);
           }
         }}
       />
-      {post.changingTitle?.status === "rejected"
-        ? "Could not update title"
-        : null}
+      {savingTitle?.status === "rejected" ? "Could not update title" : null}
     </div>
   );
-});
+}
 
-const Post = observer(({ id }) => {
-  const posts = usePosts();
-  const post = use(posts.fetchPost(id));
+export function Post({ id }) {
+  using postsStore = usePostsStore();
+
+  const postData = use(postsStore.fetchPost(id));
 
   return (
-    <PostProvider initialData={post}>
+    // We set a key on the provider to bind the id of a post
+    // to the instance of the store
+    <PostProvider key={id} initialData={postData}>
       <PostContent />
     </PostProvider>
   );
-});
+}
 ```

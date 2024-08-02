@@ -2,13 +2,11 @@ import {
   Component,
   createContext,
   createElement,
-  FunctionComponent,
   ReactNode,
   useContext,
   useRef,
   useSyncExternalStore,
 } from "react";
-import { produce } from "immer";
 
 /**
  * ### STORE ###
@@ -16,6 +14,12 @@ import { produce } from "immer";
 
 const currentStoreContainer: StoreContainer[] = [];
 const registeredProvidedStores = new Set<Store<any, any>>();
+const isProduction =
+  (typeof process !== "undefined" && process.env?.NODE_ENV === "production") ||
+  // @ts-ignore
+  import.meta.env?.MODE === "production";
+
+const isUsingDebugger = () => typeof signalDebugHooks.onSetValue !== "function";
 
 export function getActiveStoreContainer() {
   return currentStoreContainer[currentStoreContainer.length - 1];
@@ -178,6 +182,8 @@ export function cleanup(cleaner: () => void) {
 
 const globalStores = new Map<Store<any, any>, any>();
 
+let activeComponentObserverContext: ObserverContext | null = null;
+
 export function useStore<
   T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
@@ -205,6 +211,43 @@ export function useStore<
         globalStores.set(store, resolvedStore);
       }
     }
+
+    if (activeComponentObserverContext) {
+      // @ts-ignore
+      resolvedStore[Symbol.dispose] = () => {
+        // @ts-ignore
+        delete resolvedStore[Symbol.dispose];
+      };
+
+      // @ts-ignore
+      return resolvedStore;
+    }
+
+    activeComponentObserverContext = observer();
+
+    let hasUsedExplicitResourceManagement = false;
+
+    if (isUsingDebugger() || !isProduction) {
+      const stackTrace = new Error().stack;
+
+      Promise.resolve().then(() => {
+        if (!hasUsedExplicitResourceManagement) {
+          throw new Error(`You did not use the "using" keyword, observability will not work:
+
+${stackTrace}`);
+        }
+      });
+    }
+
+    // @ts-ignore
+    resolvedStore[Symbol.dispose] = () => {
+      hasUsedExplicitResourceManagement = true;
+      activeComponentObserverContext = null;
+      // @ts-ignore
+      delete resolvedStore[Symbol.dispose];
+
+      ObserverContext.stack.pop();
+    };
 
     // @ts-ignore
     return resolvedStore;
@@ -274,9 +317,9 @@ Symbol.dispose ??= Symbol("Symbol.dispose");
 export type ObserverContextType = "component" | "derived" | "effect";
 
 export const signalDebugHooks: {
-  onGetValue?: (context: ObserverContext, signal: SignalTracker) => void;
+  onGetValue?: (context: ObserverContext, signal: SignalInstance) => void;
   onSetValue?: (
-    signal: SignalTracker,
+    signal: SignalInstance,
     value: unknown,
     derived?: boolean,
   ) => void;
@@ -288,22 +331,22 @@ export class ObserverContext {
   static get current(): ObserverContext | undefined {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
-  private _getters = new Set<SignalTracker>();
-  private _setters = new Set<SignalTracker>();
+  private _getters = new Set<SignalInstance>();
+  private _setters = new Set<SignalInstance>();
   private _onUpdate?: () => void;
-  public stack = "";
+  public stackTrace = "";
   snapshot = 0;
 
   constructor(public type: "component" | "derived" | "effect") {
     ObserverContext.stack.push(this);
 
     if (signalDebugHooks.onGetValue) {
-      this.stack = new Error().stack || "";
+      this.stackTrace = new Error().stack || "";
     }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
   }
-  registerGetter(signal: SignalTracker) {
+  registerGetter(signal: SignalInstance) {
     // We do not allow having getters when setting a signal, the reason is to ensure
     // no infinite loops
     if (this._setters.has(signal)) {
@@ -325,7 +368,7 @@ export class ObserverContext {
       ...Array.from(this._getters).map((signal) => signal.snapshot),
     );
   }
-  registerSetter(signal: SignalTracker) {
+  registerSetter(signal: SignalInstance) {
     // We do not allow having getters when setting a signal, the reason is to ensure
     // no infinite loops
     if (this._getters.has(signal)) {
@@ -374,7 +417,7 @@ export class ObserverContext {
  */
 let nextSignalSnapshot = 0;
 
-export class SignalTracker {
+export class SignalInstance {
   private contexts = new Set<ObserverContext>();
   constructor(public getValue: () => unknown) {}
   snapshot = ++nextSignalSnapshot;
@@ -400,9 +443,17 @@ export type Signal<T> = {
   (): T extends Promise<infer V> ? ObservablePromise<V> : T;
   (value: T): T extends Promise<infer V> ? ObservablePromise<V> : T;
   (
-    update: (current: T) => T | void,
+    update: (
+      current: T extends Promise<infer V> ? ObservablePromise<V> : T,
+    ) => T,
   ): T extends Promise<infer V> ? ObservablePromise<V> : T;
 };
+
+// We resolving contexts with an active ObserverContext, where we do not
+// want to track any signals accessed
+function isResolvingStoreFromComponent(context: ObserverContext) {
+  return context.type === "component" && getActiveStoreContainer();
+}
 
 export function signal<T>(initialValue: T) {
   let currentAbortController: AbortController | undefined;
@@ -412,7 +463,7 @@ export function signal<T>(initialValue: T) {
       ? createPromise(initialValue)
       : initialValue;
 
-  const signal = new SignalTracker(() => value);
+  const signal = new SignalInstance(() => value);
 
   function createPromise(promise: Promise<any>): ObservablePromise<T> {
     currentAbortController?.abort();
@@ -453,7 +504,10 @@ export function signal<T>(initialValue: T) {
 
   return ((...args: any[]) => {
     if (!args.length) {
-      if (ObserverContext.current) {
+      if (
+        ObserverContext.current &&
+        !isResolvingStoreFromComponent(ObserverContext.current)
+      ) {
         ObserverContext.current.registerGetter(signal);
         if (signalDebugHooks.onGetValue) {
           signalDebugHooks.onGetValue(ObserverContext.current, signal);
@@ -466,7 +520,7 @@ export function signal<T>(initialValue: T) {
     let newValue = args[0];
 
     if (typeof newValue === "function") {
-      newValue = produce(value, newValue);
+      newValue = newValue(value);
     }
 
     if (value === newValue) {
@@ -558,14 +612,19 @@ export function use<T>(promise: ObservablePromise<T>): T {
   return promise.value;
 }
 
+export type Derived<T> = () => T;
+
 export function derived<T>(cb: () => T) {
   let value: T;
   let disposer: () => void;
   let isDirty = true;
-  const signal = new SignalTracker(() => value);
+  const signal = new SignalInstance(() => value);
 
   return () => {
-    if (ObserverContext.current?.type === "component") {
+    if (
+      ObserverContext.current &&
+      !isResolvingStoreFromComponent(ObserverContext.current)
+    ) {
       ObserverContext.current.registerGetter(signal);
       if (signalDebugHooks.onGetValue) {
         signalDebugHooks.onGetValue(ObserverContext.current, signal);
@@ -622,41 +681,7 @@ export function effect(cb: () => void) {
   return currentSubscriptionDisposer;
 }
 
-export function observer<T>(
-  component: FunctionComponent<T>,
-): FunctionComponent<T>;
-export function observer(): {
-  [Symbol.dispose](): void;
-};
-export function observer<T>(component?: FunctionComponent<T>) {
-  if (component) {
-    return (props: T) => {
-      const contextRef = useRef<ObserverContext>();
-
-      if (!contextRef.current) {
-        contextRef.current = new ObserverContext("component");
-      }
-
-      const context = contextRef.current;
-
-      useSyncExternalStore(
-        // This is only a notifier, it does not cause a render
-        (update) => context.subscribe(update),
-        // This value needs to change for a render to happen. It is also
-        // used to detect a stale subscription. If snapshot changed between
-        // last time and the subscription it will do a new render
-        () => context.snapshot,
-        () => context.snapshot,
-      );
-
-      try {
-        return component(props);
-      } finally {
-        ObserverContext.stack.pop();
-      }
-    };
-  }
-
+export function observer() {
   const contextRef = useRef<ObserverContext>();
 
   if (!contextRef.current) {
@@ -675,9 +700,5 @@ export function observer<T>(component?: FunctionComponent<T>) {
     () => context.snapshot,
   );
 
-  return {
-    [Symbol.dispose]() {
-      ObserverContext.stack.pop();
-    },
-  };
+  return context;
 }

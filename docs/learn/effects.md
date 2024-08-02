@@ -1,7 +1,7 @@
 ---
 codeCaption: Using effects
 code: |
-  import { signal, effect, useStore, observer } from 'impact-react'
+  import { signal, effect, useStore } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -29,24 +29,20 @@ code: |
     }
   }
 
-  const useCounterStore = () => useStore(CounterStore)
-
-  const App = observer(() => {
-    const { increase, count, toggleShouldAlert, shouldAlert } = useCounterStore()
+  export default function App() {
+    using counterStore = useStore(CounterStore)
 
     return (
       <>
-        <button onClick={increase}>
-          Increase ({count})
+        <button onClick={counterStore.increase}>
+          Increase ({counterStore.count})
         </button>
-        <button onClick={toggleShouldAlert}>
-          Will {shouldAlert ? '' : 'not '}alert
+        <button onClick={counterStore.toggleShouldAlert}>
+          Will {counterStore.shouldAlert ? '' : 'not '}alert
         </button>
       </>
     )
-  })
-
-  export default App
+  }
 ---
 
 # Effects

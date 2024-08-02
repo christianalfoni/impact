@@ -1,7 +1,7 @@
 import React, { Suspense, memo } from "react";
 import { createRoot } from "react-dom/client";
 
-import { derived, observer, signal, use, useStore } from "impact-react";
+import { derived, signal, use, useStore } from "impact-react";
 
 function CounterStore() {
   const count = signal(0);
@@ -29,23 +29,19 @@ function CounterStore() {
 const useCounter = () => useStore(CounterStore);
 
 function Test() {
-  using _ = observer();
-
-  const counter = useCounter();
+  using counter = useCounter();
 
   return <h1>Hi {use(counter.time)}</h1>;
 }
 
 const Test2 = memo(function Test2() {
-  using _ = observer();
-
-  const counter = useCounter();
+  using counter = useCounter();
 
   return <h1>Hi {counter.double}</h1>;
 });
 
 export default function App() {
-  const counter = useCounter();
+  using counter = useCounter();
 
   return (
     <div>

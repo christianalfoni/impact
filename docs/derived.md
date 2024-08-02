@@ -11,7 +11,7 @@ import { signal, derived } from "impact-react";
 
 function CounterStore() {
   const count = signal(0);
-  const doubleCount = derived(() => count * 2);
+  const doubleCount = derived(() => count() * 2);
 
   return {
     get count() {
