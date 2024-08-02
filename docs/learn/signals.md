@@ -43,7 +43,7 @@ code: |
     )
   }
 
-  export default App() {
+  export default function App() {
     return (
       <>
         <Counter />
