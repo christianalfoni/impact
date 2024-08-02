@@ -439,15 +439,11 @@ export class SignalInstance {
   }
 }
 
-export type Signal<T> = {
-  (): T extends Promise<infer V> ? ObservablePromise<V> : T;
-  (value: T): T extends Promise<infer V> ? ObservablePromise<V> : T;
-  (
-    update: (
-      current: T extends Promise<infer V> ? ObservablePromise<V> : T,
-    ) => T,
-  ): T extends Promise<infer V> ? ObservablePromise<V> : T;
-};
+export type Signal<T> = (
+  value?:
+    | T
+    | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
+) => T extends Promise<infer V> ? ObservablePromise<V> : T;
 
 // We resolving contexts with an active ObserverContext, where we do not
 // want to track any signals accessed
