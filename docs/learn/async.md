@@ -2,7 +2,7 @@
 codeCaption: Managing promises
 code: |
   import { Suspense } from 'react'
-  import { useStore, signal, use, observer } from 'impact-react'
+  import { useStore, signal, use } from 'impact-react'
 
   function DataStore() {
     const data = signal(fetchData())
@@ -21,10 +21,10 @@ code: |
     }
   }
 
-  const useDataStore = () => useStore(DataStore)
+  function Data() {
+    using dataStore = useStore(DataStore)
 
-  const Data = observer(() => {
-    const { data } = useDataStore()
+    const data = dataStore.data
 
     if (data.status === 'pending') {
       return <h4>Loading...</h4>
@@ -39,25 +39,26 @@ code: |
         {data.value}
       </h1>
     )
-  })
+  }
 
-  const SuspendedData = observer(() => {
-    const dataStore = useDataStore()
+  function SuspendedData() {
+    using dataStore = useStore(DataStore)
+    
     const data = use(dataStore.data)
 
     return <h1>{data}</h1>
-  })
+  }
 
-  const App = () => (
-    <>
-      <Data />
-      <Suspense fallback={<h4>Suspending...</h4>}>
-        <SuspendedData />
-      </Suspense>
-    </>
-  ) 
-
-  export default App
+  export default function App() {
+    return (
+      <>
+        <Data />
+        <Suspense fallback={<h4>Suspending...</h4>}>
+          <SuspendedData />
+        </Suspense>
+      </>
+    ) 
+  }
 ---
 
 # Async

@@ -1,7 +1,7 @@
 ---
 codeCaption: Introducing signals
 code: |
-  import { signal, useStore, observer } from 'impact-react'
+  import { signal, useStore } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -23,29 +23,27 @@ code: |
     }
   }
 
-  const useCounterStore = () => useStore(CounterStore)
-
-  const Counter = observer(() => {
-    const { increase, count } = useCounterStore()
+  function Counter() => {
+    using counterStore = useStore(CounterStore)
 
     return (
-      <button onClick={increase}>
-        Increase ({count})
+      <button onClick={counterStore.increase}>
+        Increase ({counterStore.count})
       </button>
     )
-  })
+  }
 
-  const Enabler = observer(() => {
-    const { enable, enabled } = useCounterStore()
+  function Enabler() {
+    using counterStore = useStore(CounterStore)
 
     return (
-      <button onClick={enable}>
-        {enabled ? "Enabled" : "Enable"}
+      <button onClick={counterStore.enable}>
+        {counterStore.enabled ? "Enabled" : "Enable"}
       </button>
     )
-  })
+  }
 
-  const App = () => {
+  export default App() {
     return (
       <>
         <Counter />
@@ -53,8 +51,6 @@ code: |
       </>
     )
   }
-
-  export default App
 ---
 
 # Signals
@@ -71,14 +67,19 @@ As the example above shows, it is common to expose signals using `getters`, mean
 
 ::: tip
 
-The callback of signals uses [Immer](https://immerjs.github.io/immer/) under the hood and allows you to use the traditional mutation API of JavaScript to make changes to complex objects.
+[Immer](https://immerjs.github.io/immer/) is a popular tool to update complex objects in React. You can use it the same way with signals.
 
 ```ts
+import { signal } from "impact-react";
+import { produce } from "immer";
+
 const list = signal([]);
 
-list((current) => {
-  current.push("foo");
-});
+list(
+  produce((draft) => {
+    draft.push("foo");
+  }),
+);
 ```
 
 :::

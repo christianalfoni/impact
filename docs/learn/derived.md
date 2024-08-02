@@ -1,7 +1,7 @@
 ---
 codeCaption: Cached derived signals
 code: |
-  import { signal, derived, useStore, observer } from 'impact-react'
+  import { signal, derived, useStore } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -30,37 +30,35 @@ code: |
     }
   }
 
-  const useCounterStore = () => useStore(CounterStore)
-
-  const Counter = observer(() => {
-    const { increase, count } = useCounterStore()
+  function Counter() {
+    using counterStore = useStore(CounterStore)
 
     return (
-        <button onClick={increase}>
-        Increase ({count})
+        <button onClick={counterStore.increase}>
+        Increase ({counterStore.count})
         </button>  
     )
-  })
+  }
 
-  const Enabler = observer(() => {
-    const { enable, enabled } = useCounterStore()
+  function Enabler() {
+    using counterStore = useStore(CounterStore)
 
     return (
-        <button onClick={enable}>
-        {enabled ? "Enabled" : "Enable"}
+        <button onClick={counterStore.enable}>
+        {counterStore.enabled ? "Enabled" : "Enable"}
         </button>
     )
-  })
+  }
 
-  const Multiplier = observer(() => {
-    const { multipliedCount } = useCounterStore()
+  function Multiplier() {
+    using counterStore = useStore(CounterStore)
 
     return (
-        <h3>Multiplied: {multipliedCount}</h3>
+        <h3>Multiplied: {counterStore.multipliedCount}</h3>
     )
-  })
+  }
 
-  const App = () => {
+  export default App() {
     return (
       <div css={{ display: 'flex', flexDirection: 'column' }}>
         <Counter />
@@ -69,8 +67,6 @@ code: |
       </div>
     )
   }
-
-  export default App
 ---
 
 # Derived

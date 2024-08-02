@@ -2,7 +2,7 @@
 codeCaption: Working with lists
 code: |
   import { memo } from 'react'
-  import { signal, observer, useStore, createStoreProvider } from 'impact-react'
+  import { signal, useStore, createStoreProvider } from 'impact-react'
 
   function ItemsStore(initialItems) {
     // We create a dictionary to reference items
@@ -31,42 +31,41 @@ code: |
     }
   }
 
-  const useItemsStore = () => useStore(ItemsStore)
   const ItemsStoreProvider = createStoreProvider(ItemsStore)
 
-  // You observe and memoize so that when the App reconciles
-  // the component does not need to reconcile, but if the
-  // item changes it will reconcile
-  const Item = memo(
-    observer(({ id }) => {
-      // You consume the specific item directly from the app
-      const item = app.getItemById(id)
+  // We memoize so that when the App reconciles
+  // this component does not need to reconcile, but if the
+  // observed item changes it will reconcile
+  const Item = memo(({ id }) => {
+    using itemsStore = useStore(ItemStore)
 
-      return (
-        <li>
-          {item.title}
-        </li>
-      )
-    })
-  )
+    // We consume the specific item directly from the store
+    const item = app.getItemById(id)
 
-  const Items = observer(() => {
-    const itemsStore = useItemsStore()
+    return (
+      <li>
+        {item.title}
+      </li>
+    )
+  })
+
+  function Items() {
+    using itemsStore = useStore(ItemsStore)
 
     return (
       <ul>
         {itemsStore.listById.map((id) => <Item key={id} id={id} />)}
       </ul>
     )
-  })
+  }
 
-  const App = () => (
-    <ItemsStoreProvider initialItems={[{ id: '123', title: "woop" }]}>
-      <Items />
-    </ItemsStoreProvider>
-  )
-
-  export default App
+  export default function App() {
+    return (
+      <ItemsStoreProvider initialItems={[{ id: '123', title: "woop" }]}>
+        <Items />
+      </ItemsStoreProvider>
+    )
+  }
 ---
 
 # Lists
@@ -100,11 +99,7 @@ function ItemsStore() {
       return list();
     },
     addToList(item) {
-      // Immer allows us to use the mutation API to create
-      // a new array
-      list((current) => {
-        current.push(item);
-      });
+      list((current) => [...current, item]);
     },
   };
 }

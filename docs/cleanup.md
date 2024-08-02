@@ -9,6 +9,9 @@ When stores are scoped to component trees you can use `cleanup` to dispose of an
 ```ts
 import { useStore, signal, createStoreProvider } from "impact-react";
 
+export const useMyStore = () => useStore(MyStore);
+export const MyStoreProvider = createStoreProvider(MyStore);
+
 function MyStore() {
   const count = signal(0);
 
@@ -24,7 +27,4 @@ function MyStore() {
     },
   };
 }
-
-export const useMyStore = () => useStore(MyStore);
-export const MyStoreProvider = createStoreProvider(MyStore);
 ```

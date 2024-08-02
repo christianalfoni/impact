@@ -7,9 +7,9 @@ outline: deep
 Scope store to a component tree. This allows for passing props to the store and [cleanup](./cleanup.md) when the related component tree unmounts.
 
 ```tsx
-import { useStore, signal, createStoreProvider, observer } from "impact-react";
+import { useStore, signal, createStoreProvider } from "impact-react";
 
-function MyStore({ initialCount }) {
+function CounterStore({ initialCount }) {
   const count = signal(initialCount);
 
   return {
@@ -22,20 +22,23 @@ function MyStore({ initialCount }) {
   };
 }
 
-const useMyStore = () => useStore(MyStore);
-const MyStoreProvider = createStoreProvider(MyStore);
+const CounterStoreProvider = createStoreProvider(CounterStore);
 
-const Counter = observer(() => {
-  const { count, increase } = useMyStore();
+function Counter() {
+  using counterStore = useStore(CounterStore);
 
-  return <button onClick={increase}>Increase ({count})</button>;
-});
-
-const App = () => {
   return (
-    <MyStoreProvider initialCount={10}>
-      <Counter />
-    </MyStoreProvider>
+    <button onClick={counterStore.increase}>
+      Increase ({counterStore.count})
+    </button>
   );
-};
+}
+
+function App() {
+  return (
+    <CounterStoreProvider initialCount={10}>
+      <Counter />
+    </CounterStoreProvider>
+  );
+}
 ```

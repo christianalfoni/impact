@@ -1,7 +1,7 @@
 ---
 codeCaption: Scoping stores
 code: |
-  import { signal, useStore, createStoreProvider, cleanup, observer } from 'impact-react'
+  import { signal, useStore, createStoreProvider, cleanup } from 'impact-react'
 
   function CounterStore({ initialCount }) {
     const count = signal(initialCount)
@@ -19,24 +19,21 @@ code: |
     }
   }
 
-  const useCounterStore = () => useStore(CounterStore)
   const CounterStoreProvider = createStoreProvider(CounterStore)
 
-  const Counter = observer(() => {
-    const { count } = useCounterStore()
+  function Counter() => {
+    using counterStore = useStore(CounterStore)
 
-    return <h2>Count {count}</h2>
-  })
+    return <h2>Count {counterStore.count}</h2>
+  }
 
-  const App = () => {
+  export default function App() {
     return (
       <CounterStoreProvider initialCount={10}>
         <Counter />
       </CounterStoreProvider>
     )
   }
-
-  export default App
 ---
 
 # Scoping
@@ -55,6 +52,6 @@ Additionally the store can now receive props from the provider to initialise its
 
 ::: tip
 
-Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you will have a lot of `if` statements in your code just to please the type checker. There is a misalignment with you and your code. This does not happen in Impact because of scoped stores.
+Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having `if` statements in your code only to please the type checker. This does not happen in Impact because a store is only initialized when its dependent state is available.
 
 :::

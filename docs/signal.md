@@ -4,7 +4,7 @@ outline: deep
 
 # signal
 
-Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value. The callback is executed by [Immer](https://immerjs.github.io/immer/) and allows you to use the normal JavaScript mutation API for complex objects.
+Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value.
 
 ```ts
 import { signal } from "impact-react";
@@ -31,7 +31,7 @@ function CounterStore() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, observer, useStore } from "impact-react";
+import { signal, useStore } from "impact-react";
 
 function AsyncStore() {
   const asyncValue = signal(createSomePromise());
@@ -43,10 +43,10 @@ function AsyncStore() {
   };
 }
 
-const useAsyncStore = () => useStore(AsyncStore);
+function App() {
+  using asyncStore = useStore(AsyncStore);
 
-const App = observer(() => {
-  const { asyncValue } = useAsyncStore();
+  const asyncValue = asyncStore.asyncValue;
 
   if (asyncValue.status === "pending") {
     return "Loading...";
@@ -57,7 +57,7 @@ const App = observer(() => {
   }
 
   return "Yeah, " + asyncValue.value;
-});
+}
 ```
 
 Or you could have consumed it with the `use` hook, in combination with a suspense and error boundary.

@@ -1,7 +1,7 @@
 ---
 codeCaption: A reactive store
 code: |
-  import { useStore, signal, observer } from 'impact-react'
+  import { useStore, signal } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -16,17 +16,15 @@ code: |
     }
   }
 
-  const App = observer(() => {
-    const counter = useStore(CounterStore)
+  export default function App() {
+    using counterStore = useStore(CounterStore)
 
     return (
-      <button onClick={counter.increase}>
-        Increase ({counter.count})
+      <button onClick={counterStore.increase}>
+        Increase ({counterStore.count})
       </button>
     )
-  })
-
-  export default App
+  }
 ---
 
 # Store
@@ -37,4 +35,12 @@ code: |
 
 Moving back to our initial example we implement the same `count` and `increase` using **Impact**. A traditional React context depends on the reconciliation loop, but **Impact** provides a reactive context, called a **Store**. The store is just a function where you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. The function will **not** reconcile, it only runs once.
 
-The `useStore` is used inside components to consume a reactive context returning a store, and they are global by default.
+The `useStore` function can be used inside components to consume a store and they are global by default. Think of the store as an observable resource, which is why we use
+
+::: info
+
+The reason Impact uses the new [Explicit Resource Management](https://medium.com/@bagherani/ecmascript-explicit-resource-management-early-implementation-in-typescript-5-2-5e4d08b2aee3) JavaScript API is because it is the least intrusive API for components. With the `using` keyword there is no need to import an observer function or define your components in a specific way.
+
+When `using` a store it will have an active observer context that is disposed when the component function exits.
+
+:::
