@@ -80,7 +80,7 @@ function createCounter() {
 }
 ```
 
-Export a hook and a provider, unless it is global:
+Export a hook and a provider if it it depends on props or parent stores:
 
 ```ts
 import { signal, useStore, createStoreProvider } from "impact-react";
@@ -88,16 +88,24 @@ import { signal, useStore, createStoreProvider } from "impact-react";
 export const useAppStore = () => useStore(AppStore);
 export const AppStoreProvider = createStoreProvider(AppStore);
 
-function AppStore() {
-  const counter = createCounter();
+type Props = {
+  initialCount: number
+}
+
+// Do not destructure props. This is not for technical reason,
+// but pointing to props in the Store code helps emphasize its
+// external source. Also often a prop is converted to a signal and
+// you typically want to name them the same
+function AppStore(props: Props) {
+  const counter = createCounter(props.initialCount);
 
   return {
     counter,
   };
 }
 
-function createCounter() {
-  const count = signal(0);
+function createCounter(initialCount: number) {
+  const count = signal(initialCount);
 
   return {
     get count() {
@@ -114,7 +122,7 @@ function createCounter() {
 }
 ```
 
-It is a good rule of thumb to think about global stores as stores that does not have dependency to other state or stores. If you find yourself defining a store without props at a nested level in the application you should consider implementing it in a parent store with a `create` function instead.
+There are no limits to how big your stores can be in terms of performance. How you choose to integrate logic into existing stores or create new stores is up to you.
 
 ## Consuming stores in React
 
@@ -209,3 +217,5 @@ function AppStore(props: Props) {
   };
 }
 ```
+
+A different example would be if you have an `EditTicket` component with complex state management. You can create an `EditTicketStore` with a provider which requires a `ticket`. Now you have a transient store mounted for that ticket until you unmount the editing experience due to some other state change.
