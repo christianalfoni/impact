@@ -48,10 +48,10 @@ You create a provider for a store using the `createStoreProvider` function. The 
 
 Scoping stores allows you to instantiate state management related to specific pages, features or even for each item in a list. You can start subscriptions and instantiate classes which can be disposed with `cleanup` when unmounting the provider.
 
-Additionally the store can now receive props from the provider to initialise itself. This is especially useful to take advantage of modern React async patterns. The feature also allows you to bind a store to state, for example a store that provides functionality to edit a specific ticket in your project management app.
+With a provider the store can receive props from React to initialise itself. This is especially useful to take advantage of modern React async patterns. The feature also allows you to bind a store to state, for example a store that provides functionality to edit a specific ticket in your project management app.
 
 ::: tip
 
-Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having `if` statements in your code only to please the type checker. This does not happen in Impact because a store is only initialized when its dependent state is available.
+Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having many non functional `if` statements to please the type checker. This does not happen in Impact because a store is only initialized when its dependent state is available.
 
 :::
