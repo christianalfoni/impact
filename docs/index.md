@@ -73,7 +73,7 @@ code: |
     }
   }
 
-  export default App() {
+  export default function App() {
     using tickStore = useStore(TickStore)
 
     return (

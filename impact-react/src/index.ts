@@ -7,6 +7,7 @@ import {
   useRef,
   useSyncExternalStore,
 } from "react";
+import process from "process";
 
 /**
  * ### STORE ###
@@ -14,10 +15,7 @@ import {
 
 const currentStoreContainer: StoreContainer[] = [];
 const registeredProvidedStores = new Set<Store<any, any>>();
-const isProduction =
-  (typeof process !== "undefined" && process.env?.NODE_ENV === "production") ||
-  // @ts-ignore
-  import.meta.env?.MODE === "production";
+const isProduction = process.env.NODE_ENV === "production";
 
 const isUsingDebugger = () => typeof signalDebugHooks.onSetValue !== "function";
 
