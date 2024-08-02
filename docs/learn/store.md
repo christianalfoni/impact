@@ -35,7 +35,7 @@ code: |
 
 Moving back to our initial example we implement the same `count` and `increase` using **Impact**. A traditional React context depends on the reconciliation loop, but **Impact** provides a reactive context, called a **Store**. The store is just a function where you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. The function will **not** reconcile, it only runs once.
 
-The `useStore` function can be used inside components to consume a store and they are global by default. Think of the store as an observable resource, which is why we use
+The `useStore` function can be used inside components to consume a store and they are global by default.
 
 ::: info
 
