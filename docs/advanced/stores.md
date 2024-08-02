@@ -10,7 +10,7 @@ function AppStore() {
 }
 ```
 
-Return signals using `getters`. This makes them readonly and triggers observation:
+Return signals using `getters`. This makes them readonly and triggers observation when consumed from components:
 
 ```ts
 import { signal } from "impact-react";
@@ -49,7 +49,7 @@ function AppStore() {
 }
 ```
 
-Compose the store using `create` functions, which are called during instantiation of the store. That means that they can also use parent stores:
+Compose the store using additional functions which you call during instantiation of the store. As they are called during instantiation, they can also consume parent stores:
 
 ```ts
 import { signal } from "impact-react";
@@ -92,9 +92,9 @@ type Props = {
   initialCount: number
 }
 
-// Do not destructure props. This is not for technical reason,
+// Do not destructure props. This is not for technical reasons,
 // but pointing to props in the Store code helps emphasize its
-// external source. Also often a prop is converted to a signal and
+// external origin. Also often a prop is converted to a signal and
 // you typically want to name them the same
 function AppStore(props: Props) {
   const counter = createCounter(props.initialCount);
