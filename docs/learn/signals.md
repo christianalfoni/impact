@@ -23,7 +23,7 @@ code: |
     }
   }
 
-  function Counter() => {
+  function Counter() {
     using counterStore = useStore(CounterStore)
 
     return (
