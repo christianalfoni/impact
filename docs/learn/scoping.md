@@ -21,7 +21,7 @@ code: |
 
   const CounterStoreProvider = createStoreProvider(CounterStore)
 
-  function Counter() => {
+  function Counter() {
     using counterStore = useStore(CounterStore)
 
     return <h2>Count {counterStore.count}</h2>
