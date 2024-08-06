@@ -28,11 +28,11 @@ By CodeSandbox team
 
 features:
   - title: The best of both worlds
-    details: Use Impacts reactive model to manage state. Use Reacts reconciliation model to manage UI.
+    details: Use Impacts observation model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
-    details: Reactive primitives of signal, derived and effect, combined with inferred observation in components.
-  - title: Supercharges the React context
-    details: Expose reactive stores on React contexts, wielding your state management with delight.
+    details: Primitives of signal, derived and effect, combined with automatic observation in components.
+  - title: Observable React contexts
+    details: Initialise and dispose stores using context providers.
 codeCaption: Example
 horizontalPlayground: true
 code: |
@@ -102,6 +102,12 @@ code: |
 <ClientOnly>
   <Playground />
 </ClientOnly>
+
+## Presentation
+
+[🍿 Watch Impact presentation 🍿](https://www.youtube.com/watch?v=1QHn8LVlPYE)
+
+If you have used Impact in an application or you think it has valuable perspectives or concepts for a discussion, please use the [Template Slides Deck](https://docs.google.com/presentation/d/1pHBW-HxkugtK8Ny1ebj3a_klqu3HzHnSPvbVNw1drnU/edit?usp=sharing). Present Impact at your company, a local meetup or at a conference. Please reach out if you have any questions or think the slide deck should be updated.
 
 ## Install impact-react
 
