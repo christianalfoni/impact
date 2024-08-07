@@ -16,9 +16,6 @@ By CodeSandbox team
     - theme: brand
       text: Learn
       link: /learn/
-    # - theme: alt
-    #   text: Advanced
-    #   link: /advanced/lists
     - theme: alt
       text: API Reference
       link: /cleanup

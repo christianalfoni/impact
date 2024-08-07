@@ -24,7 +24,7 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Advanced", link: "/advanced/stores" },
+      { text: "Deep Dive", link: "/deep-dive/stores" },
       { text: "API Reference", link: "/cleanup" },
     ],
 
@@ -45,20 +45,23 @@ export default defineConfig({
         ],
       },
       {
-        text: "Advanced",
+        text: "Deep Dive",
         items: [
           {
             text: "Stores",
-            link: "/advanced/stores",
+            link: "/deep-dive/stores",
           },
-
+          {
+            text: "Teamwork",
+            link: "/deep-dive/teamwork",
+          },
           {
             text: "Lists",
-            link: "/advanced/lists",
+            link: "/deep-dive/lists",
           },
           {
             text: "Queries and Mutations",
-            link: "/advanced/queries-and-mutations",
+            link: "/deep-dive/queries-and-mutations",
           },
         ],
       },
