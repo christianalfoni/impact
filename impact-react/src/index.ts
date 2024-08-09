@@ -4,42 +4,89 @@ import {
   createElement,
   ReactNode,
   useContext,
+  useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
 
-/**
- * ### STORE ###
- */
+// Use for memory leak debugging
+// const registry = new FinalizationRegistry((message) => console.log(message));
 
-const currentStoreContainer: StoreContainer[] = [];
-const registeredProvidedStores = new Set<Store<any, any>>();
+export type ObserverContextType = "component" | "derived" | "effect";
+
+// This object is used by the "impact-react-debugger" to access internals
+export const signalDebugHooks: {
+  onGetValue?: (context: ObserverContext, signal: SignalNotifier) => void;
+  onSetValue?: (
+    signal: SignalNotifier,
+    value: unknown,
+    derived?: boolean,
+  ) => void;
+  onEffectRun?: (effect: () => void) => void;
+} = {};
+
 const isProduction =
   typeof process !== "undefined" && process.env.NODE_ENV === "production";
 
 const isUsingDebugger = () => typeof signalDebugHooks.onSetValue !== "function";
 
-export function getActiveStoreContainer() {
-  return currentStoreContainer[currentStoreContainer.length - 1];
+// This global counter makes sure that every signal update is unqiue and
+// can be tracked by React
+let currentSnapshot = 0;
+
+// A store container is like an injection container. It is responsible for resolving stores. As stores can resolve
+// other stores we keep track of the currently resolving stores. A `null` store is a global store
+const resolvingStoreContainers: Array<StoreContainer | null> = [];
+
+// By default Impact resolves to a global store. If a store provider is created for a store we keep track of it. That
+// way we can throw an error if the provider has not been mounted when trying to consume the related store
+const storeProviders = new Set<Store<any, any>>();
+
+// If we resolve to a global store we keep the resolved stores here
+const globalStores = new Map<Store<any, any>, any>();
+
+// We only want a single observer context for a component, but you can use multiple "useStore". So we keep
+// track of the currently active observer context to only create one for each component using one or multiple
+// stores
+let activeComponentObserverContext: ObserverContext | null = null;
+
+// Identify if we have a resolving store. This allows the global "cleanup" function register cleanups to
+// the currently resolving store. Also when resolving stores from components we do not want to track signal acessed
+// in the store being resolved
+export function getResolvingStoreContainer() {
+  return resolvingStoreContainers[resolvingStoreContainers.length - 1];
 }
 
+// We need to know if we are resolving a store with an active ObserverContext
+// for a component. If so we do not want to track signal access in the store
+// itself
+function isResolvingStoreFromComponent(context: ObserverContext) {
+  return context.type === "component" && getResolvingStoreContainer();
+}
+
+// The type for store, which is just a function with optional props returning an object
 export type Store<
   T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
 > = (props: A) => T;
 
+// We keep track of the resolved state of a store
 export type StoreState =
   | {
       isResolved: true;
       value: any;
-      ref: Store<any, any>;
+      storeRef: Store<any, any>;
     }
   | {
       isResolved: false;
+      // The constructor is not the store itself, but a function created
+      // by StoreProvider which includes the props
       constr: () => any;
-      ref: Store<any, any>;
+      storeRef: Store<any, any>;
     };
 
+// A store container is created by the StoreProvider in React. When using the "useStore" hook it first finds the
+// context providing the store container and then resolves the store
 class StoreContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
@@ -52,17 +99,23 @@ class StoreContainer {
     return this._isDisposed;
   }
 
+  // When constructing the provider for the store we only keep a reference to the store and
+  // any parent store container
   constructor(
-    ref: Store<any, any>,
+    storeRef: Store<any, any>,
     constr: () => any,
+    // When the StoreProvider mounts it uses the React context to find the parent
+    // store container
     private _parent: StoreContainer | null,
   ) {
     this._state = {
       isResolved: false,
-      ref,
+      storeRef,
       constr,
     };
   }
+  // When resolving the store we use a global "cleanup" function which acesses the currently resolving store
+  // and registers the cleanup function
   registerCleanup(cleaner: () => void) {
     this._disposers.add(cleaner);
   }
@@ -70,26 +123,35 @@ class StoreContainer {
     T extends Record<string, unknown>,
     A extends Record<string, unknown> | void,
   >(store: Store<T, A>): T {
+    // If there is an error resolving the store we throw it
     if (this._resolvementError) {
       throw this._resolvementError;
     }
 
-    if (this._state.isResolved && store === this._state.ref) {
+    // If we are trying to resolve the store this container is responsbile for and
+    // it has already been resolved, we return it
+    if (this._state.isResolved && store === this._state.storeRef) {
       return this._state.value;
     }
 
-    if (!this._state.isResolved && this._state.ref === store) {
+    // If we are trying to resolve the store this container is responsbile for and
+    // it has NOT been resolved, we resolve it
+    if (!this._state.isResolved && this._state.storeRef === store) {
       try {
-        currentStoreContainer.push(this);
+        // We push to our global tracking of resolvement
+        resolvingStoreContainers.push(this);
+        // We resolve simply by calling the constructor
         this._state = {
           isResolved: true,
           value: this._state.constr(),
-          ref: store,
+          storeRef: store,
         };
-        currentStoreContainer.pop();
+        // We pop off the resolvement tracker
+        resolvingStoreContainers.pop();
 
         return this._state.value;
       } catch (e) {
+        // See comment on why we need to do this
         this._resolvementError =
           new Error(`Could not initialize store "${store?.name}":
 ${String(e)}`);
@@ -97,22 +159,29 @@ ${String(e)}`);
       }
     }
 
+    // If the store is not matching this store container and we have a parent, we start resolving the
+    // store at the parent instead
     if (this._parent) {
       return this._parent.resolve(store);
     }
 
-    let resolvedStore = globalStores.get(store);
-
-    if (!resolvedStore && registeredProvidedStores.has(store)) {
+    // If we could not resolve the store through the context, but the store has a registered store provider,
+    // we throw an error
+    if (storeProviders.has(store)) {
       throw new Error(
         `The store ${store.name} should be provided on a context, but no provider was found`,
       );
     }
 
+    // At this point we default to creating a global store, if not already created
+    let resolvedStore = globalStores.get(store);
+
     if (!resolvedStore) {
+      resolvingStoreContainers.push(null);
       // @ts-ignore
       resolvedStore = store();
       globalStores.set(store, resolvedStore);
+      resolvingStoreContainers.pop();
     }
 
     return resolvedStore;
@@ -128,8 +197,11 @@ ${String(e)}`);
   }
 }
 
+// The context for the StoreContainer
 const storeContainerContext = createContext<StoreContainer | null>(null);
 
+// The StoreContainerProvider provides the store container which resolves the store. We use a class because
+// we need the "componentWillUnmount" lifecycle hook
 export class StoreContainerProvider<
   T extends Record<string, unknown> | void,
 > extends Component<{
@@ -166,53 +238,67 @@ export class StoreContainerProvider<
   }
 }
 
+// We allow running this "cleanup" function globally. It uses the
+// currently resolving container to register the cleanup function
 export function cleanup(cleaner: () => void) {
-  const activeStoreContainer = getActiveStoreContainer();
+  const resolvingStoreContainer = getResolvingStoreContainer();
 
-  // We do not want to clean up if we are not in a context, which
-  // means we are just globally running the store
-  if (!activeStoreContainer) {
+  if (resolvingStoreContainer === undefined) {
+    throw new Error('"cleanup" can only be used when creating a store');
+  }
+
+  // It is a global store
+  if (resolvingStoreContainer === null) {
     return;
   }
 
-  activeStoreContainer.registerCleanup(cleaner);
+  resolvingStoreContainer.registerCleanup(cleaner);
 }
 
-const globalStores = new Map<Store<any, any>, any>();
-
-let activeComponentObserverContext: ObserverContext | null = null;
-
+// "useStore" can be used in both components and other stores. When resolving from a component
+// it will create an observer context and resolve the store. If resolving from a store it will
+// only resolve the store
 export function useStore<
   T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
 >(store: Store<T, A>): T & { [Symbol.dispose](): void } {
-  const activeStoreContainer = getActiveStoreContainer();
+  const resolvingStoreContainer = getResolvingStoreContainer();
   let resolvedStore: T;
 
-  if (!activeStoreContainer) {
+  // If we are not currently resolving a store, we assume that we are resolving from a component as
+  // you can really only initiate resolving stores from components
+  if (!resolvingStoreContainer) {
+    // We try to find a store container on the context first, to resolve a store from it
     const storeContainer = useContext(storeContainerContext);
 
     if (storeContainer) {
       resolvedStore = storeContainer.resolve<T, A>(store);
+    } else if (storeProviders.has(store)) {
+      // If we created a store provider for the store we throw an error, as it is expected that
+      // the store provider should be mounted
+      throw new Error(
+        `The store ${store.name} should be provided on a context, but no provider was found`,
+      );
     } else {
+      // If we do not find a store container we resolve a global store
       resolvedStore = globalStores.get(store);
 
-      if (!resolvedStore && registeredProvidedStores.has(store)) {
-        throw new Error(
-          `The store ${store.name} should be provided on a context, but no provider was found`,
-        );
-      }
-
       if (!resolvedStore) {
+        resolvingStoreContainers.push(null);
         // @ts-ignore
         resolvedStore = store();
         globalStores.set(store, resolvedStore);
+        resolvingStoreContainers.pop();
       }
     }
 
+    // We might already have used a store and created an observer context
     if (activeComponentObserverContext) {
+      // This Symbol.dispose method is what explicit resource management (using keyword) call when exiting the
+      // function component. Even though observation is already handled, we need to add the method
       // @ts-ignore
       resolvedStore[Symbol.dispose] = () => {
+        // Since we add the disposer to the store itself, we remove it when we are done
         // @ts-ignore
         delete resolvedStore[Symbol.dispose];
       };
@@ -221,10 +307,13 @@ export function useStore<
       return resolvedStore;
     }
 
-    activeComponentObserverContext = observer();
+    // So the consymption of this store is the first store and we need to create an observer context
+    activeComponentObserverContext = useObserver();
 
     let hasUsedExplicitResourceManagement = false;
 
+    // When debugging or not in production we'll throw an error if the disposer has not been called.
+    // The reason is that you might forget using the "using" keyword, which breaks observation
     if (isUsingDebugger() || !isProduction) {
       const stackTrace = new Error().stack;
 
@@ -237,6 +326,7 @@ ${stackTrace}`);
       });
     }
 
+    // Here we set up the cleanup of observation
     // @ts-ignore
     resolvedStore[Symbol.dispose] = () => {
       hasUsedExplicitResourceManagement = true;
@@ -244,6 +334,8 @@ ${stackTrace}`);
       // @ts-ignore
       delete resolvedStore[Symbol.dispose];
 
+      // Observer contexts are global and we need to pop it off the stack as soon as the component
+      // functions exists
       ObserverContext.stack.pop();
     };
 
@@ -251,36 +343,64 @@ ${stackTrace}`);
     return resolvedStore;
   }
 
-  resolvedStore = activeStoreContainer.resolve(store);
+  // At this point we are not in a component and we resolve the store as normal
+  resolvedStore = resolvingStoreContainer.resolve(store);
 
-  // @ts-ignore
-  resolvedStore[Symbol.dispose] = () => {
+  if (isUsingDebugger() || !isProduction) {
+    // We give a helpful indication about not using the "using" keyword in stores, as it is not necessary
     // @ts-ignore
-    delete resolvedStore[Symbol.dispose];
-    console.warn('There is no need to use "using" in stores');
-  };
+    resolvedStore[Symbol.dispose] = () => {
+      // @ts-ignore
+      delete resolvedStore[Symbol.dispose];
+      console.warn('There is no need to use "using" in stores');
+    };
+  }
 
   // @ts-ignore
   return resolvedStore;
 }
 
+// This function creates the actual StoreProvider component, which is responsible for providing
+// handling the children and only pass relevant props and the store to the StoreContainerProvider
 export function createStoreProvider<
   T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
 >(store: Store<T, A>) {
-  registeredProvidedStores.add(store);
-  const StoreProvider = (props: A & { children: React.ReactNode }) => {
+  storeProviders.add(store);
+  const StoreProvider = (
+    props: A extends void
+      ? { children: React.ReactNode }
+      : {
+          [K in keyof A]: A[K] extends Signal<infer V> ? V : never;
+        } & { children: React.ReactNode },
+  ) => {
     // To avoid TSLIB
-    const extendedProps = Object.assign({}, props);
+    const extendedProps: any = Object.assign({}, props);
     const children = extendedProps.children;
 
     delete extendedProps.children;
+
+    const propsSignals = useRef<any>();
+
+    if (!propsSignals.current) {
+      propsSignals.current = {};
+
+      for (const key in extendedProps) {
+        propsSignals.current[key] = signal(extendedProps[key]);
+      }
+    }
+
+    useEffect(() => {
+      for (const key in extendedProps) {
+        propsSignals.current[key](extendedProps[key]);
+      }
+    }, [extendedProps]);
 
     return createElement(
       StoreContainerProvider,
       // @ts-ignore
       {
-        props: extendedProps,
+        props: propsSignals.current,
         store,
       },
       children,
@@ -291,82 +411,53 @@ export function createStoreProvider<
     ? `${store.name}Provider`
     : "AnonymousStoreProvider";
 
-  StoreProvider.provide = (component: React.FC<A>) => {
-    return (props: A) => {
-      return createElement(
-        StoreProvider,
-        // @ts-ignore
-        props,
-        // @ts-ignore
-        createElement(component, props),
-      );
-    };
-  };
-
   return StoreProvider;
 }
 
-// @ts-ignore
-Symbol.dispose ??= Symbol("Symbol.dispose");
-
-// Use for memory leak debugging
-// const registry = new FinalizationRegistry((message) => console.log(message));
-
-export type ObserverContextType = "component" | "derived" | "effect";
-
-export const signalDebugHooks: {
-  onGetValue?: (context: ObserverContext, signal: SignalInstance) => void;
-  onSetValue?: (
-    signal: SignalInstance,
-    value: unknown,
-    derived?: boolean,
-  ) => void;
-  onEffectRun?: (effect: () => void) => void;
-} = {};
-
+// The observer context is responsible for keeping track of signals accessed in a component, derived or effect. And
+// notify when signals change. We want these contexts to be bound to its execution context, meaning we rely on the
+// garbage collector to clean them up. To achieve this we add signals to the context, as opposed to adding contexts to
+// signals. Contexts are temporary, signals are typically not
 export class ObserverContext {
+  // We keep a global reference to the currently active observer context. A component might first create one,
+  // then resolving a store with a derived, which adds another, which might consume a derived from an other store,
+  // which adds another etc.
   static stack: ObserverContext[] = [];
   static get current(): ObserverContext | undefined {
     return ObserverContext.stack[ObserverContext.stack.length - 1];
   }
-  private _getters = new Set<SignalInstance>();
-  private _setters = new Set<SignalInstance>();
+  // We need to keep track of what signals are being set/get. The reason is that in an effect you can
+  // not both get and set a signal, as observation would trigger the effect again. So in an effect we
+  // prevent notifying updates when a signal has both a getter and a setter. This is also used for debugging
+  private _getters = new Set<SignalNotifier>();
+  private _setters = new Set<SignalNotifier>();
+  private _subscribers = new Set<() => void>();
+  // There will always only be a single subscriber to a context
   private _onUpdate?: () => void;
   public stackTrace = "";
-  snapshot = 0;
+  // Components are using "useSyncExternalStore" which expects a snapshot to indicate a change
+  // to the store. We use a simple number for this to trigger reconciliation of a component. We start
+  // out with the current as it reflects the current state of all signals
+  snapshot = currentSnapshot;
 
   constructor(public type: "component" | "derived" | "effect") {
-    ObserverContext.stack.push(this);
-
     if (signalDebugHooks.onGetValue) {
       this.stackTrace = new Error().stack || "";
     }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
   }
-  registerGetter(signal: SignalInstance) {
+  registerGetter(signal: SignalNotifier) {
     // We do not allow having getters when setting a signal, the reason is to ensure
     // no infinite loops
     if (this._setters.has(signal)) {
       return;
     }
 
-    if (this._getters.has(signal)) {
-      return;
-    }
-
+    signal.addContext(this);
     this._getters.add(signal);
-
-    /**
-     * A context can be notified about an update between consumption
-     * and subscription of a signal. We keep track of the latest signal snapshot
-     * tracked to enable React to see a stale subscription and render again
-     */
-    this.snapshot = Math.max(
-      ...Array.from(this._getters).map((signal) => signal.snapshot),
-    );
   }
-  registerSetter(signal: SignalInstance) {
+  registerSetter(signal: SignalNotifier) {
     // We do not allow having getters when setting a signal, the reason is to ensure
     // no infinite loops
     if (this._getters.has(signal)) {
@@ -375,50 +466,48 @@ export class ObserverContext {
 
     this._setters.add(signal);
   }
-  /**
-   * There is only a single subscriber to any ObserverContext
-   */
-  subscribe(onUpdate: () => void) {
-    this._onUpdate = onUpdate;
-
-    this._getters.forEach((signal) => {
-      signal.addContext(this);
-    });
-
+  // There is always only a single subscriber
+  subscribe(subscriber: () => void) {
+    this._subscribers.add(subscriber);
     return () => {
-      this._getters.forEach((signal) => {
-        signal.removeContext(this);
-      });
+      this._subscribers.delete(subscriber);
     };
   }
-  /**
-   * Here we alway know that we get the very latest snapshot as it was just
-   * generated, we immediately apply it and React will now re-render on subscription
-   * because the snapshot changed
-   */
+
+  // When a signal updates it goes through its registered contexts and calls this method.
+  // Here we always know that we get the very latest global snapshot as it was just
+  // generated. We immediately apply it and React will now reconcile given it is
+  // subscribing
   notify(snapshot: number) {
     this.snapshot = snapshot;
-    const update = this._onUpdate;
 
-    if (update) {
-      this._getters = new Set();
-      this._setters = new Set();
-      this._onUpdate = undefined;
-      update?.();
-    }
+    // We clear the tracking information of the ObserverContext when we notify
+    // as it will result in a new tracking
+    this._getters.clear();
+    this._setters.clear();
+    this._subscribers.forEach((subscriber) => subscriber());
+  }
+  // In derived and effect we use the same observer context,
+  // but dispose of it when the store is disposed
+  dispose() {
+    this._getters.forEach((signal) => {
+      signal.removeContext(this);
+    });
+    this._getters.clear();
+    this._setters.clear();
+    this._onUpdate = undefined;
   }
 }
 
-/**
- * This global counter makes sure that every signal update is unqiue and
- * can be tracked by React
- */
-let nextSignalSnapshot = 0;
-
-export class SignalInstance {
+// This is instantiated by a signal to keep track of what ObserContexts are interested
+// in the signal and notifies them when the signal changes
+export class SignalNotifier {
   private contexts = new Set<ObserverContext>();
-  constructor(public getValue: () => unknown) {}
-  snapshot = ++nextSignalSnapshot;
+  constructor() {}
+  // A signal holds a global snapshot value, which changes whenever the signal changes.
+  // This snapshot is passed and stored on the ObserverContext to make sure
+  // React understands that a change has happened
+  snapshot = currentSnapshot++;
   addContext(context: ObserverContext) {
     this.contexts.add(context);
   }
@@ -426,8 +515,8 @@ export class SignalInstance {
     this.contexts.delete(context);
   }
   notify() {
-    // We always keep the snapshot up to date
-    this.snapshot = ++nextSignalSnapshot;
+    // Any signal change updates the global snapshot
+    this.snapshot = ++currentSnapshot;
 
     // A context can be synchronously added back to this signal related to firing the signal, which
     // could cause a loop. We only want to notify the current contexts
@@ -443,23 +532,24 @@ export type Signal<T> = (
     | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
 ) => T extends Promise<infer V> ? ObservablePromise<V> : T;
 
-// We resolving contexts with an active ObserverContext, where we do not
-// want to track any signals accessed
-function isResolvingStoreFromComponent(context: ObserverContext) {
-  return context.type === "component" && getActiveStoreContainer();
-}
-
 export function signal<T>(initialValue: T) {
+  // If a signal has a promise we want to abort the current
+  // resolving promise if we are changing it to a new one
   let currentAbortController: AbortController | undefined;
 
   let value =
     initialValue && initialValue instanceof Promise
-      ? createPromise(initialValue)
+      ? createObservablePromise(initialValue)
       : initialValue;
 
-  const signal = new SignalInstance(() => value);
+  const signalNotifier = new SignalNotifier();
 
-  function createPromise(promise: Promise<any>): ObservablePromise<T> {
+  // This is responsible for creating the observable promise by
+  // handling the resolved and rejected state of the initial promise and
+  // notifying
+  function createObservablePromise(
+    promise: Promise<any>,
+  ): ObservablePromise<T> {
     currentAbortController?.abort();
 
     const abortController = (currentAbortController = new AbortController());
@@ -476,7 +566,7 @@ export function signal<T>(initialValue: T) {
             resolvedValue,
           );
 
-          signal.notify();
+          signalNotifier.notify();
 
           return resolvedValue;
         })
@@ -489,7 +579,7 @@ export function signal<T>(initialValue: T) {
 
           value = createRejectedPromise(rejectedPromise, rejectedReason);
 
-          signal.notify();
+          signalNotifier.notify();
 
           return rejectedPromise;
         }),
@@ -498,13 +588,16 @@ export function signal<T>(initialValue: T) {
 
   return ((...args: any[]) => {
     if (!args.length) {
+      // Consuming a store might resolve it synchronously. During that resolvement we
+      // do not want to track access to any signals, only the signals actually consumed
+      // in the component function body
       if (
         ObserverContext.current &&
         !isResolvingStoreFromComponent(ObserverContext.current)
       ) {
-        ObserverContext.current.registerGetter(signal);
+        ObserverContext.current.registerGetter(signalNotifier);
         if (signalDebugHooks.onGetValue) {
-          signalDebugHooks.onGetValue(ObserverContext.current, signal);
+          signalDebugHooks.onGetValue(ObserverContext.current, signalNotifier);
         }
       }
 
@@ -513,36 +606,39 @@ export function signal<T>(initialValue: T) {
 
     let newValue = args[0];
 
+    // The update signature
     if (typeof newValue === "function") {
       newValue = newValue(value);
     }
 
+    if (newValue instanceof Promise) {
+      newValue = createObservablePromise(newValue);
+    }
+
+    // We do nothing if the values are the same
     if (value === newValue) {
       return value;
     }
 
-    if (newValue instanceof Promise) {
-      newValue = createPromise(newValue);
-    }
-
     value = newValue;
 
+    ObserverContext.current?.registerSetter(signalNotifier);
+
     if (signalDebugHooks.onSetValue) {
-      signalDebugHooks.onSetValue(signal, value);
-      ObserverContext.current?.registerSetter(signal);
+      signalDebugHooks.onSetValue(signalNotifier, value);
     }
 
     if (value instanceof Promise) {
-      // We might set a Promise.resolve, in which case we do not want to notify as the micro task has
-      // already done it in "createPromise". So we run our own micro task to check if the promise
+      // A promise could be an already resolved promise, in which case we do not want to notify as it is
+      // already done in "createObservablePromise". So we run our own micro task to check if the promise
       // is still pending, where we do want to notify
       Promise.resolve().then(() => {
         if (value instanceof Promise && value.status === "pending") {
-          signal.notify();
+          signalNotifier.notify();
         }
       });
     } else {
-      signal.notify();
+      signalNotifier.notify();
     }
 
     return value;
@@ -594,6 +690,7 @@ function createRejectedPromise<T>(
   });
 }
 
+// This is the polyfill for the use hook. With React 19 you will use this from React instead
 export function use<T>(promise: ObservablePromise<T>): T {
   if (promise.status === "pending") {
     throw promise;
@@ -610,40 +707,48 @@ export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
   let value: T;
-  let disposer: () => void;
+
+  // We keep track of it being dirty, because we only compute the result
+  // of a derived when accessing it and it being dirty. It is lazy
   let isDirty = true;
-  const signal = new SignalInstance(() => value);
+  const signalNotifier = new SignalNotifier();
+  const context = new ObserverContext("derived");
+
+  // We immediately subscribe to the ObserverContext
+  context.subscribe(() => {
+    // We only change the dirty state and notify
+    isDirty = true;
+    signalNotifier.notify();
+  });
+
+  // Derived should only be used directly in a store so it can be cleaned up
+  cleanup(() => context.dispose());
 
   return () => {
+    // Again, we do not want to track access to this derived if we are resolving a store
+    // from a component and consuming the derived as part of resolving the store
     if (
       ObserverContext.current &&
       !isResolvingStoreFromComponent(ObserverContext.current)
     ) {
-      ObserverContext.current.registerGetter(signal);
+      ObserverContext.current.registerGetter(signalNotifier);
       if (signalDebugHooks.onGetValue) {
-        signalDebugHooks.onGetValue(ObserverContext.current, signal);
+        signalDebugHooks.onGetValue(ObserverContext.current, signalNotifier);
       }
     }
 
     if (isDirty) {
-      disposer?.();
-
-      const context = new ObserverContext("derived");
+      ObserverContext.stack.push(context);
 
       value = cb();
 
       ObserverContext.stack.pop();
 
-      disposer = context.subscribe(() => {
-        isDirty = true;
-
-        signal.notify();
-      });
-
+      // With a new value calculated it is not dirty anymore
       isDirty = false;
 
       if (signalDebugHooks.onSetValue) {
-        signalDebugHooks.onSetValue(signal, value, true);
+        signalDebugHooks.onSetValue(signalNotifier, value, true);
       }
     }
 
@@ -652,45 +757,51 @@ export function derived<T>(cb: () => T) {
 }
 
 export function effect(cb: () => void) {
-  let currentSubscriptionDisposer: () => void;
+  const context = new ObserverContext("effect");
 
-  const updater = () => {
-    const context = new ObserverContext("effect");
+  // Effect should only be used when creating a store,
+  // so that we can dispose of its ObserverContext when
+  // disposing the store
+  cleanup(() => context.dispose());
+
+  context.subscribe(runEffect);
+
+  runEffect();
+
+  function runEffect() {
+    ObserverContext.stack.push(context);
 
     cb();
+
     ObserverContext.stack.pop();
 
     if (signalDebugHooks.onEffectRun) {
       signalDebugHooks.onEffectRun(cb);
     }
-
-    return context.subscribe(() => {
-      currentSubscriptionDisposer();
-      currentSubscriptionDisposer = updater();
-    });
-  };
-
-  currentSubscriptionDisposer = updater();
-
-  return currentSubscriptionDisposer;
+  }
 }
 
-export function observer() {
-  const contextRef = useRef<ObserverContext>();
+// The hook that syncs React with the ObserverContext.
+function useObserver() {
+  const contextObserverRef = useRef<ObserverContext>();
 
-  if (!contextRef.current) {
-    contextRef.current = new ObserverContext("component");
+  if (!contextObserverRef.current) {
+    contextObserverRef.current = new ObserverContext("component");
   }
 
-  const context = contextRef.current;
+  ObserverContext.stack.push(contextObserverRef.current);
+
+  // We create a new context every time React reconciles. The reason is that the subscription to the context
+  // does not dispose before a new reconciliation.
+  const context = contextObserverRef.current;
 
   useSyncExternalStore(
-    // This is only a notifier, it does not cause a render
+    // We subscribe to the context. This only notifies about a change
     (update) => context.subscribe(update),
-    // This value needs to change for a render to happen. It is also
-    // used to detect a stale subscription. If snapshot changed between
-    // last time and the subscription it will do a new render
+    // We then grab the current snapshot, which is the global number for any change to any signal,
+    // ensuring we'll always get a new snapshot whenever a related signal changes
     () => context.snapshot,
+    // Server side
     () => context.snapshot,
   );
 

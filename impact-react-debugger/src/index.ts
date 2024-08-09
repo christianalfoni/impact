@@ -3,7 +3,7 @@ import StackFrame from "stackframe";
 import {
   ObserverContext,
   ObserverContextType,
-  SignalInstance,
+  SignalNotifier,
   signalDebugHooks,
 } from "impact-react";
 import { mount, unmount, addDebugData } from "./ui";
@@ -13,7 +13,7 @@ const cache: {
 } = {};
 
 const observedSignals = new WeakMap<
-  SignalInstance,
+  SignalNotifier,
   {
     [cacheKey: string]: ObserverContextType;
   }
@@ -167,7 +167,7 @@ function createSourceMappedStackFrame(
 
 export function createGetterDebugEntry(
   context: ObserverContext,
-  signal: SignalInstance,
+  signal: SignalNotifier,
 ) {
   if (!isActive) {
     return;
@@ -255,7 +255,7 @@ function cleanFilePath(stackFrame: StackFrame | null) {
 
 let debugDataId = 0;
 export function createSetterDebugEntry(
-  signal: SignalInstance,
+  signal: SignalNotifier,
   value: unknown,
   isDerived = false,
 ) {

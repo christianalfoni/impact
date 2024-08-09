@@ -2,7 +2,7 @@
 
 ## Constructing stores
 
-Define your store much like a component, only returning state instead of UI.
+Define your store much like a component, only returning an API to interact with state management instead of UI.
 
 ```ts
 function AppStore() {
@@ -83,17 +83,17 @@ function createCounter() {
 Export a hook and a provider if it it depends on props or parent stores:
 
 ```ts
-import { signal, useStore, createStoreProvider } from "impact-react";
+import { signal, Signal, useStore, createStoreProvider } from "impact-react";
 
 export const useAppStore = () => useStore(AppStore);
 export const AppStoreProvider = createStoreProvider(AppStore);
 
 type Props = {
-  initialCount: number;
+  initialCount: Signal<number>;
 };
 
 function AppStore(props: Props) {
-  const counter = createCounter(props.initialCount);
+  const counter = createCounter(props.initialCount());
 
   return {
     counter,
@@ -174,10 +174,14 @@ function AppSession() {
     return <div>Could not authenticate: {sessionStore.session.reason}</div>;
   }
 
+  // When the user changes this session user also changes
   const user = sessionStore.session.value;
 
   return (
-    <AppStoreProvider user={user}>
+    // We use the ID of the user to identify unique state managent
+    // for that user, meaning the provider and store is re-created
+    // when the ID changes
+    <AppStoreProvider key={user.id} user={user}>
       <App />
     </AppStoreProvider>
   );
@@ -187,21 +191,27 @@ function AppSession() {
 In this application there is no reason to show the `<App />` without a user. Now we split the asynchronous nature of the session and can isolate the state management of the App around a guaranteed user.
 
 ```ts
-import { User, useApiStore } from "./ApiStore";
-import { useStore, signal, cleanup, createStoreProvider } from "impact-react";
+import { User } from "./ApiStore";
+import {
+  useStore,
+  Signal,
+  signal,
+  cleanup,
+  createStoreProvider,
+} from "impact-react";
 
 export const useAppStore = () => useStore(AppStore);
 export const AppStoreProvider = createStoreProvider(AppStore);
 
 type Props = {
-  user: User;
+  user: Signal<User>;
 };
 
 function AppStore(props: Props) {
-  const api = useApiStore();
-  const user = signal(props.user);
-
-  cleanup(api.subscribeUserUpdates(user));
+  // Any updates from React is updated on the signal, so
+  // we'll just use that signal for the user and expose
+  // it on the store
+  const user = props.user;
 
   return {
     get user() {
