@@ -71,7 +71,7 @@ You might use `useEffect` to fetch data and update local component state with th
 
 **Impact** signals has first class support for promises. That means you can treat promises as any other value and consume them directly in components. When a promise is assigned to a signal it is enhanced with a `.status` property, with related `.reason` and `.value`, which is from the [use](https://react.dev/reference/react/use) specification of React. This makes the promise compatible with the use hook and can be used with [Suspense](https://react.dev/reference/react/Suspense), but the promise itself is also reactive. That means you can consume promises "as is" and check its `status` directly to evaluate what to render.
 
-Signal promises can be used for data queries, mutations or producing any other asynchronous value. You can learn more about [queries and mutations](../advanced/queries-and-mutations.md) in the advanced section.
+Signal promises can be used for data queries, mutations or producing any other asynchronous value. You can learn more about [queries and mutations](../deep-dive/queries-and-mutations.md) in the advanced section.
 
 ::: tip
 
