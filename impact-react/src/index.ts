@@ -4,6 +4,7 @@ import {
   createElement,
   ReactNode,
   useContext,
+  useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
@@ -269,18 +270,38 @@ export function createStoreProvider<
   A extends Record<string, unknown> | void,
 >(store: Store<T, A>) {
   registeredProvidedStores.add(store);
-  const StoreProvider = (props: A & { children: React.ReactNode }) => {
+  const StoreProvider = (
+    props: {
+      [K in keyof A]: A[K] extends Signal<infer V> ? V : never;
+    } & { children: React.ReactNode },
+  ) => {
     // To avoid TSLIB
-    const extendedProps = Object.assign({}, props);
+    const extendedProps: any = Object.assign({}, props);
     const children = extendedProps.children;
 
     delete extendedProps.children;
+
+    const propsSignals = useRef<any>();
+
+    if (!propsSignals.current) {
+      propsSignals.current = {};
+
+      for (let key in extendedProps) {
+        propsSignals.current[key] = signal(extendedProps[key]);
+      }
+    }
+
+    useEffect(() => {
+      for (let key in extendedProps) {
+        propsSignals.current[key](extendedProps[key]);
+      }
+    }, [extendedProps]);
 
     return createElement(
       StoreContainerProvider,
       // @ts-ignore
       {
-        props: extendedProps,
+        props: propsSignals.current,
         store,
       },
       children,
