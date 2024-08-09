@@ -48,10 +48,10 @@ When a signal initializes with a promise, it will enhance it with status details
 import { use } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 
-function Post({ id }) {
+function Post(props) {
   using postsStore = usePostsStore();
 
-  const post = use(postsStore.fetchPost(id));
+  const post = use(postsStore.fetchPost(props.id));
 
   return (
     <div>
@@ -68,10 +68,10 @@ But maybe you do not want to use suspense and prefer to deal with the status of 
 import { observer } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 
-function Post({ id }) {
+function Post(props) {
   using postsStore = usePostsStore();
 
-  const postPromise = postsStore.fetchPost(id);
+  const postPromise = postsStore.fetchPost(props.id);
 
   if (postPromise.status === "pending") {
     return <div>Loading...</div>;
@@ -93,20 +93,20 @@ We'll create a store for any Post so that we can manage the complexity of editin
 
 ```ts
 import { PostDTO, useApiStore } from "./ApiStore";
-import { signal, useStore, createStoreProvider } from "impact-app";
+import { signal, Signal, useStore, createStoreProvider } from "impact-app";
 
 export const usePostStore = () => useStore(PostStore);
 export const PostStoreProvider = createStoreProvider(PostStore);
 
 type Props = {
-  postData: PostDTO;
+  post: Signal<PostDTO>;
 };
 
 // We create a store tied to a specific post and optimise editing
 // it by giving each property its own signal
-function PostStore({ postData }: Props) {
+function PostStore(props: Props) {
   const apiStore = useApiStore();
-  const post = signal(postData);
+  const post = props.post;
 
   // The value of the mutation state starts out as undefined
   const savingTitle = signal<Promise<void> | undefined>(undefined);
