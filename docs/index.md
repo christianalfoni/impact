@@ -28,7 +28,7 @@ features:
     details: Use Impacts observation model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
-  - title: A bridge between reconciliation and observation
+  - title: Bridging reconciliation and observation
     details: Props to stores are signals and signals from stores are plain values.
 codeCaption: Example
 horizontalPlayground: true
