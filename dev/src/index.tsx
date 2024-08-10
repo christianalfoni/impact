@@ -1,11 +1,21 @@
 import React, { Suspense, memo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { createStoreProvider, derived, signal, useStore } from "impact-react";
+import {
+  createStoreProvider,
+  derived,
+  effect,
+  signal,
+  useStore,
+} from "impact-react";
 
 function CounterStore() {
   const count = signal(0);
   const double = derived(() => count() * 2);
+
+  effect(() => {
+    console.log("count", count());
+  });
 
   return {
     get count() {
@@ -28,7 +38,7 @@ const Test2 = memo(function Test2() {
 
   return (
     <div>
-      <h1>Hi {counter.double}</h1>;
+      <h1>Hi {counter.count}</h1>;
       <button onClick={counter.increase}>Increase</button>;
     </div>
   );

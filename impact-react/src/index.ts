@@ -414,10 +414,13 @@ export function createStoreProvider<
   return StoreProvider;
 }
 
-// The observer context is responsible for keeping track of signals accessed in a component, derived or effect. And
-// notify when signals change. We want these contexts to be bound to its execution context, meaning we rely on the
-// garbage collector to clean them up. To achieve this we add signals to the context, as opposed to adding contexts to
-// signals. Contexts are temporary, signals are typically not
+// The observer context is responsible for keeping track of signals accessed in a component, derived or effect. It
+// does this by being set as the currently active ObserverContext in the stack. Any signals setting/getting will register
+// to this active ObserverContext. The component/derived/effect then subscribes to the context, which will add the
+// context to every signal tracked. When context is notified about a change it will remove itself from current signals
+// and notify any subscribers of the context. It is expected that the subsciber(s) of the context will initiate tracking again.
+// The subscription to the context can be disposed, which will also remove the context from any tracked signals. This makes
+// sure that component/store unmount/disposal will also remove the context from any signals... making it primed for garbage collection
 export class ObserverContext {
   // We keep a global reference to the currently active observer context. A component might first create one,
   // then resolving a store with a derived, which adds another, which might consume a derived from an other store,
@@ -432,8 +435,6 @@ export class ObserverContext {
   private _getters = new Set<SignalNotifier>();
   private _setters = new Set<SignalNotifier>();
   private _subscribers = new Set<() => void>();
-  // There will always only be a single subscriber to a context
-  private _onUpdate?: () => void;
   public stackTrace = "";
   // Components are using "useSyncExternalStore" which expects a snapshot to indicate a change
   // to the store. We use a simple number for this to trigger reconciliation of a component. We start
@@ -454,7 +455,7 @@ export class ObserverContext {
       return;
     }
 
-    signal.addContext(this);
+    // When a signal is accessed during an ObservationContext scope we add it as a getter
     this._getters.add(signal);
   }
   registerSetter(signal: SignalNotifier) {
@@ -466,11 +467,25 @@ export class ObserverContext {
 
     this._setters.add(signal);
   }
-  // There is always only a single subscriber
+  // When adding a subscriber we ensure that the relevant signals are
+  // notifying this ObserverContext of updates. That means when nothing
+  // is subscribing to this ObserverContext the instance is free to
+  // be garbage collected. React asynchronously subscribes and unsubscribes,
+  // but useSyncExternalStore has a mechanism that ensures the validity
+  // of the subscription using snapshots
   subscribe(subscriber: () => void) {
     this._subscribers.add(subscriber);
+
+    if (this._subscribers.size === 1) {
+      this._getters.forEach((signal) => signal.addContext(this));
+    }
+
     return () => {
       this._subscribers.delete(subscriber);
+
+      if (this._subscribers.size === 0) {
+        this._getters.forEach((signal) => signal.removeContext(this));
+      }
     };
   }
 
@@ -482,20 +497,19 @@ export class ObserverContext {
     this.snapshot = snapshot;
 
     // We clear the tracking information of the ObserverContext when we notify
-    // as it will result in a new tracking
-    this._getters.clear();
-    this._setters.clear();
-    this._subscribers.forEach((subscriber) => subscriber());
-  }
-  // In derived and effect we use the same observer context,
-  // but dispose of it when the store is disposed
-  dispose() {
+    // as it should result in a new tracking
     this._getters.forEach((signal) => {
       signal.removeContext(this);
     });
     this._getters.clear();
     this._setters.clear();
-    this._onUpdate = undefined;
+
+    // Subscriptions can synchronously be removed and added so we need
+    // to make sure we only iterate the current subscribers, or the Set
+    // will keep iterating forever
+    const subscribers = Array.from(this._subscribers);
+
+    subscribers.forEach((subscriber) => subscriber());
   }
 }
 
@@ -706,23 +720,21 @@ export function use<T>(promise: ObservablePromise<T>): T {
 export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
+  if (!getResolvingStoreContainer()) {
+    throw new Error('You can only run "derived" when creating a store');
+  }
+
   let value: T;
 
   // We keep track of it being dirty, because we only compute the result
   // of a derived when accessing it and it being dirty. It is lazy
   let isDirty = true;
+  let disposer: (() => void) | undefined;
   const signalNotifier = new SignalNotifier();
   const context = new ObserverContext("derived");
 
-  // We immediately subscribe to the ObserverContext
-  context.subscribe(() => {
-    // We only change the dirty state and notify
-    isDirty = true;
-    signalNotifier.notify();
-  });
-
-  // Derived should only be used directly in a store so it can be cleaned up
-  cleanup(() => context.dispose());
+  // We clean up the subscription on the derived when disposing the store
+  cleanup(() => disposer?.());
 
   return () => {
     // Again, we do not want to track access to this derived if we are resolving a store
@@ -744,6 +756,18 @@ export function derived<T>(cb: () => T) {
 
       ObserverContext.stack.pop();
 
+      // We immediately subscribe to the ObserverContext, which
+      // adds this context to the tracked signals
+      disposer = context.subscribe(() => {
+        // When notified about an update we immediately unsubscribe, as
+        // we do not care about any further updates. When the derived is accessed
+        // again it is dirty and a new subscription is set up
+        disposer?.();
+        // We only change the dirty state and notify
+        isDirty = true;
+        signalNotifier.notify();
+      });
+
       // With a new value calculated it is not dirty anymore
       isDirty = false;
 
@@ -757,23 +781,27 @@ export function derived<T>(cb: () => T) {
 }
 
 export function effect(cb: () => void) {
+  if (!getResolvingStoreContainer()) {
+    throw new Error('You can only run "effect" when creating a store');
+  }
+
+  let disposer: (() => void) | void;
   const context = new ObserverContext("effect");
 
-  // Effect should only be used when creating a store,
-  // so that we can dispose of its ObserverContext when
-  // disposing the store
-  cleanup(() => context.dispose());
-
-  context.subscribe(runEffect);
+  cleanup(() => disposer?.());
 
   runEffect();
 
   function runEffect() {
+    disposer?.();
+
     ObserverContext.stack.push(context);
 
     cb();
 
     ObserverContext.stack.pop();
+
+    disposer = context.subscribe(runEffect);
 
     if (signalDebugHooks.onEffectRun) {
       signalDebugHooks.onEffectRun(cb);

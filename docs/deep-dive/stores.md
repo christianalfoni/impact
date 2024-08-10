@@ -232,7 +232,7 @@ Destructuring is a great feature of JavaScript. It allows you to extract element
 ```tsx
 function MyStore(props) {
   // Prevent conflicting names
-  const count = signal(props.count);
+  const count = signal(props.count());
 }
 
 function MyComponent(props) {
@@ -244,7 +244,7 @@ function MyComponent(props) {
 **2. Not destructuring component/store props gives reference to its source**
 
 ```tsx
-function MyStoreOrComponent({ count }) {
+function MyStoreOrComponent(props) {
   const foo;
 
   // Imagine scrolling

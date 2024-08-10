@@ -1,6 +1,6 @@
 {
   "name": "impact-react",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

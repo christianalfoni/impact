@@ -106,7 +106,9 @@ type Props = {
 // it by giving each property its own signal
 function PostStore(props: Props) {
   const apiStore = useApiStore();
-  const post = props.post;
+  // We want to edit the current state of the post, not getting
+  // any updates from the source of this data
+  const post = signal(props.post());
 
   // The value of the mutation state starts out as undefined
   const savingTitle = signal<Promise<void> | undefined>(undefined);

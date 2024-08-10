@@ -4,9 +4,9 @@ code: |
   import { memo } from 'react'
   import { signal, useStore, createStoreProvider } from 'impact-react'
 
-  function ItemsStore(initialItems) {
+  function ItemsStore(props) {
     // We create a dictionary to reference items
-    const items = initialItems.reduce((acc, item) => {
+    const items = props.initialItems().reduce((acc, item) => {
       // We turn every item into a signal, but we could also do
       // "createItem(item)" if the item and related logic was complex enough
       acc[item.id] = signal(item)
@@ -37,10 +37,10 @@ code: |
   // this component does not need to reconcile, but if the
   // observed item changes it will reconcile
   const Item = memo(({ id }) => {
-    using itemsStore = useStore(ItemStore)
+    using itemsStore = useStore(ItemsStore)
 
     // We consume the specific item directly from the store
-    const item = app.getItemById(id)
+    const item = itemsStore.getItemById(id)
 
     return (
       <li>
