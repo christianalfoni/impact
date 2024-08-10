@@ -338,9 +338,11 @@ export default defineComponent({
   background-color: white;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+  overflow: hidden;
 
   & iframe {
     border: 0;
+    flex: 1;
   }
 }
 

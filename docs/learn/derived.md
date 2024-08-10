@@ -60,7 +60,7 @@ code: |
 
   export default function App() {
     return (
-      <div css={{ display: 'flex', flexDirection: 'column' }}>
+      <div>
         <Counter />
         <Enabler />
         <Multiplier />
