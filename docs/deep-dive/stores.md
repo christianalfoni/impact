@@ -80,7 +80,7 @@ function createCounter() {
 }
 ```
 
-Export a hook and a provider if it it depends on props or parent stores:
+Export a hook and optionally a provider if it it depends on props or parent stores:
 
 ```ts
 import { signal, Signal, useStore, createStoreProvider } from "impact-react";
@@ -137,10 +137,8 @@ function SessionStore() {
   // authenticated, or null if not authenticated
   const session = signal(api.authenticate());
 
-  // When the auth changes we update the session. The session
-  // signal is just a function so we can just pass it as the listener
-  // callback
-  api.onAuthChange(session);
+  // When the auth changes we update the session
+  api.onAuthChange((maybeUser) => session(Promise.resolve(maybeUser)));
 
   return {
     get session() {

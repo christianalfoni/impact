@@ -12,6 +12,10 @@ import {
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
 
+// Polyfill this symbol as Safari currently does not have it
+// @ts-ignore
+Symbol.dispose ??= Symbol("Symbol.dispose");
+
 export type ObserverContextType = "component" | "derived" | "effect";
 
 // This object is used by the "impact-react-debugger" to access internals
