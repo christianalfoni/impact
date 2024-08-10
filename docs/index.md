@@ -29,7 +29,7 @@ features:
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
   - title: A bridge between reconciliation and observation
-    details: Reconciling values becomes signals in stores and signals becomes reconciling values in components.
+    details: Props to stores are signals and signals from stores are plain values.
 codeCaption: Example
 horizontalPlayground: true
 code: |
