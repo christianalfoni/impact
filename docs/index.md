@@ -28,8 +28,8 @@ features:
     details: Use Impacts observation model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
-  - title: Bridging reconciliation and observation
-    details: Props to stores are signals and signals from stores are plain values.
+  - title: Observable contexts
+    details: The same mental model as React context, only observable. Provide stores, pass them props and observe state.
 codeCaption: Example
 horizontalPlayground: true
 code: |
