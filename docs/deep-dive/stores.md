@@ -282,7 +282,7 @@ By default a store is global. You use the `createStoreProvider` to provide the s
 export function Counter() {
   return (
     <CounterStoreProvider>
-      <Counter />
+      <CounterContent />
     </CounterStoreProvider>
   );
 }
