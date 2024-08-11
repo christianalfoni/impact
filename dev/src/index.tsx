@@ -1,4 +1,4 @@
-import React, { Suspense, memo, useState } from "react";
+import React, { StrictMode, Suspense, memo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 import {
@@ -6,12 +6,14 @@ import {
   derived,
   effect,
   signal,
+  use,
   useStore,
 } from "impact-react";
 
 function CounterStore() {
   const count = signal(0);
   const double = derived(() => count() * 2);
+  const timeout = signal(new Promise((resolve) => setTimeout(resolve, 5000)));
 
   effect(() => {
     console.log("count", count());
@@ -24,6 +26,9 @@ function CounterStore() {
     get double() {
       return double();
     },
+    get timeout() {
+      return timeout();
+    },
     increase() {
       count((current) => current + 1);
     },
@@ -35,6 +40,8 @@ const CounterStoreProvider = createStoreProvider(CounterStore);
 
 const Test2 = memo(function Test2() {
   using counter = useCounter();
+
+  use(counter.timeout);
 
   return (
     <div>
@@ -51,7 +58,9 @@ export default function App() {
     <div>
       {mounted ? (
         <CounterStoreProvider>
-          <Test2 />
+          <Suspense fallback={<div>Loading...</div>}>
+            <Test2 />
+          </Suspense>
         </CounterStoreProvider>
       ) : null}
       <button onClick={() => setMounted(!mounted)}>Mount/Unmount</button>
