@@ -3,6 +3,7 @@ import {
   createContext,
   createElement,
   ReactNode,
+  Suspense,
   useContext,
   useEffect,
   useRef,
@@ -97,11 +98,6 @@ class StoreContainer {
   private _resolvementError?: Error;
   private _state: StoreState;
   private _disposers = new Set<() => void>();
-  private _isDisposed = false;
-
-  get isDisposed() {
-    return this._isDisposed;
-  }
 
   // When constructing the provider for the store we only keep a reference to the store and
   // any parent store container
@@ -190,14 +186,10 @@ ${String(e)}`);
 
     return resolvedStore;
   }
-  clear() {
+  cleanup() {
     this._disposers.forEach((cleaner) => {
       cleaner();
     });
-  }
-  dispose() {
-    this.clear();
-    this._isDisposed = true;
   }
 }
 
@@ -214,30 +206,49 @@ export class StoreContainerProvider<
   children: React.ReactNode;
 }> {
   static contextType = storeContainerContext;
-  container!: StoreContainer;
+  // We need to track the mounted state, as StrictMode will call componentDidMount
+  // and componentWillUnmount twice, meaning we'll cleanup too early. This is a safeguard
+  // against side effects in React, to allow this component to be part of suspended rendering.
+  // Suspended rendering means it might render it, but never commit, meaning no call to componentDidMount
+  // or componentWillUnmount. We have to resolve stores during reconciliation and can not
+  // rely on componentDidMount. That means this component does not support suspended rendering.
+  // This is documented and we throw an error if this happens
+  private mounted = false;
+  container = new StoreContainer(
+    this.props.store,
+    () => this.props.store(this.props.props),
+    // eslint-disable-next-line
+    // @ts-ignore
+    this.context,
+  );
+  componentDidMount(): void {
+    this.mounted = true;
+  }
   componentWillUnmount(): void {
-    this.container.dispose();
+    this.mounted = false;
+    Promise.resolve().then(() => {
+      if (!this.mounted) {
+        this.container.cleanup();
+      }
+    });
   }
   render(): ReactNode {
-    // React can keep the component reference and mount/unmount it multiple times. Because of that
-    // we need to ensure to always have a hooks container instantiated when rendering, as it could
-    // have been disposed due to an unmount
-    if (!this.container || this.container.isDisposed) {
-      this.container = new StoreContainer(
-        this.props.store,
-        () => this.props.store(this.props.props),
-        // eslint-disable-next-line
-        // @ts-ignore
-        this.context,
-      );
-    }
-
     return createElement(
       storeContainerContext.Provider,
       {
         value: this.container,
       },
-      this.props.children,
+      createElement(
+        Suspense,
+        {
+          fallback: createElement(() => {
+            throw new Error(
+              "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the component using suspense",
+            );
+          }),
+        },
+        this.props.children,
+      ),
     );
   }
 }
