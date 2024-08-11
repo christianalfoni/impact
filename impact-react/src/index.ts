@@ -735,7 +735,7 @@ export function use<T>(promise: ObservablePromise<T>): T {
 export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
-  if (!getResolvingStoreContainer()) {
+  if (getResolvingStoreContainer() === undefined) {
     throw new Error('You can only run "derived" when creating a store');
   }
 
@@ -796,7 +796,7 @@ export function derived<T>(cb: () => T) {
 }
 
 export function effect(cb: () => void) {
-  if (!getResolvingStoreContainer()) {
+  if (getResolvingStoreContainer() === undefined) {
     throw new Error('You can only run "effect" when creating a store');
   }
 

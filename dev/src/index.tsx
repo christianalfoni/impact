@@ -36,7 +36,6 @@ function CounterStore() {
 }
 
 const useCounter = () => useStore(CounterStore);
-const CounterStoreProvider = createStoreProvider(CounterStore);
 
 const Test2 = memo(function Test2() {
   using counter = useCounter();
@@ -57,11 +56,9 @@ export default function App() {
   return (
     <div>
       {mounted ? (
-        <CounterStoreProvider>
-          <Suspense fallback={<div>Loading...</div>}>
-            <Test2 />
-          </Suspense>
-        </CounterStoreProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Test2 />
+        </Suspense>
       ) : null}
       <button onClick={() => setMounted(!mounted)}>Mount/Unmount</button>
     </div>

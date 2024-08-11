@@ -1,5 +1,5 @@
 ---
-codeCaption: A reactive store
+codeCaption: An observable context
 code: |
   import { useStore, signal } from 'impact-react'
 
