@@ -100,9 +100,9 @@ code: |
   <Playground />
 </ClientOnly>
 
-## Presentation
+## Presenting Impact
 
-[🍿 Watch Impact presentation 🍿](https://www.youtube.com/watch?v=1QHn8LVlPYE)
+[🍿 Impact Presentation 🍿](https://www.youtube.com/watch?v=1QHn8LVlPYE) - [🍿 Impact Technical Deep Dive 🍿](https://www.youtube.com/watch?v=yOAZo1SUYrM)
 
 If you have used Impact in an application or you think it has valuable perspectives or concepts for a discussion, please use the [Template Slides Deck](https://docs.google.com/presentation/d/1pHBW-HxkugtK8Ny1ebj3a_klqu3HzHnSPvbVNw1drnU/edit?usp=sharing). Present Impact at your company, a local meetup or at a conference. Please reach out if you have any questions or think the slide deck should be updated.
 
