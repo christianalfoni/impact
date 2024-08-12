@@ -52,6 +52,10 @@ export default defineConfig({
             link: "/deep-dive/stores",
           },
           {
+            text: "Resolving Stores",
+            link: "/deep-dive/resolving-stores",
+          },
+          {
             text: "Teamwork",
             link: "/deep-dive/teamwork",
           },
