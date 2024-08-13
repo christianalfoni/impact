@@ -1,6 +1,6 @@
 # Resolving Stores
 
-One of the features of Impact is the ability to resolve stores from the React context. You provide a store using a `StoreProvider` in the component tree and any nested component can now consume the same store. This is not much different from consuming a regular context. Where things might start to challenge your technical intuition is when the store you consume using the `useStore` hook inside a component is also able to use the same `useStore` hook to continue resolving stores up the component tree.
+One of the features of Impact is the ability to resolve stores from the React context. You provide a store using a `StoreProvider` in the component tree and any nested component can now consume the same store. This is not much different from consuming a regular context. Where things might start to challenge your technical intuition is when the the same `useStore` hook can be used inside the _store_ to also resolve stores up the component tree.
 
 Hopefully this behaviour is an intuitive developer experience, but to scratch your technical itch, let us take on a concrete example by looking at a simplified component tree:
 
