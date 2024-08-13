@@ -221,56 +221,47 @@ function AppStore(props: Props) {
 
 A different example would be if you have an `EditTicket` component with complex state management. You can create an `EditTicketStore` with a provider which requires a `ticket`. Now you have a transient store mounted for that ticket until you unmount the editing experience due to some other state change.
 
-## Destructuring
+## Props
 
-Destructuring is a great feature of JavaScript. It allows you to extract elements of an array or properties from an object efficiently. With Impact it is recommended to **NOT** destructure props and stores for the following reasons:
-
-**1. Not destructuring component/store props makes it easier to set initial state**
+Stores that are provided in the React component tree can receive props. These props becomes signals inside the store. When React reconciles and updates the prop, the corresponding signal will update its value and trigger observation.
 
 ```tsx
-function MyStore(props) {
-  // Prevent conflicting names
-  const count = signal(props.count());
+import { Signal, createStoreProvider } from "impact-react";
+
+type StoreProps = {
+  // Do not define props as optional, but rather
+  // make the signal possibly undefined
+  user: Signal<UserDTO | undefined>;
+};
+
+function AppStore(props: StoreProps) {
+  // Unwrap the prop immediately to use
+  // the initial value
+  const user = props.user();
+
+  // Or use the signal "as is"
+  const user = props.user;
+
+  return {
+    get user() {
+      // You can return signals coming from props. Any nested
+      // component will update if the StoreProvider component
+      // reconciles
+      return user();
+    },
+  };
 }
 
-function MyComponent(props) {
-  // Prevent conflicting names
-  const [count, setCount] = useState(props.count);
-}
-```
+const AppStoreProvider = createStoreProvider(AppStore);
 
-**2. Not destructuring component/store props gives reference to its source**
+type Props = { user?: UserDTO };
 
-```tsx
-function MyStoreOrComponent(props) {
-  const foo;
-
-  // Imagine scrolling
-  props.count;
-  foo;
-  // We know the source of these values
-}
-
-function MyComponent() {
-  using appStore = useAppStore();
-
-  const [foo, setFoo] = useState("foo");
-
-  // Imagine scrolling
-  appStore.count;
-  foo;
-  // We know the source of these values
-}
-```
-
-**3. Not destructuring stores prevents lack of observation**
-
-```tsx
-function MyStore() {
-  using globalStore = useGlobalStore();
-
-  // Accessing "foo" is now observed
-  const derivedValue = derived(() => globalStore.foo + "!!!");
+function App(props) {
+  return (
+    <AppStoreProvider user={props.user}>
+      <SomeAppFeature />
+    </AppStoreProvider>
+  );
 }
 ```
 

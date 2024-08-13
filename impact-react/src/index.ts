@@ -408,6 +408,9 @@ export function createStoreProvider<
     if (!propsSignals.current) {
       propsSignals.current = {};
 
+      // All props needs to be explicitly defined, also undefined
+      // props. This is to have an initial signal that can later
+      // be updated with a value
       for (const key in extendedProps) {
         propsSignals.current[key] = signal(extendedProps[key]);
       }
