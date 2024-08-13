@@ -246,7 +246,7 @@ function AppStore(props: StoreProps) {
     get user() {
       // You can return signals coming from props. Any nested
       // component will update if the StoreProvider component
-      // reconciles
+      // reconciles with a new user reference
       return user();
     },
   };
