@@ -102,38 +102,40 @@ type Props = {
   post: Signal<PostDTO>;
 };
 
-// We create a store tied to a specific post and optimise editing
-// it by giving each property its own signal
+// We create a store tied to a specific post
 function PostStore(props: Props) {
   const apiStore = useApiStore();
-  // We want to edit the current state of the post, not getting
-  // any updates from the source of this data
-  const post = signal(props.post());
+
+  const initialPost = props.post();
+  // We choose to optimise consuming the post
+  // by giving each property its own signal
+  const title = signal(initialPost.title);
 
   // The value of the mutation state starts out as undefined
   const savingTitle = signal<Promise<void> | undefined>(undefined);
 
   return {
-    get post() {
+    get id() {
+      return initialPost.id;
+    },
+    get title() {
       return post();
     },
     get savingTitle() {
       return savingTitle();
     },
-    saveTitle(newTitle) {
-      const currentPost = post();
-      const oldTitle = currentPost.title;
+    changeTitle(newTitle) {
+      title(newTitle);
 
-      // Optimistically change the title
-      post({ ...currentPost, title: newTitle });
-
+      // If saving the title failed, we'll reset
+      // the promise when changing the title again
+      if (savingTitle()?.status === "rejected") {
+        savingTitle(undefined);
+      }
+    },
+    saveTitle() {
       // Update the mutation signal with the request
-      changingTitle(
-        apiStore.putPost(id, { title: newTitle }),
-        // Revert to the previous title on error
-      ).catch(() => {
-        post({ ...currentPost, title: oldTitle });
-      });
+      changingTitle(apiStore.putPost(id, { title: title() }));
     },
   };
 }
@@ -148,20 +150,18 @@ import { usePostStore, PostStoreProvider } from "../stores/PostStore";
 function PostContent() {
   using postStore = usePostStore();
 
-  const { post, savingTitle, saveTitle } = postStore;
-
-  const [newTitle, setNewTitle] = useState(post.title);
+  const { title, changeTitle, saveTitle, savingTitle } = postStore;
 
   return (
     <div>
       <input
         // Now we can just check if we have a pending changing title
         disabled={savingTitle?.status === "pending" ?? false}
-        value={newTitle}
-        onChange={(event) => setNewTitle(event.target.value)}
+        value={title}
+        onChange={(event) => changeTitle(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "ENTER") {
-            saveTitle(newTitle);
+            saveTitle();
           }
         }}
       />
@@ -178,7 +178,7 @@ export function Post({ id }) {
   return (
     // We set a key on the provider to bind the id of a post
     // to the instance of the store
-    <PostProvider key={id} initialData={postData}>
+    <PostProvider key={id} post={postData}>
       <PostContent />
     </PostProvider>
   );
