@@ -32,4 +32,4 @@ But what if the **Feature** component uses `useFeatureStore` and the **FeatureSt
 3. Since **FeatureStore** is handled by this **StoreContainer** and it has not been instantiated yet, it will be instantiated
 4. During instantiation the **StoreContainer** is set as the currently active container. When `useAppStore` is called in **FeatureStore** it will use the active **StoreContainer** to resolve the **AppStore**, which basically brings us to point **3.** on the previous example
 
-The following [deep dive video](https://www.youtube.com/watch?v=yOAZo1SUYrM) goes into even more detail on how this is implemented, but hopefully this helped scratch your technical itch and gave a deeper understand of how stores are resolved through the component tree and the stores themselves.
+The following [deep dive video](https://www.youtube.com/watch?v=yOAZo1SUYrM) goes into even more detail on how this is implemented, but hopefully this helped scratch your technical itch and gave a deeper understanding of how stores are resolved through the component tree both from components and other stores.
