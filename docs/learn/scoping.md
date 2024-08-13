@@ -52,6 +52,8 @@ With a provider the store can receive props from React to initialise itself. The
 
 Receiving props from React is especially useful to take advantage of modern React async patterns. The feature also allows you to bind a store to state, for example a store that provides functionality to edit a specific ticket in your project management app.
 
+The provided store is consumed from nested components or can also be consumed by other nested stores. Think of the stores as traditional React context behaviour, but with primitives creating an improved developer experience.
+
 ::: tip
 
 Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having many non functional `if` statements to please the type checker. This does not happen in Impact because a store is only initialized when its dependent state is available.
