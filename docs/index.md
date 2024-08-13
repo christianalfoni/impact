@@ -29,7 +29,7 @@ features:
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
   - title: Observable contexts
-    details: The same mental model as React context, only observable. Provide stores, pass them props and consume from any nested component.
+    details: The same mental model as React context, only observable. Provide stores, pass them props and consume from any nested component and stores.
 codeCaption: Example
 horizontalPlayground: true
 code: |
