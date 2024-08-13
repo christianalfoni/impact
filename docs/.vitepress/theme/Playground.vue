@@ -316,8 +316,10 @@ export default defineComponent({
       border-bottom-left-radius: 0px;
       border-top-right-radius: 8px;
       border-bottom-right-radius: 8px;
+      overflow: visible;
 
       & iframe {
+        flex: none;
         position: sticky;
         top: calc(var(--vp-nav-height) + 10px);
       }
