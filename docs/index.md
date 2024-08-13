@@ -28,8 +28,8 @@ features:
     details: Use Impacts observation model to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
-  - title: Observable contexts
-    details: The same mental model as React context, only observable. Provide stores, pass them props and consume from any nested component and stores.
+  - title: Observable stores
+    details: The same mental model as React context. Provide stores, pass them props and consume them from any nested component or store.
 codeCaption: Example
 horizontalPlayground: true
 code: |
