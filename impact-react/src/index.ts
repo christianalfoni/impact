@@ -35,6 +35,10 @@ const isProduction =
 
 const isUsingDebugger = () => typeof signalDebugHooks.onSetValue !== "function";
 
+// When on server we drop out of using "useSyncExternalStore" as there is really no
+// reason to run it (It holds no state, just subscribes to updates)
+const isServer = typeof window === "undefined";
+
 // This global counter makes sure that every signal update is unqiue and
 // can be tracked by React
 let currentSnapshot = 0;
@@ -316,6 +320,18 @@ export function useStore<
       // @ts-ignore
       resolvedStore[Symbol.dispose] = () => {
         // Since we add the disposer to the store itself, we remove it when we are done
+        // @ts-ignore
+        delete resolvedStore[Symbol.dispose];
+      };
+
+      // @ts-ignore
+      return resolvedStore;
+    }
+
+    if (isServer) {
+      // On the server we do not care about observation
+      // @ts-ignore
+      resolvedStore[Symbol.dispose] = () => {
         // @ts-ignore
         delete resolvedStore[Symbol.dispose];
       };
@@ -849,8 +865,6 @@ function useObserver() {
     (update) => context.subscribe(update),
     // We then grab the current snapshot, which is the global number for any change to any signal,
     // ensuring we'll always get a new snapshot whenever a related signal changes
-    () => context.snapshot,
-    // Server side
     () => context.snapshot,
   );
 
