@@ -4,7 +4,7 @@ outline: deep
 
 # signal
 
-Reactive state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value.
+Observable state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value.
 
 ```ts
 import { signal } from "impact-react";
@@ -63,16 +63,16 @@ function App() {
 Or you could have consumed it with the `use` hook, in combination with a suspense and error boundary.
 
 ```tsx
-const App = observer(() => {
-  const { asyncValue } = useAsyncStore();
-  const value = use(asyncValue);
+function App() {
+  using asyncStore = useAsyncStore();
+  const value = use(asyncStore.asyncValue);
 
   return "Yeah, " + value;
-});
+}
 ```
 
 ::: tip
 
-The signal will catch the error of the promise to set its new status, but will then reject the promise with the original reason. To **catch** an error, you should either use async try/catch when assigning the promise to a signal, or use a `catch` on the promise returned from the signal.
+When a signal consumes a promise the browser will not throw an **Unhandled Promise Rejection** if it fails. The reason is that you might "handle" the rejection declaratively in a component. The promise does stay rejected though and if you use the `await` keyword on it, it will throw. It is still just a promise.
 
 :::

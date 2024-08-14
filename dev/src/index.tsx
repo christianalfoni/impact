@@ -14,6 +14,7 @@ function CounterStore() {
   const count = signal(0);
   const double = derived(() => count() * 2);
   const timeout = signal(new Promise((resolve) => setTimeout(resolve, 5000)));
+  const badPromise = signal(Promise.reject("Hoho"));
 
   effect(() => {
     console.log("count", count());
@@ -29,6 +30,9 @@ function CounterStore() {
     get timeout() {
       return timeout();
     },
+    get badPromise() {
+      return badPromise();
+    },
     increase() {
       count((current) => current + 1);
     },
@@ -41,6 +45,8 @@ const Test2 = memo(function Test2() {
   using counter = useCounter();
 
   use(counter.timeout);
+
+  console.log(counter.badPromise);
 
   return (
     <div>

@@ -583,7 +583,7 @@ export function signal<T>(initialValue: T) {
 
     const abortController = (currentAbortController = new AbortController());
 
-    return createPendingPromise(
+    const observablePromise = createPendingPromise(
       promise
         .then(function (resolvedValue) {
           if (abortController.signal.aborted) {
@@ -613,6 +613,14 @@ export function signal<T>(initialValue: T) {
           return rejectedPromise;
         }),
     );
+
+    observablePromise.catch(() => {
+      // When consuming a promise form a signal we do not consider it an unhandled promise anymore.
+      // This catch prevents the browser from identifying it as unhandled, but will still be a rejected
+      // promise if you try to consume it
+    });
+
+    return observablePromise;
   }
 
   return ((...args: any[]) => {
