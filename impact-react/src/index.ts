@@ -1,4 +1,4 @@
-import {
+import React, {
   Component,
   createContext,
   createElement,
@@ -61,6 +61,42 @@ const globalStores = new Map<Store<any, any>, any>();
 // track of the currently active observer context to only create one for each component using one or multiple
 // stores
 let activeComponentObserverContext: ObserverContext | null = null;
+
+// In development mode we want to throw an error if you use React hooks inside the store. We do that by
+// overriding the dispatcher
+function blockDispatcher() {
+  const internals =
+    // @ts-ignore
+    React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
+    // @ts-ignore
+    React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+
+  // TODO: Verify the dispatcher of React 19, can it be overriden?
+  const dispatcher = internals.ReactCurrentDispatcher?.current ?? internals.H;
+
+  if (!dispatcher) {
+    console.warn("Unable to warn about invalid hooks usage in Stores");
+
+    return () => {};
+  }
+
+  let isBlocking = true;
+
+  for (const key in dispatcher) {
+    const originHook = dispatcher[key];
+    dispatcher[key] = (...args: any[]) => {
+      if (isBlocking) {
+        throw new Error("You can not use React hooks inside stores");
+      }
+
+      return originHook.apply(dispatcher, args);
+    };
+  }
+
+  return () => {
+    isBlocking = false;
+  };
+}
 
 function resolveGlobalStore(store: Store<any, any>) {
   let resolvedStore = globalStores.get(store);
@@ -300,7 +336,11 @@ export function useStore<
     // We try to find a store container on the context first, to resolve a store from it
     const storeContainer = useContext(storeContainerContext);
 
-    if (storeContainer) {
+    if (storeContainer && !isProduction) {
+      const unblockDispatcher = blockDispatcher();
+      resolvedStore = storeContainer.resolve<T, A>(store);
+      unblockDispatcher();
+    } else if (storeContainer) {
       resolvedStore = storeContainer.resolve<T, A>(store);
     } else if (storeProviders.has(store)) {
       // If we created a store provider for the store we throw an error, as it is expected that
@@ -308,6 +348,10 @@ export function useStore<
       throw new Error(
         `The store ${store.name} should be provided on a context, but no provider was found`,
       );
+    } else if (!isProduction) {
+      const unblockDispatcher = blockDispatcher();
+      resolvedStore = resolveGlobalStore(store);
+      unblockDispatcher();
     } else {
       // If we do not find a store container we resolve a global store
       resolvedStore = resolveGlobalStore(store);
