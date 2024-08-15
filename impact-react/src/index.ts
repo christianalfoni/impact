@@ -866,6 +866,9 @@ function useObserver() {
     // We then grab the current snapshot, which is the global number for any change to any signal,
     // ensuring we'll always get a new snapshot whenever a related signal changes
     () => context.snapshot,
+    // Even though Impact is not designed to run on the server, we still give this callback
+    // as for example Next JS requires it to be there, even when rendering client only components
+    () => context.snapshot,
   );
 
   return context;

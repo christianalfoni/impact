@@ -44,3 +44,9 @@ The reason Impact uses the new [Explicit Resource Management](https://medium.com
 When `using` a store it will have an active observer context that is disposed when the component function exits.
 
 :::
+
+::: warning
+
+Impact is not designed for server side rendering. You can use it with server side rendering frameworks like Next JS, but only using client side rendered components.
+
+:::
