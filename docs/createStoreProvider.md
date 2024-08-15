@@ -6,10 +6,19 @@ outline: deep
 
 Scope store to a component tree. This allows for passing props to the store and [cleanup](./cleanup.md) when the related component tree unmounts.
 
-::: warning
+::: tip
 
-1. If a nested component uses the `use` hook, make sure to put a `Suspense` also as a nested component of the StoreProvider. The created StoreProvider will throw an error if you forget. The reason for this is a lack of programmatic access to Reacts disposal behaviour of non committed component trees
-2. Do not use React hooks within the stores. Technically when a store initialises it is still in Reacts render mode, but when the component with the `useStore` reconciles you will get a "hooks out of order" error from React. Currently there is no warning from Impact about this, but we are evaluating if there really is a need
+If a nested component throws an error, the store provided will be disposed and the error is thrown further up the component tree. If you want to recover from nested errors without disposing the store, create error boundaries as a child of the StoreProvider.
+
+:::
+
+::: info
+There are two scenarios where providing a store throws an error in development:
+
+1. If you use the `use` hook with a promise in a nested component, but have no nested `Suspense` boundary to catch it
+2. If the store is using React hooks
+
+Both scenarios represents something you would normally not do, but might occur as you learn about Impact.
 
 :::
 

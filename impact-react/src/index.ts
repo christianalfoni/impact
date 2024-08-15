@@ -63,39 +63,57 @@ const globalStores = new Map<Store<any, any>, any>();
 let activeComponentObserverContext: ObserverContext | null = null;
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
-// overriding the dispatcher
+// creating a globally controlled React dispatcher blocker
+let blockableDispatcher: any;
+let isBlockingDispatcher = true;
+const dispatchUnblocker = () => {
+  isBlockingDispatcher = false;
+};
+
+// This is only used in development
 function blockDispatcher() {
+  if (blockableDispatcher) {
+    return dispatchUnblocker;
+  }
+
+  // React allows access to its internals during development
   const internals =
     // @ts-ignore
     React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
     // @ts-ignore
     React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
 
-  // TODO: Verify the dispatcher of React 19, can it be overriden?
+  // TODO: Verify the dispatcher of React 19, is it consistently on H?
   const dispatcher = internals.ReactCurrentDispatcher?.current ?? internals.H;
 
+  // If for some reason React changes its internals
   if (!dispatcher) {
-    console.warn("Unable to warn about invalid hooks usage in Stores");
+    console.warn(
+      "Unable to warn about invalid hooks usage in Stores, please create an issue",
+    );
 
     return () => {};
   }
 
-  let isBlocking = true;
+  // There are different dispatchers in React, but when this function is called
+  // the active dispatcher is the one that allows hooks to be called. We only
+  // need to override it once
+  if (!blockableDispatcher) {
+    for (const key in dispatcher) {
+      const originHook = dispatcher[key];
+      dispatcher[key] = (...args: any[]) => {
+        if (isBlockingDispatcher) {
+          throw new Error("You can not use React hooks inside stores");
+        }
 
-  for (const key in dispatcher) {
-    const originHook = dispatcher[key];
-    dispatcher[key] = (...args: any[]) => {
-      if (isBlocking) {
-        throw new Error("You can not use React hooks inside stores");
-      }
+        return originHook.apply(dispatcher, args);
+      };
+    }
 
-      return originHook.apply(dispatcher, args);
-    };
+    blockableDispatcher = dispatcher;
   }
 
-  return () => {
-    isBlocking = false;
-  };
+  return dispatchUnblocker;
 }
 
 function resolveGlobalStore(store: Store<any, any>) {
@@ -269,6 +287,21 @@ export class StoreContainerProvider<
   componentDidMount(): void {
     this.mounted = true;
   }
+  // When an error is thrown we dispose of the store. Then we throw the error up the component tree.
+  // This ensures that an error thrown during render phase does not keep any subscriptions etc. going.
+  // Recovering from the error in a parent error boundary will cause a new store to be created. Developers
+  // can still add nested error boundaries to control recoverable state
+  componentDidCatch(error: Error): void {
+    this.container.cleanup();
+    this.container = new StoreContainer(
+      this.props.store,
+      () => this.props.store(this.props.props),
+      // eslint-disable-next-line
+      // @ts-ignore
+      this.context,
+    );
+    throw error;
+  }
   componentWillUnmount(): void {
     this.mounted = false;
     Promise.resolve().then(() => {
@@ -292,7 +325,7 @@ export class StoreContainerProvider<
         {
           fallback: createElement(() => {
             throw new Error(
-              "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the component using suspense",
+              "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the components using suspense",
             );
           }),
         },
