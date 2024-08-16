@@ -52,7 +52,7 @@ With a provider the store can receive props from React to initialise itself. The
 
 Receiving props from React is especially useful to take advantage of modern React async patterns. The feature also allows you to bind a store to state, for example a store that provides functionality to edit a specific ticket in your project management app.
 
-The provided store is consumed from nested components or can also be consumed by other nested stores. Think of the stores as traditional React context behaviour, but with primitives creating an improved developer experience.
+The provided store is consumed from nested components or can also be consumed by other nested stores. Think of the stores as traditional React context behaviour, but with primitives improving performance and developer experience.
 
 ::: tip
 
