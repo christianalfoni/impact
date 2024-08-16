@@ -120,6 +120,50 @@ function createCounter(initialCount: number) {
 
 There are no limits to how big your stores can be in terms of performance. How you choose to integrate logic into existing stores or create new stores is up to you.
 
+## Props
+
+Stores that are provided in the React component tree can receive props. These props becomes signals inside the store. When React reconciles and updates the prop, the corresponding signal will update its value and trigger observation.
+
+```tsx
+import { Signal, createStoreProvider } from "impact-react";
+
+type StoreProps = {
+  // Do not define props as optional, but rather
+  // make the signal possibly undefined
+  user: Signal<UserDTO | undefined>;
+};
+
+function AppStore(props: StoreProps) {
+  // Unwrap the prop immediately to use
+  // the initial value
+  const user = props.user();
+
+  // Or use the signal "as is"
+  const user = props.user;
+
+  return {
+    get user() {
+      // You can return signals coming from props. Any nested
+      // component will update if the StoreProvider component
+      // reconciles with a new user reference
+      return user();
+    },
+  };
+}
+
+const AppStoreProvider = createStoreProvider(AppStore);
+
+type Props = { user?: UserDTO };
+
+function App(props) {
+  return (
+    <AppStoreProvider user={props.user}>
+      <SomeAppFeature />
+    </AppStoreProvider>
+  );
+}
+```
+
 ## Consuming stores in React
 
 By providing stores you can pass them initial state from React. This is immensely useful when dealing with asynchronous state. As an example we might have a store that handles authentication and the application should only mount when you are `AUTHENTICATED`.
@@ -220,50 +264,6 @@ function AppStore(props: Props) {
 ```
 
 A different example would be if you have an `EditTicket` component with complex state management. You can create an `EditTicketStore` with a provider which requires a `ticket`. Now you have a transient store mounted for that ticket until you unmount the editing experience due to some other state change.
-
-## Props
-
-Stores that are provided in the React component tree can receive props. These props becomes signals inside the store. When React reconciles and updates the prop, the corresponding signal will update its value and trigger observation.
-
-```tsx
-import { Signal, createStoreProvider } from "impact-react";
-
-type StoreProps = {
-  // Do not define props as optional, but rather
-  // make the signal possibly undefined
-  user: Signal<UserDTO | undefined>;
-};
-
-function AppStore(props: StoreProps) {
-  // Unwrap the prop immediately to use
-  // the initial value
-  const user = props.user();
-
-  // Or use the signal "as is"
-  const user = props.user;
-
-  return {
-    get user() {
-      // You can return signals coming from props. Any nested
-      // component will update if the StoreProvider component
-      // reconciles with a new user reference
-      return user();
-    },
-  };
-}
-
-const AppStoreProvider = createStoreProvider(AppStore);
-
-type Props = { user?: UserDTO };
-
-function App(props) {
-  return (
-    <AppStoreProvider user={props.user}>
-      <SomeAppFeature />
-    </AppStoreProvider>
-  );
-}
-```
 
 ## Providing stores in React
 
