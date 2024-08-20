@@ -85,7 +85,7 @@ The API of a signal is inspired by [Solid JS](https://www.solidjs.com/). It was 
 
 :::
 
-When exposing signals from a store it is common to use `getters`, meaning that unwrapping the value becomes implicit when consuming a signal from a component or a nested store.
+When exposing signals from a store it is common to use `getters`, meaning that unwrapping the value becomes implicit when consuming a signal from a component or a nested store. The value also becomes `readonly`, which is good practice when exposing state from state stores.
 
 ```ts
 import { signal } from "impact-react";
