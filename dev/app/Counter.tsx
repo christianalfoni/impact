@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 
-import { createStoreProvider, signal, useStore } from "impact-react";
+import { createStoreProvider, Signal, signal, useStore } from "impact-react";
 import { Component, ErrorInfo } from "react";
 
 class ErrorCatcher extends Component {
@@ -28,8 +28,8 @@ class ErrorCatcher extends Component {
   }
 }
 
-function CounterStore() {
-  const count = signal(0);
+function CounterStore(props: { initialCount: Signal<number> }) {
+  const count = props.initialCount;
 
   return {
     get count() {
@@ -44,21 +44,22 @@ function CounterStore() {
 const CounterStoreProvider = createStoreProvider(CounterStore);
 
 export function Counter() {
+  const [count, setCount] = useState(0);
+
   return (
-    <CounterStoreProvider>
-      <ErrorCatcher>
+    <>
+      <button onClick={() => setCount((current) => current + 1)}>
+        Change initial
+      </button>
+      <CounterStoreProvider initialCount={count}>
         <CounterContent />
-      </ErrorCatcher>
-    </CounterStoreProvider>
+      </CounterStoreProvider>
+    </>
   );
 }
 
 function CounterContent() {
   using counterStore = useStore(CounterStore);
-
-  if (counterStore.count === 3) {
-    throw new Error("WHop");
-  }
 
   return (
     <div>
