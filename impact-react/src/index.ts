@@ -418,7 +418,7 @@ export function createStoreProvider<
 > {
   storeProviders.add(store);
 
-  // The StoreContainerProvider provides the store container which resolves the store. We use a class because
+  // The StoreProvider provides the store container which resolves the store. We use a class because
   // we need the "componentWillUnmount" lifecycle hook
   class StoreProvider extends Component {
     static displayName = store.name
@@ -431,6 +431,7 @@ export function createStoreProvider<
     // want to instantiate the StoreContainer immediately so it is part of the rendering
     // of the children and clean it up when this component unmounts
     mounted = false;
+    // We convert props into signals
     propsSignals: any = {};
     container = new StoreContainer(
       store,
@@ -442,6 +443,7 @@ export function createStoreProvider<
     constructor(props: any) {
       super(props);
 
+      // We set the initial props as signals
       for (const key in props) {
         if (key !== "children") {
           this.propsSignals[key] = signal(props[key]);
@@ -452,6 +454,7 @@ export function createStoreProvider<
       this.mounted = true;
     }
     componentDidUpdate() {
+      // We keep the signals updated
       for (const key in this.propsSignals) {
         // @ts-ignore
         this.propsSignals[key](this.props[key]);
