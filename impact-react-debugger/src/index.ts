@@ -6,7 +6,7 @@ import {
   SignalNotifier,
   signalDebugHooks,
 } from "impact-react";
-import { mount, unmount, addDebugData } from "./ui";
+import { DebugData as _DebugData, CONNECT_DEBUG, DebugDataDTO } from "./types";
 
 const cache: {
   [url: string]: Promise<StackFrame>;
@@ -19,49 +19,29 @@ const observedSignals = new WeakMap<
   }
 >();
 
-let isHoldingShift = false;
-let lastShiftPress = Date.now();
-let isActive = localStorage.getItem("impact.debugger.isActive") === "true";
+let isActive = true;
+let bridgeTarget: Window | null = null;
 
-if (isActive) {
-  mount();
-} else {
-  console.log(
-    "The Impact debugger is initialized, hit SHIFT twice toggle activation",
-  );
+export type DebugData = _DebugData;
+export function connectBridge(target: Window) {
+  isActive = true;
+  bridgeTarget = target;
+
+  target.postMessage(CONNECT_DEBUG, "*");
 }
-document.addEventListener("keyup", (event) => {
-  if (isHoldingShift && !event.shiftKey) {
-    lastShiftPress = Date.now();
-    isHoldingShift = false;
-  }
-});
 
-document.addEventListener("keydown", (event) => {
-  if (!event.shiftKey) {
+function sendMessage(payload: DebugDataDTO) {
+  if (!bridgeTarget) {
     return;
   }
 
-  isHoldingShift = true;
+  const message: DebugData = {
+    source: "impact-react-debugger",
+    payload: { event: "message", payload },
+  };
 
-  const now = Date.now();
-
-  if (now - lastShiftPress < 300) {
-    isActive = !isActive;
-    console.log(
-      isActive
-        ? "Signal debugging is active"
-        : "Signal debugging is deactivated",
-    );
-    if (isActive) {
-      localStorage.setItem("impact.debugger.isActive", "true");
-      mount();
-    } else {
-      localStorage.setItem("impact.debugger.isActive", "false");
-      unmount();
-    }
-  }
-});
+  bridgeTarget.postMessage(message, "*");
+}
 
 class SerialQueue {
   private queue: Array<() => Promise<void>> = [];
@@ -270,8 +250,20 @@ export function createSetterDebugEntry(
   const targetFrame = stackFrameData.shift() || sourceFrame;
 
   if (!sourceFrame) {
-    console.log("Unable to create setter debug entry");
-    console.log(stack);
+    sendMessage({
+      id,
+      value,
+      observers: [],
+      source: {
+        name: "N/A",
+        path: "N/A",
+      },
+      target: {
+        name: "N/A",
+        path: "N/A",
+      },
+      type: isDerived ? "derived" : "signal",
+    });
     return;
   }
 
@@ -314,7 +306,7 @@ export function createSetterDebugEntry(
         return Promise.all(observers.map((cacheKey) => cache[cacheKey])).then(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
-              addDebugData({
+              sendMessage({
                 id,
                 value,
                 observers: observingStackFrames.map(
@@ -386,7 +378,7 @@ function createEffectDebugEntry(effect: () => void) {
   queue.add(() =>
     // Not sure why TS yells here, we always assign a promise to this variable, hm
     stackFramePromise!.then((stackFrame) => {
-      addDebugData({
+      sendMessage({
         id,
         type: "effect",
         name: effect.name,
