@@ -167,7 +167,7 @@ function createSourceMappedStackFrame(
   functionName: string,
   line: number,
   column: number,
-) {
+): Promise<StackFrame> {
   // @ts-expect-error
   if (window.next) {
     const nextjsStackFrameUrl = `__nextjs_original-stack-frame?file=${encodeURIComponent(
@@ -180,9 +180,9 @@ function createSourceMappedStackFrame(
       return {
         fileName: payload.originalStackFrame.file,
         functionName: payload.originalStackFrame.methodName,
-        line: payload.originalStackFrame.lineNumber,
-        column: payload.originalStackFrame.column,
-      };
+        lineNumber: payload.originalStackFrame.lineNumber,
+        columnNumber: payload.originalStackFrame.column,
+      } as StackFrame;
     });
   } else {
     const stackframe = new StackFrame({
