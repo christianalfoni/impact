@@ -1,7 +1,7 @@
 ---
 codeCaption: Derived signals
 code: |
-  import { signal, derived, useStore } from 'impact-react'
+  import { signal, derived, useStore, observer } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -30,33 +30,33 @@ code: |
     }
   }
 
-  function Counter() {
-    using counterStore = useStore(CounterStore)
+  const Counter = observer(function Counter() {
+    const { count, increase } = useStore(CounterStore)
 
     return (
-        <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
+        <button onClick={increase}>
+        Increase ({count})
         </button>  
     )
-  }
+  })
 
-  function Enabler() {
-    using counterStore = useStore(CounterStore)
+  const Enabler = observer(function Enabler() {
+    const { enabled, enable } = useStore(CounterStore)
 
     return (
-        <button onClick={counterStore.enable}>
-        {counterStore.enabled ? "Enabled" : "Enable"}
+        <button onClick={enable}>
+        {enabled ? "Enabled" : "Enable"}
         </button>
     )
-  }
+  })
 
-  function Multiplier() {
-    using counterStore = useStore(CounterStore)
+  const Multiplier = observer(function Multiplier() {
+    const { multipliedCount } = useStore(CounterStore)
 
     return (
-        <h3>Multiplied: {counterStore.multipliedCount}</h3>
+        <h3>Multiplied: {multipliedCount}</h3>
     )
-  }
+  })
 
   export default function App() {
     return (

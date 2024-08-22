@@ -1,7 +1,7 @@
 ---
 codeCaption: Signals
 code: |
-  import { signal, useStore } from 'impact-react'
+  import { signal, useStore, observer } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -23,25 +23,25 @@ code: |
     }
   }
 
-  function Counter() {
-    using counterStore = useStore(CounterStore)
+  const Counter = observer(function Counter() {
+    const { count, increase } = useStore(CounterStore)
 
     return (
-      <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
+      <button onClick={increase}>
+        Increase ({count})
       </button>
     )
-  }
+  })
 
-  function Enabler() {
-    using counterStore = useStore(CounterStore)
+  const Enabler = observer(function Enabler() {
+    const { enabled, enable } = useStore(CounterStore)
 
     return (
-      <button onClick={counterStore.enable}>
-        {counterStore.enabled ? "Enabled" : "Enable"}
+      <button onClick={enable}>
+        {enabled ? "Enabled" : "Enable"}
       </button>
     )
-  }
+  })
 
   export default function App() {
     return (
@@ -85,7 +85,7 @@ The API of a signal is inspired by [Solid JS](https://www.solidjs.com/). It was 
 
 :::
 
-When exposing signals from a store it is common to use `getters`, meaning that unwrapping the value becomes implicit when consuming a signal from a component or a nested store. The value also becomes `readonly`, which is good practice when exposing state from state stores.
+When exposing signals from a store it is common to use `getters`. The value becomes `readonly`, which is good practice when exposing state that should only be changed from within the store. Also unwrapping the value becomes implicit when consuming a signal from a component or a nested store.
 
 ```ts
 import { signal } from "impact-react";

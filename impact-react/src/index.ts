@@ -2,6 +2,7 @@ import React, {
   Component,
   createContext,
   createElement,
+  FunctionComponent,
   ReactNode,
   Suspense,
   useContext,
@@ -60,7 +61,7 @@ const globalStores = new Map<Store<any, any>, any>();
 // We only want a single observer context for a component, but you can use multiple "useStore". So we keep
 // track of the currently active observer context to only create one for each component using one or multiple
 // stores
-let activeComponentObserverContext: ObserverContext | null = null;
+const activeComponentObserverContext: ObserverContext | null = null;
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
 // creating a globally controlled React dispatcher blocker
@@ -316,65 +317,6 @@ export function useStore<
       resolvedStore = resolveGlobalStore(store);
     }
 
-    // We might already have used a store and created an observer context
-    if (activeComponentObserverContext) {
-      // This Symbol.dispose method is what explicit resource management (using keyword) call when exiting the
-      // function component. Even though observation is already handled, we need to add the method
-      // @ts-ignore
-      resolvedStore[Symbol.dispose] = () => {
-        // Since we add the disposer to the store itself, we remove it when we are done
-        // @ts-ignore
-        delete resolvedStore[Symbol.dispose];
-      };
-
-      // @ts-ignore
-      return resolvedStore;
-    }
-
-    if (isServer) {
-      // On the server we do not care about observation
-      // @ts-ignore
-      resolvedStore[Symbol.dispose] = () => {
-        // @ts-ignore
-        delete resolvedStore[Symbol.dispose];
-      };
-
-      // @ts-ignore
-      return resolvedStore;
-    }
-
-    // So the consymption of this store is the first store and we need to create an observer context
-    activeComponentObserverContext = useObserver();
-
-    let hasUsedExplicitResourceManagement = false;
-
-    // When debugging or not in production we'll throw an error if the disposer has not been called.
-    // The reason is that you might forget using the "using" keyword, which breaks observation
-    if (isUsingDebugger() || !isProduction) {
-      const stackTrace = new Error().stack;
-
-      Promise.resolve().then(() => {
-        if (!hasUsedExplicitResourceManagement) {
-          throw new Error(`You did not use the "using" keyword, observability will not work:
-
-${stackTrace}`);
-        }
-      });
-    }
-
-    // Here we set up the cleanup of observation
-    // @ts-ignore
-    resolvedStore[Symbol.dispose] = () => {
-      hasUsedExplicitResourceManagement = true;
-      activeComponentObserverContext = null;
-      // @ts-ignore
-      delete resolvedStore[Symbol.dispose];
-
-      // Observer contexts are global and we need to pop it off the stack as soon as the component
-      // functions exists
-      ObserverContext.stack.pop();
-    };
-
     // @ts-ignore
     return resolvedStore;
   }
@@ -385,16 +327,6 @@ ${stackTrace}`);
     resolvedStore = resolveGlobalStore(store);
   } else {
     resolvedStore = resolvingStoreContainer.resolve(store);
-  }
-
-  if (isUsingDebugger() || !isProduction) {
-    // We give a helpful indication about not using the "using" keyword in stores, as it is not necessary
-    // @ts-ignore
-    resolvedStore[Symbol.dispose] = () => {
-      // @ts-ignore
-      delete resolvedStore[Symbol.dispose];
-      console.warn('There is no need to use "using" in stores');
-    };
   }
 
   // @ts-ignore
@@ -412,9 +344,7 @@ export function createStoreProvider<
 ): React.ComponentClass<
   A extends void
     ? { children: React.ReactNode }
-    : {
-        [K in keyof A]: A[K] extends Signal<infer V> ? V : never;
-      } & { children: React.ReactNode }
+    : A & { children: React.ReactNode }
 > {
   storeProviders.add(store);
 
@@ -433,9 +363,27 @@ export function createStoreProvider<
     mounted = false;
     // We convert props into signals
     propsSignals: any = {};
+    storeConstructor = () => {
+      const propsSignalsGetters: any = {};
+      const propsSignals = this.propsSignals;
+
+      // The props we pass into the store is the same shape as
+      // the signals object, though we convert it into getters
+      // as it makes no sense to change a props signal, and
+      // we can now use normal typing
+      for (const key in propsSignals) {
+        Object.defineProperty(propsSignalsGetters, key, {
+          get() {
+            return propsSignals[key]();
+          },
+        });
+      }
+
+      return store(propsSignalsGetters);
+    };
     container = new StoreContainer(
       store,
-      () => store(this.propsSignals),
+      this.storeConstructor,
       // eslint-disable-next-line
       // @ts-ignore
       this.context,
@@ -468,7 +416,7 @@ export function createStoreProvider<
       this.container.cleanup();
       this.container = new StoreContainer(
         store,
-        () => store(this.propsSignals),
+        this.storeConstructor,
         // eslint-disable-next-line
         // @ts-ignore
         this.context,
@@ -598,6 +546,10 @@ export class ObserverContext {
     this._getters.clear();
     this._setters.clear();
     this._subscriber?.();
+  }
+  // The ObserverContext can be used with explicit resource management
+  [Symbol.dispose]() {
+    ObserverContext.stack.pop();
   }
 }
 
@@ -906,7 +858,29 @@ export function effect(cb: () => void) {
 }
 
 // The hook that syncs React with the ObserverContext.
-function useObserver() {
+export function observer(): ObserverContext;
+export function observer<T>(
+  component: FunctionComponent<T>,
+): FunctionComponent<T>;
+export function observer<T>(component?: FunctionComponent<T>) {
+  if (component) {
+    return (props: T) => {
+      using _ = useObserver();
+
+      return component(props);
+    };
+  }
+
+  return useObserver();
+}
+
+export function Observer({ children }: { children: () => React.ReactNode }) {
+  using _ = useObserver();
+
+  return children();
+}
+
+export function useObserver() {
   const contextObserverRef = useRef<ObserverContext>();
 
   if (!contextObserverRef.current) {

@@ -33,7 +33,7 @@ features:
 codeCaption: Example
 horizontalPlayground: true
 code: |
-  import { signal, useStore } from 'impact-react'
+  import { signal, useStore, observer } from 'impact-react'
 
   function TickStore() {
     const tick = signal(0)
@@ -70,18 +70,18 @@ code: |
     }
   }
 
-  export default function App() {
-    using tickStore = useStore(TickStore)
+  export default observer(function App() {
+    const { tick, toggle, isTicking } = useStore(TickStore)
 
     return (
       <div>
-        <h4>Tick count: {tickStore.tick}</h4>
-        <button onClick={tickStore.toggle}>
-          {tickStore.isTicking ? "Stop" : "Start"}
+        <h4>Tick count: {tick}</h4>
+        <button onClick={toggle}>
+          {isTicking ? "Stop" : "Start"}
         </button>
       </div>
     )
-  }
+  })
 ---
 
 <HomeContent>

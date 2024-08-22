@@ -43,3 +43,9 @@ function MyStore() {
   };
 }
 ```
+
+::: tip
+
+Under the hood `useStore` uses the `useObservable` hook.
+
+:::

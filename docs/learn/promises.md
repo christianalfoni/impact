@@ -2,7 +2,7 @@
 codeCaption: Promises
 code: |
   import { Suspense } from 'react'
-  import { useStore, signal, use } from 'impact-react'
+  import { useStore, signal, use, observer } from 'impact-react'
 
   function DataStore() {
     const data = signal(fetchData())
@@ -21,10 +21,8 @@ code: |
     }
   }
 
-  function Data() {
-    using dataStore = useStore(DataStore)
-
-    const data = dataStore.data
+  const Data = observer(function Data() {
+    const { data } = useStore(DataStore)
 
     if (data.status === 'pending') {
       return <h4>Loading...</h4>
@@ -39,15 +37,14 @@ code: |
         {data.value}
       </h1>
     )
-  }
+  })
 
-  function SuspendedData() {
-    using dataStore = useStore(DataStore)
-    
+  const SuspendedData = observer(function SuspendedData() {
+    const dataStore = useStore(DataStore)
     const data = use(dataStore.data)
 
     return <h1>{data}</h1>
-  }
+  })
 
   export default function App() {
     return (

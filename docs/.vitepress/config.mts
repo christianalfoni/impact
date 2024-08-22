@@ -89,6 +89,10 @@ export default defineConfig({
             link: "/effect",
           },
           {
+            text: "observers",
+            link: "/observers",
+          },
+          {
             text: "signal",
             link: "/signal",
           },

@@ -1,7 +1,7 @@
 ---
 codeCaption: Creating a store
 code: |
-  import { useStore, signal } from 'impact-react'
+  import { useStore, signal, observer } from 'impact-react'
 
   function CounterStore() {
     const count = signal(0)
@@ -16,15 +16,15 @@ code: |
     }
   }
 
-  export default function App() {
-    using counterStore = useStore(CounterStore)
+  export default observer(function App() {
+    const { count, increase } = useStore(CounterStore)
 
     return (
-      <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
+      <button onClick={increase}>
+        Increase ({count})
       </button>
     )
-  }
+  })
 ---
 
 # Store
@@ -48,25 +48,21 @@ function CounterStore() {
 }
 ```
 
-Traditional React state management depends on the reconciliation loop, but **Impact** frees you from that by defining a **Store**. The store is just a function where you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. The function will **not** reconcile, it only runs once. With the observable primitives from Impact, like `signal`, your components will optimally consume state from these stores.
+Traditional React state management depends on the reconciliation loop, but **Impact** frees you from that by defining a **Store**. The store is just a function where you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. The function will **not** reconcile, it only runs once. With the observable primitives from Impact, like `signal`, your components will optimally consume state from these stores. We use a `getter` to return the count as we only want to change it from within the store and when a component accesses the count it will start observing it.
 
 ```tsx
-import { useStore, signal } from "impact-react";
+import { signal, userStore, observer } from "impact-react";
 
 // function CounterStore() { ... }
 
-export default function App() {
-  using counterStore = useStore(CounterStore);
+export default observer(function App() {
+  const { count, increase } = useStore(CounterStore);
 
-  return (
-    <button onClick={counterStore.increase}>
-      Increase ({counterStore.count})
-    </button>
-  );
-}
+  return <button onClick={increase}>Increase ({count})</button>;
+});
 ```
 
-The `useStore` function consumes a store. It can be used inside components and other stores. In components `useStore` is used in combination with the `using` keyword. The reason Impact uses the new [Explicit Resource Management](https://medium.com/@bagherani/ecmascript-explicit-resource-management-early-implementation-in-typescript-5-2-5e4d08b2aee3) JavaScript API is because it is the least intrusive API for components. With the `using` keyword there is no need to import an observer function or define your components in a specific way.
+The `useStore` function consumes a store. It can be used inside components and other stores. In this example we use the `observer` higher order component to enable observation in the component, but your team can decide which [observers](../observers.md) you want to use in your application.
 
 <ClientOnly>
   <Playground />

@@ -14,9 +14,20 @@ export const usePostsStore = () => useStore(PostsStore);
 // Imagine that we have a posts page where we want to
 // fetch and cache any posts we open
 function PostsStore() {
+  const { subscribePosts } = useApiStore();
   // We cache any queries for posts using a record of the post id
   // with the promise of the post as a signal
   const posts = {};
+
+  // We subscribe to post updates and update any posts
+  // we have fetched
+  cleanup(
+    subscribePosts((post) => {
+      if (posts[post.id]) {
+        posts[post.id](Promise.resolve(post));
+      }
+    }),
+  );
 
   return {
     fetchPost(id) {
@@ -99,25 +110,24 @@ export const usePostStore = () => useStore(PostStore);
 export const PostStoreProvider = createStoreProvider(PostStore);
 
 type Props = {
-  post: Signal<PostDTO>;
+  post: PostDTO;
 };
 
 // We create a store tied to a specific post
 function PostStore(props: Props) {
   const apiStore = useApiStore();
 
-  const initialPost = props.post();
-  // We choose to optimise consuming the post
-  // by giving each property its own signal
+  const id = props.post.id;
+  // In this implementation the "props.post" can
+  // update, but we want to only use the initial title
+  // to change it
   const title = signal(initialPost.title);
 
   // The value of the mutation state starts out as undefined
   const savingTitle = signal<Promise<void> | undefined>(undefined);
 
   return {
-    get id() {
-      return initialPost.id;
-    },
+    id,
     get title() {
       return post();
     },
@@ -134,7 +144,6 @@ function PostStore(props: Props) {
       }
     },
     saveTitle() {
-      // Update the mutation signal with the request
       changingTitle(apiStore.putPost(id, { title: title() }));
     },
   };
@@ -144,13 +153,14 @@ function PostStore(props: Props) {
 We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
 
 ```tsx
+import { useObserver } from "impact-react";
 import { usePostsStore } from "../stores/PostsStore";
 import { usePostStore, PostStoreProvider } from "../stores/PostStore";
 
 function PostContent() {
-  using postStore = usePostStore();
+  using _ = useObserver();
 
-  const { title, changeTitle, saveTitle, savingTitle } = postStore;
+  const { title, changeTitle, saveTitle, savingTitle } = usePostStore();
 
   return (
     <div>
@@ -171,9 +181,11 @@ function PostContent() {
 }
 
 export function Post({ id }) {
-  using postsStore = usePostsStore();
+  using _ = useObserver();
 
-  const postData = use(postsStore.fetchPost(id));
+  const { fetchPost } = usePostsStore();
+
+  const postData = use(fetchPost(id));
 
   return (
     // We set a key on the provider to bind the id of a post

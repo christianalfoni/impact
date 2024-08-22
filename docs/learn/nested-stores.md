@@ -1,10 +1,10 @@
 ---
 codeCaption: Nested stores
 code: |
-  import { signal, useStore, createStoreProvider, cleanup } from 'impact-react'
+  import { signal, useStore, createStoreProvider, cleanup, observer } from 'impact-react'
 
   function CounterStore(props) {
-    const count = signal(props.initialCount())
+    const count = signal(props.initialCount)
 
     const interval = setInterval(() => {
       count(current => current + 1)
@@ -21,11 +21,11 @@ code: |
 
   const CounterStoreProvider = createStoreProvider(CounterStore)
 
-  function Counter() {
-    using counterStore = useStore(CounterStore)
+  const Counter = observer(function Counter() {
+    const { count } = useStore(CounterStore)
 
-    return <h2>Count {counterStore.count}</h2>
-  }
+    return <h2>Count {count}</h2>
+  })
 
   export default function App() {
     return (
@@ -68,7 +68,7 @@ function AppStore() {
 
 Creating nested stores allows you to instantiate state management related to specific pages, features or even for each item in a list. You can start subscriptions and instantiate classes which can be disposed with `cleanup` when unmounting the provider.
 
-With a provider the store can receive props from React to initialise itself. These props are received as signals. You choose if you want to just unwrap the signal value to use it as an initial value, or if you want to keep it as a signal where React keeps it up to date through reconciliation.
+With a provider the store can receive props from React. These props are received as signals. This is because React might update this prop through reconciliation. You choose if you want to use the prop as an initial value or you keep using `props` to reference the latest value.
 
 ```ts
 import { createStoreProvider, cleanup, signal } from "impact-react";
@@ -76,15 +76,14 @@ import { createStoreProvider, cleanup, signal } from "impact-react";
 export const AppStoreProvider = createStoreProvider(MyStore);
 
 function AppStore(props) {
-  const count = signal(props.initialCount());
-  const user = props.user;
+  const count = signal(props.initialCount);
 
   return {
     get count() {
       return count();
     },
     get user() {
-      return user();
+      return props.user;
     },
   };
 }

@@ -10,7 +10,13 @@ function AppStore() {
 }
 ```
 
-Return signals using `getters`. This makes them readonly and triggers observation when consumed from components:
+You can return signals "as is" from stores, but that means you will also be able to change them from components. It is recommended that you rather use `getters` to make the signals `readonly` and expose specific methods to change them. This also makes consumption of state consistent from stores.
+
+::: tip
+
+If you do want to allow updating a signal directly from a store you can add a `setter`.
+
+:::
 
 ```ts
 import { signal } from "impact-react";
@@ -21,6 +27,11 @@ function AppStore() {
   return {
     get count() {
       return count();
+    },
+    // If you really want to allow components to directly manipulate the value,
+    // like in a form, you can expose a setter
+    set count(newValue) {
+      count(newValue);
     },
   };
 }
@@ -89,11 +100,11 @@ export const useAppStore = () => useStore(AppStore);
 export const AppStoreProvider = createStoreProvider(AppStore);
 
 type Props = {
-  initialCount: Signal<number>;
+  initialCount: number;
 };
 
 function AppStore(props: Props) {
-  const counter = createCounter(props.initialCount());
+  const counter = createCounter(props.initialCount);
 
   return {
     counter,
@@ -122,31 +133,34 @@ There are no limits to how big your stores can be in terms of performance. How y
 
 ## Props
 
-Stores that are provided in the React component tree can receive props. These props becomes signals inside the store. When React reconciles and updates the prop, the corresponding signal will update its value and trigger observation.
+Stores that are provided in the React component tree can receive props. These props becomes signals inside the store. When React reconciles and updates the prop, the corresponding signal will update its value and trigger observation. That means you should always consume the prop from the props object, as that gives you the latest value of the signal.
 
 ```tsx
-import { Signal, createStoreProvider } from "impact-react";
+import { Signal, createStoreProvider, derived, effect } from "impact-react";
 
 type StoreProps = {
   // Do not define props as optional, but rather
-  // make the signal possibly undefined
-  user: Signal<UserDTO | undefined>;
+  // make them possibly undefined
+  user: UserDTO | undefined;
 };
 
 function AppStore(props: StoreProps) {
-  // Unwrap the prop immediately to use
-  // the initial value
-  const user = props.user();
+  // If the user prop changes, you can derive from it when
+  // it changes
+  const isAwesome = derived(() => props.user?.isAwesome ?? false);
 
-  // Or use the signal "as is"
-  const user = props.user;
+  // The same goes for effects
+  effect(() => {
+    if (props.user?.isAwesome) {
+      alert("Good for you!");
+    }
+  });
 
   return {
     get user() {
-      // You can return signals coming from props. Any nested
-      // component will update if the StoreProvider component
-      // reconciles with a new user reference
-      return user();
+      // You can just expose it
+      // to nested stores and components "as is"
+      return props.user;
     },
   };
 }
@@ -161,6 +175,20 @@ function App(props) {
       <SomeAppFeature />
     </AppStoreProvider>
   );
+}
+```
+
+If a `prop` never changes, but you want to use it as an initial value, just put it in a signal:
+
+```ts
+function CounterStore(props) {
+  const count = signal(props.initialCount);
+
+  return {
+    get count() {
+      return count();
+    },
+  };
 }
 ```
 
@@ -201,23 +229,24 @@ function SessionStore() {
 Now that we have the session store we can use it in our top level component:
 
 ```tsx
+import { observer } from "impact-react";
 import { useSessionStore } from "../stores/SessionStore";
 import { AppStoreProvider } from "../stores/AppStore";
 import { App } from "./App";
 
-function AppSession() {
-  using sessionStore = useSessionStore();
+export default observer(function AppSession() {
+  const { session } = useSessionStore();
 
-  if (sessionStore.session.status === "pending") {
+  if (session.status === "pending") {
     return <div>Authenticating...</div>;
   }
 
-  if (sessionStore.session.status === "rejected") {
-    return <div>Could not authenticate: {sessionStore.session.reason}</div>;
+  if (session.status === "rejected") {
+    return <div>Could not authenticate: {session.reason}</div>;
   }
 
   // When the user changes this session user also changes
-  const user = sessionStore.session.value;
+  const user = session.value;
 
   return (
     // We use the ID of the user to identify unique state managent
@@ -227,7 +256,7 @@ function AppSession() {
       <App />
     </AppStoreProvider>
   );
-}
+});
 ```
 
 In this application there is no reason to show the `<App />` without a user. Now we split the asynchronous nature of the session and can isolate the state management of the App around a guaranteed user.
@@ -246,18 +275,16 @@ export const useAppStore = () => useStore(AppStore);
 export const AppStoreProvider = createStoreProvider(AppStore);
 
 type Props = {
-  user: Signal<User>;
+  user: User;
 };
 
 function AppStore(props: Props) {
-  // Any updates from React is updated on the signal, so
-  // we'll just use that signal for the user and expose
-  // it on the store
-  const user = props.user;
-
   return {
     get user() {
-      return user();
+      // Any updates from React is updated on the signal, so
+      // we'll just use that signal for the user and expose
+      // it on the store
+      return props.user;
     },
   };
 }
@@ -278,20 +305,20 @@ export function Counter() {
   );
 }
 
-function CounterContent() {
-  using counterStore = useCounterStore();
+const CounterContent = observer(function CounterContent() {
+  const { count } = useCounterStore();
 
-  return <div>{counterStore.count}</div>;
-}
+  return <div>{count}</div>;
+});
 ```
 
 The `Counter` component is now able to use other stores to resolve any asynchronous state, include a suspense and error boundary etc. Here shown in a more relevant example:
 
 ```tsx
-export function Editor(props) {
-  using appStore = useAppStore()
+export const Editor = observer(function Editor(props) {
+  const { getProcess } = useAppStore()
 
-  const process = use(appStore.getProcess(props.id))
+  const process = use(getProcess(props.id))
 
   return (
     <EditorStoreProvider process={process}>
@@ -300,13 +327,13 @@ export function Editor(props) {
       </Suspense>
     </CounterStoreProvider>
   );
-}
+})
 
-function EditorContent() {
-  using editorStore = useEditorStore();
+const EditorContent = observer(function EditorContent() {
+  const { dataFromProcess, isAwesome } = useEditorStore();
 
-  const dataFromProcess = use(editorStore.dataFromProcess)
+  const dataFromProcess = use(dataFromProcess)
 
-  return <div>{dataFromProcess.isAwesome}</div>;
-}
+  return <div>{isAwesome}</div>;
+})
 ```
