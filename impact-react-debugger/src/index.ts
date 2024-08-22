@@ -69,7 +69,56 @@ class SerialQueue {
 const queue = new SerialQueue();
 
 function createStackFrameData(stack: string) {
-  if (window.navigator.userAgent.includes("Chrome")) {
+  const stackFrameData: Array<{
+    file: string;
+    line: number;
+    column: number;
+    functionName: string;
+  }> = [];
+
+  // @ts-expect-error
+  if (window.next) {
+    const callSites = stack
+      .split("\n")
+      .slice(1)
+      .filter(
+        (line) =>
+          !line.includes("node_modules") &&
+          !line.includes("createSetterDebugEntry") &&
+          !line.includes("createGetterDebugEntry") &&
+          !line.includes("impact-react") &&
+          !line.includes("webpack.js") &&
+          !line.includes("chrome-extension://") &&
+          !line.includes("(<anonymous>)"),
+      );
+
+    for (const callSite of callSites) {
+      try {
+        let functionName =
+          callSite.match(/.*at (.*)?\(/)?.[1]?.trim() ?? "ANONYMOUS";
+        functionName = functionName.replace(" (webpack-internal:///", "");
+
+        let file = callSite.substring(
+          callSite.indexOf("webpack-internal:///(app-pages-browser)/"),
+        );
+
+        file = file.substring(0, file.length - 1);
+
+        const parts = file.split(":");
+
+        const column = Number(parts.pop());
+        const line = Number(parts.pop());
+
+        file = parts.join(":");
+
+        file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
+
+        stackFrameData.push({ file, line, column, functionName });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  } else if (window.navigator.userAgent.includes("Chrome")) {
     const callSites = stack
       .split("\n")
       .slice(1)
@@ -83,13 +132,6 @@ function createStackFrameData(stack: string) {
           // Vite
           !line.includes("@fs"),
       );
-
-    const stackFrameData: Array<{
-      file: string;
-      line: number;
-      column: number;
-      functionName: string;
-    }> = [];
 
     for (const callSite of callSites) {
       try {
@@ -115,11 +157,9 @@ function createStackFrameData(stack: string) {
         console.log(error);
       }
     }
-
-    return stackFrameData;
   }
 
-  return [];
+  return stackFrameData;
 }
 
 function createSourceMappedStackFrame(
@@ -128,21 +168,39 @@ function createSourceMappedStackFrame(
   line: number,
   column: number,
 ) {
-  const stackframe = new StackFrame({
-    fileName: file,
-    functionName,
-    lineNumber: line,
-    columnNumber: column,
-  });
+  // @ts-expect-error
+  if (window.next) {
+    const nextjsStackFrameUrl = `__nextjs_original-stack-frame?file=${encodeURIComponent(
+      file,
+    )}&methodName=${functionName}&lineNumber=${line}&column=${column}`;
 
-  const gps = new StackTraceGPS();
+    return fetch(nextjsStackFrameUrl).then(async (response) => {
+      const payload = await response.json();
 
-  return gps.pinpoint(stackframe).then((result) => {
-    // console.log("Pinpointed stackframe", functionName, stackframe, result);
-    result.setFunctionName(functionName);
+      return {
+        fileName: payload.originalStackFrame.file,
+        functionName: payload.originalStackFrame.methodName,
+        line: payload.originalStackFrame.lineNumber,
+        column: payload.originalStackFrame.column,
+      };
+    });
+  } else {
+    const stackframe = new StackFrame({
+      fileName: file,
+      functionName,
+      lineNumber: line,
+      columnNumber: column,
+    });
 
-    return result;
-  });
+    const gps = new StackTraceGPS();
+
+    return gps.pinpoint(stackframe).then((result) => {
+      // console.log("Pinpointed stackframe", functionName, stackframe, result);
+      result.setFunctionName(functionName);
+
+      return result;
+    });
+  }
 }
 
 export function createGetterDebugEntry(
