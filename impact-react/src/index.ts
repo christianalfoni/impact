@@ -6,7 +6,6 @@ import React, {
   ReactNode,
   Suspense,
   useContext,
-  useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
