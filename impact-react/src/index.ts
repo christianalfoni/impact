@@ -5,7 +5,6 @@ import React, {
   ReactNode,
   Suspense,
   useContext,
-  useEffect,
   useRef,
   useSyncExternalStore,
 } from "react";
@@ -28,6 +27,7 @@ export const signalDebugHooks: {
     derived?: boolean,
   ) => void;
   onEffectRun?: (effect: () => void) => void;
+  onStoreMounted?: (name: string) => void;
 } = {};
 
 const isProduction =
@@ -452,6 +452,8 @@ export function createStoreProvider<
     }
     componentDidMount(): void {
       this.mounted = true;
+
+      signalDebugHooks.onStoreMounted(store.name);
     }
     componentDidUpdate() {
       // We keep the signals updated

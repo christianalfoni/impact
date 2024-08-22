@@ -19,28 +19,27 @@ const observedSignals = new WeakMap<
   }
 >();
 
-let isActive = true;
-let bridgeTarget: Window | null = null;
-
 export type DebugData = _DebugData;
-export function connectBridge(target: Window) {
-  isActive = true;
-  bridgeTarget = target;
 
+let promiseResolver: (value: Window) => void;
+const awaitBridge = new Promise<Window>((resolve) => {
+  promiseResolver = resolve;
+});
+
+export function connectBridge(target: Window) {
   target.postMessage(CONNECT_DEBUG, "*");
+  promiseResolver(target);
 }
 
-function sendMessage(payload: DebugDataDTO) {
-  if (!bridgeTarget) {
-    return;
-  }
+async function sendMessage(payload: DebugDataDTO) {
+  const targetWindow = await awaitBridge;
 
   const message: DebugData = {
     source: "impact-react-debugger",
     payload: { event: "message", payload },
   };
 
-  bridgeTarget.postMessage(message, "*");
+  targetWindow.postMessage(message, "*");
 }
 
 class SerialQueue {
@@ -207,10 +206,6 @@ export function createGetterDebugEntry(
   context: ObserverContext,
   signal: SignalNotifier,
 ) {
-  if (!isActive) {
-    return;
-  }
-
   let stack = new Error().stack!;
 
   // This cleans the stack to remove anything happening before running the effect, as
@@ -297,10 +292,6 @@ export function createSetterDebugEntry(
   value: unknown,
   isDerived = false,
 ) {
-  if (!isActive) {
-    return;
-  }
-
   const id = debugDataId++;
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
@@ -404,10 +395,6 @@ export function createSetterDebugEntry(
 const effectsCachedStackFrame = new Map<() => void, Promise<StackFrame>>();
 
 function createEffectDebugEntry(effect: () => void) {
-  if (!isActive) {
-    return;
-  }
-
   const id = debugDataId++;
 
   let stackFramePromise = effectsCachedStackFrame.get(effect);
@@ -449,6 +436,14 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
+function createStoreMountedEntry(storeName: string) {
+  sendMessage({
+    type: "store",
+    name: storeName,
+  });
+}
+
 signalDebugHooks.onGetValue = createGetterDebugEntry;
 signalDebugHooks.onSetValue = createSetterDebugEntry;
 signalDebugHooks.onEffectRun = createEffectDebugEntry;
+signalDebugHooks.onStoreMounted = createStoreMountedEntry;

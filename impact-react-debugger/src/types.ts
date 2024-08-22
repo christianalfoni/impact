@@ -26,7 +26,8 @@ export type DebugDataDTO =
       observers: Observer[];
       value: any;
     }
-  | { id: number; type: "effect"; name: string; target: CodeLocation };
+  | { id: number; type: "effect"; name: string; target: CodeLocation }
+  | { type: "store"; name: string };
 
 export const CONNECT_DEBUG = {
   source: "impact-react-debugger",

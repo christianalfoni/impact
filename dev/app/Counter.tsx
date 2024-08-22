@@ -18,36 +18,53 @@ function CounterStore(props: { initialCount: Signal<number> }) {
   };
 }
 
+function AppStore(props: { username: Signal<string> }) {
+  const username = props.username;
+
+  return {
+    get username() {
+      return username();
+    },
+    setUsername(value: string) {
+      username(value);
+    },
+  };
+}
+
+const AppStoreProvider = createStoreProvider(AppStore);
 const CounterStoreProvider = createStoreProvider(CounterStore);
 
 export function Counter() {
-  const iframe = useRef<HTMLIFrameElement>();
   const [count, setCount] = useState(0);
+  const iframe = useRef<HTMLIFrameElement>(null);
 
-  const connectIframeToBridge = (iframe: HTMLIFrameElement) => {
-    if (iframe.contentWindow) {
-      connectBridge(iframe.contentWindow);
-    }
-  };
+  useEffect(() => {
+    const delayToAvoidTwiceCall = setTimeout(() => {
+      if (iframe.current?.contentWindow) {
+        connectBridge(iframe.current.contentWindow);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(delayToAvoidTwiceCall);
+    };
+  }, [iframe]);
 
   return (
     <>
-      <button onClick={() => setCount((current) => current + 1)}>
-        Change initial
-      </button>
-      <CounterStoreProvider initialCount={count}>
-        <CounterContent />
-      </CounterStoreProvider>
+      <AppStoreProvider username="John Doe">
+        <button onClick={() => setCount((current) => current + 1)}>
+          Change initial
+        </button>
 
+        <CounterStoreProvider initialCount={count}>
+          <CounterContent />
+        </CounterStoreProvider>
+      </AppStoreProvider>
       <br />
 
       <div className="rounded overflow-hidden m-5">
-        <iframe
-          ref={connectIframeToBridge}
-          width="100%"
-          height="500px"
-          src="/debugger"
-        />
+        <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
       </div>
     </>
   );
