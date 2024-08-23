@@ -1,8 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { memo, useState } from "react";
 
-import { createStoreProvider, observer, Signal, useStore } from "impact-react";
+import {
+  createStoreProvider,
+  useObserver,
+  Signal,
+  useStore,
+  Observer,
+} from "impact-react";
 
 function CounterStore(props: { count: number }) {
   return {
@@ -32,15 +38,15 @@ export function Counter() {
   );
 }
 
-function CounterContent() {
-  using _ = observer();
-
-  const { count, increase } = useStore(CounterStore);
+const CounterContent = memo(function CounterContent() {
+  const counterStore = useStore(CounterStore);
 
   return (
     <div>
-      <h1>Count is: {count}</h1>
-      <button onClick={increase}>Increase</button>
+      <h1>
+        Count is: <Observer>{() => counterStore.count}</Observer>
+      </h1>
+      <button onClick={counterStore.increase}>Increase</button>
     </div>
   );
-}
+});

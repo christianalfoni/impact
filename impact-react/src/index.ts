@@ -864,9 +864,13 @@ export function observer<T>(
 export function observer<T>(component?: FunctionComponent<T>) {
   if (component) {
     return (props: T) => {
-      using _ = useObserver();
+      const observer = useObserver();
 
-      return component(props);
+      try {
+        return component(props);
+      } finally {
+        observer[Symbol.dispose]();
+      }
     };
   }
 
@@ -874,9 +878,13 @@ export function observer<T>(component?: FunctionComponent<T>) {
 }
 
 export function Observer({ children }: { children: () => React.ReactNode }) {
-  using _ = useObserver();
+  const context = useObserver();
 
-  return children();
+  try {
+    return children();
+  } finally {
+    context[Symbol.dispose]();
+  }
 }
 
 export function useObserver() {
