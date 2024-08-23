@@ -70,7 +70,7 @@ code: |
 
   export default function App() {
     return (
-      <ItemsStoreProvider initialItems={[{ id: '123', title: "woop" }]}>
+      <ItemsStoreProvider items={[{ id: '123', title: "woop" }]}>
         <Items />
       </ItemsStoreProvider>
     )
