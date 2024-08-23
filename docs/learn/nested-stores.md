@@ -68,7 +68,7 @@ function AppStore() {
 
 Creating nested stores allows you to instantiate state management related to specific pages, features or even for each item in a list. You can start subscriptions and instantiate classes which can be disposed with `cleanup` when unmounting the provider.
 
-With a provider the store can receive props from React. These props are received as signals. This is because React might update this prop through reconciliation. You choose if you want to use the prop as an initial value or you keep using `props` to reference the latest value.
+With a provider the store can receive props from React. These props are received as `readonly` signals. This is because React might update this prop through reconciliation. You choose if you want to use the prop as an initial value or you keep using `props` to reference the latest value.
 
 ```ts
 import { createStoreProvider, cleanup, signal } from "impact-react";
