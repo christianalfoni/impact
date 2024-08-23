@@ -54,24 +54,31 @@ const resolvingStoreContainers: Array<StoreContainer | typeof GLOBAL_STORE> =
 // way we can throw an error if the provider has not been mounted when trying to consume the related store
 const storeProviders = new Set<Store<any, any>>();
 
-// If we resolve to a global store we keep the resolved stores here
-const globalStores = new Map<Store<any, any>, any>();
+// We use a global reference to the resolved events of "receiver". This allows us
+// to attach the resolved events to the global store or the store container
+let lastResolvedEvents: any;
 
-// We only want a single observer context for a component, but you can use multiple "useStore". So we keep
-// track of the currently active observer context to only create one for each component using one or multiple
-// stores
-const activeComponentObserverContext: ObserverContext | null = null;
+// If we resolve to a global store we keep the resolved stores here
+const globalStores = new Map<
+  Store<any, any>,
+  {
+    store: any;
+    events: any;
+  }
+>();
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
 // creating a globally controlled React dispatcher blocker
 let blockableDispatcher: any;
-let isBlockingDispatcher = true;
+let isBlockingDispatcher = false;
 const dispatchUnblocker = () => {
   isBlockingDispatcher = false;
 };
 
 // This is only used in development
 function blockDispatcher() {
+  isBlockingDispatcher = true;
+
   if (blockableDispatcher) {
     return dispatchUnblocker;
   }
@@ -117,17 +124,26 @@ function blockDispatcher() {
 }
 
 function resolveGlobalStore(store: Store<any, any>) {
-  let resolvedStore = globalStores.get(store);
+  let globalStore = globalStores.get(store);
 
-  if (!resolvedStore) {
+  if (!globalStore) {
     resolvingStoreContainers.push(GLOBAL_STORE);
     // @ts-ignore
-    resolvedStore = store();
-    globalStores.set(store, resolvedStore);
+    const resolvedStore = store();
+
+    globalStore = {
+      store: resolvedStore,
+      events: lastResolvedEvents,
+    };
+
+    globalStores.set(store, globalStore);
+
+    lastResolvedEvents = undefined;
+
     resolvingStoreContainers.pop();
   }
 
-  return resolvedStore;
+  return globalStore.store;
 }
 
 // Identify if we have a resolving store. This allows the global "cleanup" function register cleanups to
@@ -172,6 +188,8 @@ class StoreContainer {
   private _resolvementError?: Error;
   private _state: StoreState;
   private _disposers = new Set<() => void>();
+  // The RPC events registered with "receiver"
+  events: any;
 
   // When constructing the provider for the store we only keep a reference to the store and
   // any parent store container
@@ -180,7 +198,7 @@ class StoreContainer {
     constr: () => any,
     // When the StoreProvider mounts it uses the React context to find the parent
     // store container
-    private _parent: StoreContainer | null,
+    public parent: StoreContainer | null,
   ) {
     this._state = {
       isResolved: false,
@@ -220,6 +238,9 @@ class StoreContainer {
           store: this._state.storeConstr(),
           storeRef: store,
         };
+        // We have called the store and events might have been registered with "receiver"
+        this.events = lastResolvedEvents;
+        lastResolvedEvents = undefined;
         // We pop off the resolvement tracker
         resolvingStoreContainers.pop();
 
@@ -235,8 +256,8 @@ ${String(e)}`);
 
     // If the store is not matching this store container and we have a parent, we start resolving the
     // store at the parent instead
-    if (this._parent) {
-      return this._parent.resolve(store);
+    if (this.parent) {
+      return this.parent.resolve(store);
     }
 
     // If we could not resolve the store through the context, but the store has a registered store provider,
@@ -248,7 +269,6 @@ ${String(e)}`);
     }
 
     // At this point we default to creating a global store, if not already created
-
     return resolveGlobalStore(store);
   }
   cleanup() {
@@ -297,8 +317,11 @@ export function useStore<
 
     if (storeContainer && !isProduction) {
       const unblockDispatcher = blockDispatcher();
-      resolvedStore = storeContainer.resolve<T, A>(store);
-      unblockDispatcher();
+      try {
+        resolvedStore = storeContainer.resolve<T, A>(store);
+      } finally {
+        unblockDispatcher();
+      }
     } else if (storeContainer) {
       resolvedStore = storeContainer.resolve<T, A>(store);
     } else if (storeProviders.has(store)) {
@@ -309,8 +332,11 @@ export function useStore<
       );
     } else if (!isProduction) {
       const unblockDispatcher = blockDispatcher();
-      resolvedStore = resolveGlobalStore(store);
-      unblockDispatcher();
+      try {
+        resolvedStore = resolveGlobalStore(store);
+      } finally {
+        unblockDispatcher();
+      }
     } else {
       // If we do not find a store container we resolve a global store
       resolvedStore = resolveGlobalStore(store);
@@ -888,6 +914,13 @@ export function Observer({ children }: { children: () => React.ReactNode }) {
 }
 
 export function useObserver() {
+  // No reason to set up a ObserverContext on the server
+  if (isServer) {
+    return {
+      [Symbol.dispose]() {},
+    };
+  }
+
   const contextObserverRef = useRef<ObserverContext>();
 
   if (!contextObserverRef.current) {
@@ -910,4 +943,59 @@ export function useObserver() {
   );
 
   return context;
+}
+
+type EventRPC = (...params: any[]) => any;
+
+export function receiver<T extends { [event: string]: EventRPC }>(events: T) {
+  if (!getResolvingStoreContainer()) {
+    throw new Error('Can not call "receiver" outside a store');
+  }
+
+  lastResolvedEvents = events;
+}
+
+export function emitter<T extends { [event: string]: EventRPC }>() {
+  const storeContainer = getResolvingStoreContainer();
+
+  if (!(storeContainer instanceof StoreContainer)) {
+    throw new Error('Can not call "emitter" in global stores');
+  }
+
+  if (!storeContainer) {
+    throw new Error('Can not call "emitter" outside a store');
+  }
+
+  return new Proxy(
+    {},
+    {
+      get(_, event: string) {
+        return (...params: any[]) => {
+          let currentStoreContainer = storeContainer;
+          while (currentStoreContainer) {
+            if (currentStoreContainer.events?.[event]) {
+              return currentStoreContainer.events[event](...params);
+            }
+
+            if (currentStoreContainer.parent) {
+              currentStoreContainer = currentStoreContainer.parent;
+              continue;
+            }
+
+            const events = Array.from(globalStores.values()).find(
+              (globalStore) => Boolean(globalStore.events?.[event]),
+            )?.events;
+
+            if (!events) {
+              throw new Error("There are no receivers for the event: " + event);
+            }
+
+            // @ts-ignore
+            console.log(events);
+            return events[event](...params);
+          }
+        };
+      },
+    },
+  ) as T;
 }

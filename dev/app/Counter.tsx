@@ -1,52 +1,105 @@
 "use client";
 
-import React, { memo, useState } from "react";
-
+import { memo, useState } from "react";
 import {
+  signal,
+  useStore,
   createStoreProvider,
   useObserver,
-  Signal,
-  useStore,
-  Observer,
+  receiver,
+  emitter,
 } from "impact-react";
 
-function CounterStore(props: { count: number }) {
+type AppStoreEvents = {
+  addGrocery(grocery: string): void;
+};
+
+function createGrocery(_name: string) {
+  const name = signal(_name);
+
   return {
-    get count() {
-      return props.count;
-    },
-    increase() {
-      // count((current) => current + 1);
+    id: String(Math.random()),
+    get name() {
+      return name();
     },
   };
 }
 
-const CounterStoreProvider = createStoreProvider(CounterStore);
+function AppStore() {
+  const groceries = signal<ReturnType<typeof createGrocery>[]>([]);
 
-export function Counter() {
-  const [count, setCount] = useState(0);
+  receiver<AppStoreEvents>({
+    addGrocery(name) {
+      groceries((current) => [...current, createGrocery(name)]);
+    },
+  });
+
+  return {
+    get groceries() {
+      return groceries();
+    },
+  };
+}
+
+function GroceriesStore(props: { groceries: string[] }) {
+  const emit = emitter<AppStoreEvents>();
+
+  return {
+    get groceries() {
+      return props.groceries;
+    },
+    addGrocery(grocery: string) {
+      emit.addGrocery(grocery);
+    },
+  };
+}
+
+const GroceriesStoreProvider = createStoreProvider(GroceriesStore);
+
+function App() {
+  using _ = useObserver();
+
+  const appStore = useStore(AppStore);
+
+  console.log(appStore.groceries);
 
   return (
-    <>
-      <button onClick={() => setCount((current) => current + 1)}>
-        Change initial
-      </button>
-      <CounterStoreProvider count={count}>
-        <CounterContent />
-      </CounterStoreProvider>
-    </>
+    <GroceriesStoreProvider groceries={appStore.groceries}>
+      <Groceries />
+    </GroceriesStoreProvider>
   );
 }
 
-const CounterContent = memo(function CounterContent() {
-  const counterStore = useStore(CounterStore);
+function Groceries() {
+  using _ = useObserver();
+
+  const [grocery, setGrocery] = useState("");
+  const { groceries, addGrocery } = useStore(GroceriesStore);
 
   return (
     <div>
-      <h1>
-        Count is: <Observer>{() => counterStore.count}</Observer>
-      </h1>
-      <button onClick={counterStore.increase}>Increase</button>
+      <input
+        value={grocery}
+        style={{
+          color: "black",
+        }}
+        onChange={(event) => setGrocery(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            addGrocery(grocery);
+            setGrocery("");
+          }
+        }}
+      />
+      <ul>
+        {groceries.map((grocery, index) => (
+          <li key={index}>{grocery}</li>
+        ))}
+      </ul>
     </div>
   );
-});
+}
+
+export function Counter() {
+  return <App />;
+}
