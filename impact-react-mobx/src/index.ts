@@ -11,8 +11,8 @@ export { cleanup, receiver, emitter };
 
 export function createStore<
   T extends Record<string, unknown>,
-  A extends Record<string, any> | void,
->(store: Store<T, A>) {
+  K extends Record<string, any>,
+>(store: Store<T, K>) {
   return createImpactStore(
     store,
     (props) => {

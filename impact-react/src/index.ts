@@ -43,7 +43,7 @@ function isResolvingStoreFromComponent(observerContext: ObserverContext) {
 
 export function createStore<
   T extends Record<string, unknown>,
-  A extends Record<string, any> | void,
+  A extends Record<string, () => any>,
 >(store: Store<T, A>) {
   return createImpactStore(
     store,

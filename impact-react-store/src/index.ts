@@ -253,21 +253,20 @@ export function createStore<
   T extends Record<string, unknown>,
   A extends Record<string, any> | void,
   U extends Record<string, any>,
+  K extends Record<string, any>,
 >(
-  store: Store<T, A>,
+  store: Store<T, K>,
   createObservableProps: (props: Record<string, any>) => U,
   updateObservableProps: (
     props: Record<string, any>,
     observableProps: NoInfer<U>,
   ) => void,
-  provideObservableProps: (props: NoInfer<U>) => A,
+  provideObservableProps: (props: NoInfer<U>) => K,
 ): (() => T) & {
   Provider: React.ComponentClass<
     A extends void
       ? { children: React.ReactNode }
-      : {
-          [K in keyof A]: A[K] extends () => any ? ReturnType<A[K]> : never;
-        } & { children: React.ReactNode }
+      : A & { children: React.ReactNode }
   >;
 } {
   // The StoreProvider provides the store container which resolves the store. We use a class because

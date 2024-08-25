@@ -1,29 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { receiver, emitter, createStore } from "impact-react-mobx";
-import { observable } from "mobx";
-import { observer } from "mobx-react-lite";
+import { receiver, emitter, createStore, signal, observer } from "impact-react";
+// import { observable } from "mobx";
+// import { observer } from "mobx-react-lite";
 
 type AppStoreEvents = {
   addGrocery(grocery: string): void;
 };
 
-function createGrocery(name: string) {
-  return observable({
+function createGrocery(_name: string) {
+  const [name] = signal(_name);
+
+  return {
     id: String(Math.random()),
     name,
-  });
+  };
 }
 
 type Grocery = ReturnType<typeof createGrocery>;
 
 function AppStore() {
-  const groceries = observable<Grocery>([]);
+  const [groceries, setGroceries] = signal<Grocery[]>([]);
 
   receiver<AppStoreEvents>({
     addGrocery(name) {
-      groceries.push(createGrocery(name));
+      setGroceries((current) => [...current, createGrocery(name)]);
     },
   });
 
@@ -34,7 +36,7 @@ function AppStore() {
 
 const useAppStore = createStore(AppStore);
 
-function GroceriesStore(props: { groceries: Grocery[] }) {
+function GroceriesStore(props: { groceries: () => Grocery[] }) {
   const emit = emitter<AppStoreEvents>();
 
   return {
@@ -79,8 +81,8 @@ const Groceries = observer(function Groceries() {
         }}
       />
       <ul>
-        {groceries.map((grocery, index) => (
-          <li key={index}>{grocery.name}</li>
+        {groceries().map((grocery, index) => (
+          <li key={index}>{grocery.name()}</li>
         ))}
       </ul>
     </div>
