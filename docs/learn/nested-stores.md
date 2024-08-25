@@ -15,7 +15,9 @@ code: |
 
   function CounterStore(props) {
     const globalStore = useGlobalStore()
-    const [count, setCount] = signal(Math.max(props.initialCount(), globalStore.count()))
+    const [count, setCount] = signal(
+      Math.max(props.initialCount(), globalStore.count())
+    )
 
     const interval = setInterval(() => {
       setCount(current => current + 1)
