@@ -10,16 +10,14 @@ Reactive effect. Will observe any signals or derived in its callback. It runs im
 import { effect, signal } from "impact-react";
 
 function CounterStore() {
-  const count = signal(0);
+  const [count, setCount] = signal(0);
 
   effect(() => {
     console.log(count());
   });
 
   return {
-    get count() {
-      return count();
-    },
+    count,
   };
 }
 ```

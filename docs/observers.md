@@ -24,7 +24,7 @@ Explicit Resource Management is currently a Stage 3 proposal. It works out of th
 
 ## Observer
 
-Allows you to target signal observation at specific points in components. Useful for complicated UIs and signals that update often.
+Allows you to target signal observation at specific points in components. Useful for complicated UIs and signals that update often. **Note!** that the `Observer` will call the signal function to unwrap the value.
 
 ```tsx
 import { Observer } from "impact-react";
@@ -50,6 +50,6 @@ import { observer } from "impact-react";
 const MyComponent = observer(function MyComponent() {
   const { count } = useCounterStore();
 
-  return <div>{count}</div>;
+  return <div>{count()}</div>;
 });
 ```
