@@ -1,90 +1,77 @@
 ---
 codeCaption: Nested stores
 code: |
-  import { signal, useStore, createStoreProvider, cleanup, observer } from 'impact-react'
+  import { signal, createStore, cleanup, useObserver } from 'impact-react'
+
+  function GlobalStore() {
+    const [count, setCount] = signal(0)
+    
+    return {
+      count
+    }
+  }
+
+  const useGlobalStore = createStore(GlobalStore)
 
   function CounterStore(props) {
-    const count = signal(props.initialCount)
+    const globalStore = useGlobalStore()
+    const [count, setCount] = signal(Math.max(props.initialCount(), globalStore.count()))
 
     const interval = setInterval(() => {
-      count(current => current + 1)
+      setCount(current => current + 1)
     }, 1000)
 
     cleanup(() => clearInterval(interval))
 
     return {
-      get count() {
-        return count()
-      }
+      count
     }
   }
 
-  const CounterStoreProvider = createStoreProvider(CounterStore)
+  const useCounterStore = createStore(CounterStore)
 
-  const Counter = observer(function Counter() {
-    const { count } = useStore(CounterStore)
+  function Counter() {
+    using _ = useObserver()
+    
+    const { count } = useCounterStore()
 
-    return <h2>Count {count}</h2>
-  })
+    return <h2>Count {count()}</h2>
+  }
+
+  function Page() {
+    return (
+      <useCounterStore.Provider initialCount={10}>
+        <Counter />
+      </useCounterStore.Provider>  
+    )
+  }
 
   export default function App() {
     return (
-      <CounterStoreProvider initialCount={10}>
-        <Counter />
-      </CounterStoreProvider>
+      <useGlobalStore.Provider>
+        <Page />
+      </useGlobalStore.Provider>
     )
   }
 ---
 
 # Nested Stores
 
-By default the stores are global, but you can scope them to specific component trees by using a provider.
+As **Impact** builds on the existing React context you will be able to instantiate state management related to specific pages, features or even for each item in a list.
 
-You create a provider for a store using the `createStoreProvider` function.
-
-```ts
-import { createStoreProvider, cleanup, signal } from "impact-react";
-
-export const AppStoreProvider = createStoreProvider(MyStore);
-
-function AppStore() {
-  const count = signal(0);
-
-  const interval = setInterval(() => {
-    count((current) => current + 1);
-  }, 1000);
-
-  cleanup(() => {
-    clearInterval(interval);
-  });
-
-  return {
-    get count() {
-      return count();
-    },
-  };
-}
-```
-
-Creating nested stores allows you to instantiate state management related to specific pages, features or even for each item in a list. You can start subscriptions and instantiate classes which can be disposed with `cleanup` when unmounting the provider.
-
-With a provider the store can receive props from React. These props are received as `readonly` signals. This is because React might update this prop through reconciliation. You choose if you want to use the prop as an initial value or you keep using `props` to reference the latest value.
+The store can receive props from React. These props are received as signals. This is because React might update the props through reconciliation. You can use the props at any time inside the store and also expose them from the store to be used in nested components or stores.
 
 ```ts
-import { createStoreProvider, cleanup, signal } from "impact-react";
+import { createStore, cleanup, signal } from "impact-react";
 
-export const AppStoreProvider = createStoreProvider(MyStore);
+export const useAppStore = createStore(AppStore);
 
 function AppStore(props) {
-  const count = signal(props.initialCount);
+  const [count, setCount] = signal(props.initialCount());
 
   return {
-    get count() {
-      return count();
-    },
-    get user() {
-      return props.user;
-    },
+    count,
+    user: props.user,
   };
 }
 ```

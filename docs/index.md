@@ -29,76 +29,18 @@ features:
   - title: Performant and predictable
     details: Primitives of signal, derived and effect, combined with automatic observation in components.
   - title: Nested stores
-    details: The same mental model as React context. Provide stores, pass them props and consume them from any nested component or store.
-codeCaption: Example
-horizontalPlayground: true
-code: |
-  import { signal, useStore, observer } from 'impact-react'
-
-  function TickStore() {
-    const tick = signal(0)
-    const isTicking = signal(false)
-
-    let interval
-
-    return {
-      get tick() {
-        return tick()
-      },
-      get isTicking() {
-        return isTicking()
-      },
-      toggle() {
-        if (isTicking()) {
-          stop()
-        } else {
-          start()
-        }
-      }
-    }
-    
-    function start() {
-      interval = setInterval(() => {
-        tick(current => current + 1)
-      }, 500)
-      isTicking(true)
-    }
-
-    function stop() {
-      clearInterval(interval)
-      isTicking(false)
-    }
-  }
-
-  export default observer(function App() {
-    const { tick, toggle, isTicking } = useStore(TickStore)
-
-    return (
-      <div>
-        <h4>Tick count: {tick}</h4>
-        <button onClick={toggle}>
-          {isTicking ? "Stop" : "Start"}
-        </button>
-      </div>
-    )
-  })
+    details: Built on React context. Provide stores, pass them props and consume them from any nested component or store.
 ---
 
 <HomeContent>
 
-<hr/>
+<br />
 
 <h1 align="center">
 
 :warning: Release candidate :warning:
 
 </h1>
-
-<hr/>
-
-<ClientOnly>
-  <Playground />
-</ClientOnly>
 
 ## Presenting Impact
 
@@ -111,12 +53,6 @@ If you have used Impact in an application or you think it has valuable perspecti
 ```sh
 npm install impact-react
 ```
-
-::: warning
-
-Impact requires Explicit Resource Management which is currently a Stage 3 proposal. It works out of the box with latest TypeScript, SWC and ESBuild. Implementations in browsers is on its way. Babel currently requires a [plugin](https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management).
-
-:::
 
 ## Install debugger
 

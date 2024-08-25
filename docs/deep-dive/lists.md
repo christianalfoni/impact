@@ -2,56 +2,64 @@
 codeCaption: Working with lists
 code: |
   import { memo } from 'react'
-  import { signal, useStore, createStoreProvider, useObserver } from 'impact-react'
+  import { signal, createStore, useObserver, emitter } from 'impact-react'
 
-  function createItem(item) {
-    const title = signal(item.title)
+  function createItem(item, UPDATE) {
+    const [title, setTitle] = signal(item.title)
     
     return {
       id: item.id,
-      get title() {
-        return title()
+      title,
+      [UPDATE](updatedItem) {
+        setTitle(updatedItem.title)
       }
     }
   }
 
   function ItemsStore(props) {
+    // We create a symbol that only this store knows about. It will
+    // allow the store to update items, but components can not
+    const UPDATE = Symbol('UPDATE')
+    
+    // We want to emit an event to a parent store to subscribe to
+    // items
+    const emit = emitter()
+    
     // We create a dictionary to reference items
     const items = {}
     
     // We populate the items
     for (let item of props.items) {
-      items[item.id] = createItem(item)
+      items[item.id] = createItem(item, UPDATE)
     }
 
     // We create a signal for managing what to display in the list. It
     // only contains ids to items
     const listById = signal(Object.keys(items))
 
-    // TODO: Subscribe to item updates and update each individual item.
-    // Update the "listById" if necessary
-
+    // We subscribe to item updates from some parent store and
+    // keep items up to date
+    cleanup(emit.subscribeItems((item) => {
+      items[item.id][UPDATE](item)
+    }))
+    
     return {
-      get items() {
-        return items
-      },
-      get listById() {
-        return listById()
-      }
+      items,
+      listById
     }
   }
 
-  const ItemsStoreProvider = createStoreProvider(ItemsStore)
+  const useItemsStore = createStore(ItemsStore)
 
   // We memoize so that when the Items reconciles
   // this component does not need to reconcile, but if the
   // observed item changes it will reconcile
   const Item = memo(function Item({ item }) {
-    using _ = useObserver()
-    
     return (
       <li>
-        {item.title}
+        // We use the Observable component to pinpoint exact positions of observations, optimising
+        // exactly where updates should happen
+        <Observable>{item.title}</Observable>
       </li>
     )
   })
@@ -59,38 +67,36 @@ code: |
   function Items() {
     using _ = useObserver()
     
-    const { listById, items } = useStore(ItemsStore)
+    const { listById, items } = useItemsStore()
 
     return (
       <ul>
-        {listById.map((id) => <Item key={id} item={items[id]} />)}
+        {listById().map((id) => <Item key={id} item={items[id]} />)}
       </ul>
     )
   }
 
   export default function App() {
     return (
-      <ItemsStoreProvider items={[{ id: '123', title: "woop" }]}>
+      <useItemsStore.Provider items={[{ id: '123', title: "woop" }]}>
         <Items />
-      </ItemsStoreProvider>
+      </useItemsStore.Provider>
     )
   }
 ---
 
 # Lists
 
-Creating observable lists in **Impact** is straightforward. They are essentially a signal with an array.
+Creating lists in **Impact** is no different than in React.
 
 ```ts
 import { signal } from "impact-react";
 
 function ItemsStore() {
-  const list = signal([]);
+  const [list, setList] = signal([]);
 
   return {
-    get list() {
-      return list();
-    },
+    list,
   };
 }
 ```
@@ -101,48 +107,42 @@ Since signal values are considered immutable (like in React), you update that li
 import { signal } from "impact-react";
 
 function ItemsStore() {
-  const list = signal([]);
+  const [list, setList] = signal([]);
 
   return {
-    get list() {
-      return list();
-    },
+    list,
     addToList(item) {
-      list((current) => [...current, item]);
+      setList((current) => [...current, item]);
     },
   };
 }
 ```
 
-If the items are complex objects, that often change its properties, you can optimise this by creating signals of the item properties.
+If the items are complex objects, that often change its properties, you can optimise this by creating signals of the item properties instead of the item itself.
 
 ```ts
 import { signal } from "impact-react";
 
 function createItem(item) {
-  const title = signal(item.title);
-  const description = signal(item.description);
+  const [title, setTitle] = signal(item.title);
+  const [description, setDescription] = signal(item.description);
 
   return {
     id: item.id,
-    get title() {
-      return title();
-    },
-    get description() {
-      return description();
-    },
+    title,
+    description,
+    setTitle,
+    setDescription,
   };
 }
 
 function ItemsStore() {
-  const list = signal([]);
+  const [list, setList] = signal([]);
 
   return {
-    get list() {
-      return list();
-    },
+    list,
     addToList(item) {
-      list((current) => [...current, createItem(item)]);
+      setList((current) => [...current, createItem(item)]);
     },
   };
 }
@@ -158,7 +158,7 @@ function Items() {
 
   return (
     <ul>
-      {list.map((item) => (
+      {list().map((item) => (
         <Item key={item.id} item={item} />
       ))}
     </ul>
@@ -170,13 +170,13 @@ const Item = memo(function Item(props) {
 
   return (
     <li>
-      {props.item.title} - {props.item.description}
+      {props.item.title()} - {props.item.description()}
     </li>
   );
 });
 ```
 
-Most simple lists can be managed this way. However, you might have much bigger lists with sorting, filters, pagination and other states. In those cases you will want full control of what items are shown in the list at any moment.
+Now the `Item` never reconciles from changes to the list, only the signals accessed in the component. Most simple lists can be managed this way. However, you might have much bigger lists with sorting, filters, pagination, subscriptions and other states. Here is an example that covers a lot of complexity:
 
 <ClientOnly>
  <Playground />

@@ -43,29 +43,13 @@ const isServer = typeof window === "undefined";
 // can be tracked by React
 let currentSnapshot = 0;
 
-const GLOBAL_STORE = Symbol("GLOBAL_STORE");
-
 // A store container is like an injection container. It is responsible for resolving stores. As stores can resolve
 // other stores we keep track of the currently resolving stores
-const resolvingStoreContainers: Array<StoreContainer | typeof GLOBAL_STORE> =
-  [];
-
-// By default Impact resolves to a global store. If a store provider is created for a store we keep track of it. That
-// way we can throw an error if the provider has not been mounted when trying to consume the related store
-const storeProviders = new Set<Store<any, any>>();
+const resolvingStoreContainers: Array<StoreContainer> = [];
 
 // We use a global reference to the resolved events of "receiver". This allows us
 // to attach the resolved events to the global store or the store container
 let lastResolvedEvents: any;
-
-// If we resolve to a global store we keep the resolved stores here
-const globalStores = new Map<
-  Store<any, any>,
-  {
-    store: any;
-    events: any;
-  }
->();
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
 // creating a globally controlled React dispatcher blocker
@@ -121,29 +105,6 @@ function blockDispatcher() {
   }
 
   return dispatchUnblocker;
-}
-
-function resolveGlobalStore(store: Store<any, any>) {
-  let globalStore = globalStores.get(store);
-
-  if (!globalStore) {
-    resolvingStoreContainers.push(GLOBAL_STORE);
-    // @ts-ignore
-    const resolvedStore = store();
-
-    globalStore = {
-      store: resolvedStore,
-      events: lastResolvedEvents,
-    };
-
-    globalStores.set(store, globalStore);
-
-    lastResolvedEvents = undefined;
-
-    resolvingStoreContainers.pop();
-  }
-
-  return globalStore.store;
 }
 
 // Identify if we have a resolving store. This allows the global "cleanup" function register cleanups to
@@ -260,16 +221,7 @@ ${String(e)}`);
       return this.parent.resolve(store);
     }
 
-    // If we could not resolve the store through the context, but the store has a registered store provider,
-    // we throw an error
-    if (storeProviders.has(store)) {
-      throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
-      );
-    }
-
-    // At this point we default to creating a global store, if not already created
-    return resolveGlobalStore(store);
+    throw new Error(`No provider could be found for ${store?.name}`);
   }
   cleanup() {
     this._disposers.forEach((cleaner) => {
@@ -286,14 +238,8 @@ const storeContainerContext = createContext<StoreContainer | null>(null);
 export function cleanup(cleaner: () => void) {
   const resolvingStoreContainer = getResolvingStoreContainer();
 
-  if (resolvingStoreContainer === undefined) {
+  if (!resolvingStoreContainer) {
     throw new Error('"cleanup" can only be used when creating a store');
-  }
-
-  // It is a global store. We only return here because effect and derived uses cleanup
-  // to ensure subscriptions are disposed and contexts are removed from signals
-  if (resolvingStoreContainer === GLOBAL_STORE) {
-    return;
   }
 
   resolvingStoreContainer.registerCleanup(cleaner);
@@ -302,12 +248,11 @@ export function cleanup(cleaner: () => void) {
 // "useStore" can be used in both components and stores. When resolving from a component
 // it will create an observer context and resolve the store. If resolving from a store it will
 // only resolve the store
-export function useStore<
+function useStore<
   T extends Record<string, unknown>,
   A extends Record<string, unknown> | void,
->(store: Store<T, A>): T & { [Symbol.dispose](): void } {
+>(store: Store<T, A>): T {
   const resolvingStoreContainer = getResolvingStoreContainer();
-  let resolvedStore: T;
 
   // If we are not currently resolving a store, we assume that we are resolving from a component as
   // you can really only initiate resolving stores from components
@@ -318,61 +263,40 @@ export function useStore<
     if (storeContainer && !isProduction) {
       const unblockDispatcher = blockDispatcher();
       try {
-        resolvedStore = storeContainer.resolve<T, A>(store);
+        return storeContainer.resolve<T, A>(store);
       } finally {
         unblockDispatcher();
       }
-    } else if (storeContainer) {
-      resolvedStore = storeContainer.resolve<T, A>(store);
-    } else if (storeProviders.has(store)) {
-      // If we created a store provider for the store we throw an error, as it is expected that
-      // the store provider should be mounted
-      throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
-      );
-    } else if (!isProduction) {
-      const unblockDispatcher = blockDispatcher();
-      try {
-        resolvedStore = resolveGlobalStore(store);
-      } finally {
-        unblockDispatcher();
-      }
-    } else {
-      // If we do not find a store container we resolve a global store
-      resolvedStore = resolveGlobalStore(store);
     }
 
-    // @ts-ignore
-    return resolvedStore;
+    if (storeContainer) {
+      return storeContainer.resolve<T, A>(store);
+    }
+
+    throw new Error(`No provider could be found for ${store?.name}`);
   }
 
   // At this point we are not in a component and we resolve the store as normal
-  if (resolvingStoreContainer === GLOBAL_STORE) {
-    // If we do not find a store container we resolve a global store
-    resolvedStore = resolveGlobalStore(store);
-  } else {
-    resolvedStore = resolvingStoreContainer.resolve(store);
-  }
-
-  // @ts-ignore
-  return resolvedStore;
+  return resolvingStoreContainer.resolve(store);
 }
 
-// This function creates the actual StoreProvider component, which is responsible for converting
-// props into singals and keep them up to date. Also isolate the children in this component, as
+// This function creates the actual hook and related StoreProvider component, which is responsible for converting
+// props into signals and keep them up to date. Also isolate the children in this component, as
 // those are not needed in the store
-export function createStoreProvider<
+export function createStore<
   T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
+  A extends Record<string, () => any> | void,
 >(
   store: Store<T, A>,
-): React.ComponentClass<
-  A extends void
-    ? { children: React.ReactNode }
-    : A & { children: React.ReactNode }
-> {
-  storeProviders.add(store);
-
+): (() => T) & {
+  Provider: React.ComponentClass<
+    A extends void
+      ? { children: React.ReactNode }
+      : {
+          [K in keyof A]: A[K] extends () => any ? ReturnType<A[K]> : never;
+        } & { children: React.ReactNode }
+  >;
+} {
   // The StoreProvider provides the store container which resolves the store. We use a class because
   // we need the "componentWillUnmount" lifecycle hook
   class StoreProvider extends Component {
@@ -397,11 +321,7 @@ export function createStoreProvider<
       // as it makes no sense to change a props signal, and
       // we can now use normal typing
       for (const key in propsSignals) {
-        Object.defineProperty(propsSignalsGetters, key, {
-          get() {
-            return propsSignals[key]();
-          },
-        });
+        propsSignalsGetters[key] = propsSignals[key][0];
       }
 
       return store(propsSignalsGetters);
@@ -430,7 +350,7 @@ export function createStoreProvider<
       // We keep the signals updated
       for (const key in this.propsSignals) {
         // @ts-ignore
-        this.propsSignals[key](this.props[key]);
+        this.propsSignals[key][1](this.props[key]);
       }
     }
     // When an error is thrown we dispose of the store. Then we throw the error up the component tree.
@@ -483,7 +403,11 @@ export function createStoreProvider<
     }
   }
 
-  return StoreProvider as any;
+  const hook = () => useStore(store);
+
+  hook.Provider = StoreProvider;
+
+  return hook as any;
 }
 
 // The observer context is responsible for keeping track of signals accessed in a component, derived or effect. It
@@ -605,11 +529,14 @@ export class SignalNotifier {
   }
 }
 
-export type Signal<T> = (
-  value?:
-    | T
-    | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
-) => T extends Promise<infer V> ? ObservablePromise<V> : T;
+export type Signal<T> = [
+  () => T extends Promise<infer V> ? ObservablePromise<V> : T,
+  (
+    value:
+      | T
+      | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
+  ) => T extends Promise<infer V> ? ObservablePromise<V> : T,
+];
 
 export function signal<T>(initialValue: T) {
   // If a signal has a promise we want to abort the current
@@ -673,8 +600,8 @@ export function signal<T>(initialValue: T) {
     return observablePromise;
   }
 
-  return ((...args: any[]) => {
-    if (!args.length) {
+  return [
+    () => {
       // Consuming a store might resolve it synchronously. During that resolvement we
       // do not want to track access to any signals, only the signals actually consumed
       // in the component function body
@@ -689,47 +616,46 @@ export function signal<T>(initialValue: T) {
       }
 
       return value;
-    }
+    },
+    (newValue: any) => {
+      // The update signature
+      if (typeof newValue === "function") {
+        newValue = newValue(value);
+      }
 
-    let newValue = args[0];
+      if (newValue instanceof Promise) {
+        newValue = createObservablePromise(newValue);
+      }
 
-    // The update signature
-    if (typeof newValue === "function") {
-      newValue = newValue(value);
-    }
+      // We do nothing if the values are the same
+      if (value === newValue) {
+        return value;
+      }
 
-    if (newValue instanceof Promise) {
-      newValue = createObservablePromise(newValue);
-    }
+      value = newValue;
 
-    // We do nothing if the values are the same
-    if (value === newValue) {
+      ObserverContext.current?.registerSetter(signalNotifier);
+
+      if (signalDebugHooks.onSetValue) {
+        signalDebugHooks.onSetValue(signalNotifier, value);
+      }
+
+      if (value instanceof Promise) {
+        // A promise could be an already resolved promise, in which case we do not want to notify as it is
+        // already done in "createObservablePromise". So we run our own micro task to check if the promise
+        // is still pending, where we do want to notify
+        Promise.resolve().then(() => {
+          if (value instanceof Promise && value.status === "pending") {
+            signalNotifier.notify();
+          }
+        });
+      } else {
+        signalNotifier.notify();
+      }
+
       return value;
-    }
-
-    value = newValue;
-
-    ObserverContext.current?.registerSetter(signalNotifier);
-
-    if (signalDebugHooks.onSetValue) {
-      signalDebugHooks.onSetValue(signalNotifier, value);
-    }
-
-    if (value instanceof Promise) {
-      // A promise could be an already resolved promise, in which case we do not want to notify as it is
-      // already done in "createObservablePromise". So we run our own micro task to check if the promise
-      // is still pending, where we do want to notify
-      Promise.resolve().then(() => {
-        if (value instanceof Promise && value.status === "pending") {
-          signalNotifier.notify();
-        }
-      });
-    } else {
-      signalNotifier.notify();
-    }
-
-    return value;
-  }) as Signal<T>;
+    },
+  ] as Signal<T>;
 }
 
 type PendingPromise<T> = Promise<T> & {
@@ -982,17 +908,7 @@ export function emitter<T extends { [event: string]: EventRPC }>() {
               continue;
             }
 
-            const events = Array.from(globalStores.values()).find(
-              (globalStore) => Boolean(globalStore.events?.[event]),
-            )?.events;
-
-            if (!events) {
-              throw new Error("There are no receivers for the event: " + event);
-            }
-
-            // @ts-ignore
-            console.log(events);
-            return events[event](...params);
+            throw new Error("There are no receivers for the event: " + event);
           }
         };
       },

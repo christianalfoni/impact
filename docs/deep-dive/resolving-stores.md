@@ -1,6 +1,6 @@
 # Resolving Stores
 
-One of the features of Impact is the ability to resolve stores from the React context. You provide a store using a `StoreProvider` in the component tree and any nested component can now consume the same store. This is not much different from consuming a regular context. Where things might start to challenge your technical intuition is when the the same `useStore` hook can be used inside the _store_ to also resolve stores up the component tree.
+The core feature of Impact is the ability to resolve stores from the React context. You provide a store using a `StoreProvider` in the component tree and any nested component can now consume the same store. This is not much different from consuming a regular context. Where things might start to challenge your technical intuition is when the the same hook can be used inside the _store_ to also resolve stores up the component tree.
 
 Hopefully this behaviour is an intuitive developer experience, but to scratch your technical itch, let us take on a concrete example by looking at a simplified component tree:
 
@@ -16,7 +16,7 @@ AppStoreProvider
 
 Each **StoreProvider** in this tree has its own **StoreContainer** instance that is provided down the component tree using React context. This **StoreContainer** instance is also passed the parent **StoreContainer** from up the component tree using the React context. That means **StoreContainer**'s represents the same hierarchy of stores as the React context itself.
 
-So when `useStore` is used inside **Feature** it will `useContext` to find the closest **StoreContainer**, which comes from **FeatureStoreProvider**. This **StoreContainer** instance has a parent property referencing the **StoreContainer** on **AdminStoreProvider**, which has a parent property referencing the **StoreContainer** on **AppStoreProvider**.
+So when a store hook is used inside **Feature** it will `useContext` to find the closest **StoreContainer**, which comes from **FeatureStoreProvider**. This **StoreContainer** instance has a parent property referencing the **StoreContainer** on **AdminStoreProvider**, which has a parent property referencing the **StoreContainer** on **AppStoreProvider**.
 
 With this in mind we can now explain step by step what happens when the **Feature** component uses `useAppStore` to gain access to a user.
 

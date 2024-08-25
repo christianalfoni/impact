@@ -15,39 +15,35 @@ type AppStoreEvents = {
 };
 
 function createGrocery(_name: string) {
-  const name = signal(_name);
+  const [name] = signal(_name);
 
   return {
     id: String(Math.random()),
-    get name() {
-      return name();
-    },
+    name,
   };
 }
 
+type Grocery = ReturnType<typeof createGrocery>;
+
 function AppStore() {
-  const groceries = signal<ReturnType<typeof createGrocery>[]>([]);
+  const [groceries, setGroceries] = signal<Grocery[]>([]);
 
   receiver<AppStoreEvents>({
     addGrocery(name) {
-      groceries((current) => [...current, createGrocery(name)]);
+      setGroceries((current) => [...current, createGrocery(name)]);
     },
   });
 
   return {
-    get groceries() {
-      return groceries();
-    },
+    groceries,
   };
 }
 
-function GroceriesStore(props: { groceries: string[] }) {
+function GroceriesStore(props: { groceries: () => Grocery[] }) {
   const emit = emitter<AppStoreEvents>();
 
   return {
-    get groceries() {
-      return props.groceries;
-    },
+    groceries: props.groceries,
     addGrocery(grocery: string) {
       emit.addGrocery(grocery);
     },
@@ -64,7 +60,7 @@ function App() {
   console.log(appStore.groceries);
 
   return (
-    <GroceriesStoreProvider groceries={appStore.groceries}>
+    <GroceriesStoreProvider groceries={appStore.groceries()}>
       <Groceries />
     </GroceriesStoreProvider>
   );
@@ -92,8 +88,8 @@ function Groceries() {
         }}
       />
       <ul>
-        {groceries.map((grocery, index) => (
-          <li key={index}>{grocery}</li>
+        {groceries().map((grocery, index) => (
+          <li key={index}>{grocery.name()}</li>
         ))}
       </ul>
     </div>

@@ -77,8 +77,8 @@ export default defineConfig({
             link: "/cleanup",
           },
           {
-            text: "createStoreProvider",
-            link: "/createStoreProvider",
+            text: "createStore",
+            link: "/createStore",
           },
           {
             text: "derived",
