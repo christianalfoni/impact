@@ -1,7 +1,7 @@
 {
-  "name": "impact-react",
-  "version": "1.13.0",
-  "description": "Reactive state management for React",
+  "name": "impact-react-store",
+  "version": "1.0.0",
+  "description": "Impact React nested stores",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -29,17 +29,15 @@
     "react",
     "context",
     "reactive",
-    "signals",
     "state",
-    "global"
+    "global",
+    "store",
+    "observable"
   ],
   "files": [
     "dist"
   ],
   "peerDependencies": {
     "react": "*"
-  },
-  "dependencies": {
-    "impact-react-store": "^1.0.0"
   }
 }
