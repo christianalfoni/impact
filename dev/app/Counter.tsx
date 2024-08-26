@@ -39,14 +39,14 @@ export function Counter() {
   const iframe = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    const delayToAvoidTwiceCall = setTimeout(() => {
+    const delayToAvoidCallTwice = setTimeout(() => {
       if (iframe.current?.contentWindow) {
         connectBridge(iframe.current.contentWindow);
       }
     }, 1000);
 
     return () => {
-      clearTimeout(delayToAvoidTwiceCall);
+      clearTimeout(delayToAvoidCallTwice);
     };
   }, [iframe]);
 
