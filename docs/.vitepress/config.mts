@@ -77,8 +77,8 @@ export default defineConfig({
             link: "/cleanup",
           },
           {
-            text: "createStoreProvider",
-            link: "/createStoreProvider",
+            text: "createStore",
+            link: "/createStore",
           },
           {
             text: "derived",
@@ -89,12 +89,16 @@ export default defineConfig({
             link: "/effect",
           },
           {
-            text: "signal",
-            link: "/signal",
+            text: "messages",
+            link: "/messages",
           },
           {
-            text: "useStore",
-            link: "/useStore",
+            text: "observers",
+            link: "/observers",
+          },
+          {
+            text: "signal",
+            link: "/signal",
           },
         ],
       },

@@ -1,70 +1,71 @@
 ---
 codeCaption: Derived signals
 code: |
-  import { signal, derived, useStore } from 'impact-react'
+  import { signal, derived, createStore, useObserver } from 'impact-react'
 
   function CounterStore() {
-    const count = signal(0)
-    const enabled = signal(false)
+    const [count, setCount] = signal(0)
+    const [enabled, setEnabled] = signal(false)
     const multipliedCount = derived(() =>
-      enabled() ?
-        count() * 4 : count() * 2
+      enabled() ? count() * 4 : count() * 2
     )
 
     return {
-      get count() {
-        return count()
-      },
-      get enabled() {
-        return enabled()
-      },
-      get multipliedCount() {
-        return multipliedCount()
-      },
+      count,
+      enabled,
+      multipliedCount,
       increase() {
-        count(current => current + 1)
+        setCount(current => current + 1)
       },
       enable() {
-        enabled(true)
+        setEnabled(true)
       }
     }
   }
 
+  const useCounterStore = createStore(CounterStore)
+
   function Counter() {
-    using counterStore = useStore(CounterStore)
+    using _ = useObserver()
+    
+    const { count, increase } = useCounterStore()
 
     return (
-        <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
-        </button>  
+      <button onClick={increase}>
+        Increase ({count()})
+      </button>  
     )
   }
 
   function Enabler() {
-    using counterStore = useStore(CounterStore)
+    using _ = useObserver()
+    
+    const { enabled, enable } = useCounterStore()
 
     return (
-        <button onClick={counterStore.enable}>
-        {counterStore.enabled ? "Enabled" : "Enable"}
-        </button>
+      <button onClick={enable}>
+        {enabled() ? "Enabled" : "Enable"}
+      </button>
     )
   }
 
   function Multiplier() {
-    using counterStore = useStore(CounterStore)
+    using _ = useObserver()
+    
+    const { multipliedCount } = useCounterStore()
 
     return (
-        <h3>Multiplied: {counterStore.multipliedCount}</h3>
+      <h3>Multiplied: {multipliedCount()}</h3>
     )
   }
 
   export default function App() {
     return (
-      <div>
+      <useCounterStore.Provider>
         <Counter />
         <Enabler />
         <Multiplier />
-      </div>
+      </useCounterStore.Provider>
     )
   }
 ---

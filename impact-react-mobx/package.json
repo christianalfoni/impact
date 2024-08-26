@@ -1,6 +1,6 @@
 {
-  "name": "impact-react",
-  "version": "1.13.0",
+  "name": "impact-react-mobx",
+  "version": "1.0.0",
   "description": "Reactive state management for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -37,9 +37,13 @@
     "dist"
   ],
   "peerDependencies": {
+    "mobx": "*",
     "react": "*"
   },
   "dependencies": {
     "impact-react-store": "^1.0.0"
+  },
+  "devDependencies": {
+    "mobx": "^6.13.1"
   }
 }

@@ -2,9 +2,11 @@
   "name": "impact-react-monorepo",
   "private": true,
   "workspaces": [
-    "dev",
+    "impact-react-store",
     "impact-react",
-    "impact-react-debugger"
+    "impact-react-mobx",
+    "impact-react-debugger",
+    "dev"
   ],
   "scripts": {
     "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",
@@ -30,7 +32,7 @@
     "react": "^18.3.1",
     "rimraf": "^2.6.1",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.3",
+    "typescript": "^5.5.4",
     "vitepress": "^1.3.1"
   },
   "dependencies": {

@@ -2,9 +2,9 @@
 outline: deep
 ---
 
-# createStoreProvider
+# createStore
 
-Scope store to a component tree. This allows for passing props to the store and [cleanup](./cleanup.md) when the related component tree unmounts.
+Creates the hook and related provider for the store. Just like React you can have multiple instances of the same store simply by providing it in different parts of your component tree.
 
 ::: tip
 
@@ -13,7 +13,7 @@ If a nested component throws an error, the store provided will be disposed and t
 :::
 
 ```tsx
-import { useStore, signal, createStoreProvider } from "impact-react";
+import { signal, createStore, useObserver } from "impact-react";
 
 function CounterStore({ initialCount }) {
   const count = signal(initialCount);
@@ -28,23 +28,21 @@ function CounterStore({ initialCount }) {
   };
 }
 
-const CounterStoreProvider = createStoreProvider(CounterStore);
+const useCounterStore = createStore(CounterStore);
 
 function Counter() {
-  using counterStore = useStore(CounterStore);
+  using _ = useObserver();
 
-  return (
-    <button onClick={counterStore.increase}>
-      Increase ({counterStore.count})
-    </button>
-  );
+  const { count, increase } = useCounterStore();
+
+  return <button onClick={increase}>Increase ({count})</button>;
 }
 
 function App() {
   return (
-    <CounterStoreProvider initialCount={10}>
+    <useCounterStore.Provider initialCount={10}>
       <Counter />
-    </CounterStoreProvider>
+    </useCounterStore.Provider>
   );
 }
 ```

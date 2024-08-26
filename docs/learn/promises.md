@@ -2,15 +2,13 @@
 codeCaption: Promises
 code: |
   import { Suspense } from 'react'
-  import { useStore, signal, use } from 'impact-react'
+  import { createStore, signal, use, useObserver } from 'impact-react'
 
   function DataStore() {
-    const data = signal(fetchData())
+    const [data, setData] = signal(fetchData())
 
     return {
-      get data() {
-        return data()
-      }
+      data
     }
 
     function fetchData() {
@@ -21,10 +19,13 @@ code: |
     }
   }
 
-  function Data() {
-    using dataStore = useStore(DataStore)
+  const useDataStore = createStore(DataStore)
 
-    const data = dataStore.data
+  function Data() {
+    using _ = useObserver()
+    
+    const dataStore = useDataStore()
+    const data = dataStore.data()
 
     if (data.status === 'pending') {
       return <h4>Loading...</h4>
@@ -42,9 +43,10 @@ code: |
   }
 
   function SuspendedData() {
-    using dataStore = useStore(DataStore)
-    
-    const data = use(dataStore.data)
+    using _ = useObserver()
+
+    const dataStore = useDataStore()
+    const data = use(dataStore.data())
 
     return <h1>{data}</h1>
   }
@@ -77,7 +79,7 @@ If you are not using React 19 yet, you can use a `use` polyfill from Impact
 import { signal } from "impact-react";
 
 // Create a signal with a promise
-const promisedValue = signal(getSomePromisedValue());
+const [promisedValue, setPromisedValue] = signal(getSomePromisedValue());
 
 // Unwrapping it gives you an Observable Promise
 const promise = promisedValue();
@@ -95,7 +97,7 @@ When a promise is assigned to a signal it is enhanced with a `.status` property,
 import { signal } from "impact-react";
 
 // Create a signal with a promise
-const promisedValue = signal(getSomePromisedValue());
+const [promisedValue, setPromisedValue] = signal(getSomePromisedValue());
 
 // Unwrapping it gives you an Observable Promise
 const promise = promisedValue();

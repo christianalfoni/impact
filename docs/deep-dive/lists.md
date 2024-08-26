@@ -2,86 +2,101 @@
 codeCaption: Working with lists
 code: |
   import { memo } from 'react'
-  import { signal, useStore, createStoreProvider } from 'impact-react'
+  import { signal, createStore, useObserver, emitter } from 'impact-react'
+
+  function createItem(item, UPDATE) {
+    const [title, setTitle] = signal(item.title)
+    
+    return {
+      id: item.id,
+      title,
+      [UPDATE](updatedItem) {
+        setTitle(updatedItem.title)
+      }
+    }
+  }
 
   function ItemsStore(props) {
+    // We create a symbol that only this store knows about. It will
+    // allow the store to update items, but components can not
+    const UPDATE = Symbol('UPDATE')
+    
+    // We want to emit an event to a parent store to subscribe to
+    // items
+    const emit = emitter()
+    
     // We create a dictionary to reference items
-    const items = props.initialItems().reduce((acc, item) => {
-      // We turn every item into a signal, but we could also do
-      // "createItem(item)" if the item and related logic was complex enough
-      acc[item.id] = signal(item)
-
-      return acc
-    }, {})
+    const items = {}
+    
+    // We populate the items
+    for (let item of props.items) {
+      items[item.id] = createItem(item, UPDATE)
+    }
 
     // We create a signal for managing what to display in the list. It
     // only contains ids to items
     const listById = signal(Object.keys(items))
 
-    // TODO: Subscribe to item updates and update each individual item.
-    // Update the "listById" if necessary
-
+    // We subscribe to item updates from some parent store and
+    // keep items up to date
+    cleanup(emit.subscribeItems((item) => {
+      items[item.id][UPDATE](item)
+    }))
+    
     return {
-      get listById() {
-        return listById()
-      },
-      getItemById(id) {
-        return items[id]()
-      }
+      items,
+      listById
     }
   }
 
-  const ItemsStoreProvider = createStoreProvider(ItemsStore)
+  const useItemsStore = createStore(ItemsStore)
 
-  // We memoize so that when the App reconciles
+  // We memoize so that when the Items reconciles
   // this component does not need to reconcile, but if the
   // observed item changes it will reconcile
-  const Item = memo(({ id }) => {
-    using itemsStore = useStore(ItemsStore)
-
-    // We consume the specific item directly from the store
-    const item = itemsStore.getItemById(id)
-
+  const Item = memo(function Item({ item }) {
     return (
       <li>
-        {item.title}
+        // We use the Observable component to pinpoint exact positions of observations, optimising
+        // exactly where updates should happen
+        <Observable>{item.title}</Observable>
       </li>
     )
   })
 
   function Items() {
-    using itemsStore = useStore(ItemsStore)
+    using _ = useObserver()
+    
+    const { listById, items } = useItemsStore()
 
     return (
       <ul>
-        {itemsStore.listById.map((id) => <Item key={id} id={id} />)}
+        {listById().map((id) => <Item key={id} item={items[id]} />)}
       </ul>
     )
   }
 
   export default function App() {
     return (
-      <ItemsStoreProvider initialItems={[{ id: '123', title: "woop" }]}>
+      <useItemsStore.Provider items={[{ id: '123', title: "woop" }]}>
         <Items />
-      </ItemsStoreProvider>
+      </useItemsStore.Provider>
     )
   }
 ---
 
 # Lists
 
-Creating observable lists in **Impact** is straightforward. They are essentially a signal with an array.
+Creating lists in **Impact** is no different than in React.
 
 ```ts
 import { signal } from "impact-react";
 
 function ItemsStore() {
-  const list = signal([]);
+  const [list, setList] = signal([]);
 
   return {
-    get list() {
-      return list();
-    },
+    list,
   };
 }
 ```
@@ -92,23 +107,77 @@ Since signal values are considered immutable (like in React), you update that li
 import { signal } from "impact-react";
 
 function ItemsStore() {
-  const list = signal([]);
+  const [list, setList] = signal([]);
 
   return {
-    get list() {
-      return list();
-    },
+    list,
     addToList(item) {
-      list((current) => [...current, item]);
+      setList((current) => [...current, item]);
     },
   };
 }
 ```
 
-Most simple lists can be managed this way. However, you might have much bigger lists with sorting, filters and other states. In those cases, you want to ensure maximum performance so that the component managing the list does not reconcile when items in the list update. Plus, you will want full control of what items are shown in the list at any moment.
+If the items are complex objects, that often change its properties, you can optimise this by creating signals of the item properties instead of the item itself.
+
+```ts
+import { signal } from "impact-react";
+
+function createItem(item) {
+  const [title, setTitle] = signal(item.title);
+  const [description, setDescription] = signal(item.description);
+
+  return {
+    id: item.id,
+    title,
+    description,
+    setTitle,
+    setDescription,
+  };
+}
+
+function ItemsStore() {
+  const [list, setList] = signal([]);
+
+  return {
+    list,
+    addToList(item) {
+      setList((current) => [...current, createItem(item)]);
+    },
+  };
+}
+```
+
+Since the item object itself never changes, we can now optimise this rendering by passing the item as a prop to a memoed `Item` component.
+
+```tsx
+function Items() {
+  using _ = useObserver();
+
+  const { list } = useStore(ItemsStore);
+
+  return (
+    <ul>
+      {list().map((item) => (
+        <Item key={item.id} item={item} />
+      ))}
+    </ul>
+  );
+}
+
+const Item = memo(function Item(props) {
+  using _ = useObserver();
+
+  return (
+    <li>
+      {props.item.title()} - {props.item.description()}
+    </li>
+  );
+});
+```
+
+Now the `Item` never reconciles from changes to the list, only the signals accessed in the component. Most simple lists can be managed this way. However, you might have much bigger lists with sorting, filters, pagination, subscriptions and other states. Here is an example that covers a lot of complexity:
 
 <ClientOnly>
  <Playground />
 </ClientOnly>
-
-Now you are free to choose how to produce the list to display. By iterating the `items` record, you can sort, filter or even add items to the list based on certain interactions. Each item is memoized on its id and the item is only consumed from within the `Item` component, isolating updates.

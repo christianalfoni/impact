@@ -1,72 +1,100 @@
 ---
 codeCaption: Creating a store
 code: |
-  import { useStore, signal } from 'impact-react'
+  import { signal, createStore, useObserver } from 'impact-react'
 
   function CounterStore() {
-    const count = signal(0)
+    const [count, setCount] = signal(0)
 
     return {
-      get count() {
-        return count()
-      },
+      count,
       increase() {
-        count(current => current + 1)
+        setCount(current => current + 1)
       }
     }
   }
 
-  export default function App() {
-    using counterStore = useStore(CounterStore)
+  const useCounterStore = createStore(CounterStore)
+
+  function Counter() {
+    using _ = useObserver()
+    
+    const { count, increase } = useCounterStore()
 
     return (
-      <button onClick={counterStore.increase}>
-        Increase ({counterStore.count})
+      <button onClick={increase}>
+        Increase ({count()})
       </button>
+    )
+  }
+
+  export default function App() {    
+    return (
+      <useCounterStore.Provider>
+        <Counter />
+      </useCounterStore.Provider>
     )
   }
 ---
 
 # Store
 
-Moving back to our initial example we implement the same `count` and `increase` using **Impact**.
+When the React context does not work for us we have a tendency to replace it with global state management. Doing so definitely solves a friction, but we also leave something behind. With Impact we rather make the React contexts observable, gaining the benefits we find in global state management, without leaving behind the benefits of the React context.
+
+So let us implement the [previous](./context.md) React context example with **Impact**.
 
 ```ts
-import { signal } from "impact-react";
+import { signal, createStore } from "impact-react";
 
 function CounterStore() {
-  const count = signal(0);
+  const [count, setCount] = signal(0);
 
   return {
-    get count() {
-      return count();
-    },
+    count,
     increase() {
-      count((current) => current + 1);
+      setCount((current) => current + 1);
     },
   };
 }
+
+const useCounterStore = createStore(CounterStore);
 ```
 
-Traditional React state management depends on the reconciliation loop, but **Impact** frees you from that by defining a **Store**. The store is just a function where you are free to instantiate classes, assign local variables, start subscriptions, pretty much whatever you want. The function will **not** reconcile, it only runs once. With the observable primitives from Impact, like `signal`, your components will optimally consume state from these stores.
+We have bailed out of the reconciliation loop and rather use observable primitives. We use `signal` instead of `useState` to define our state. To create the hook and provider to consume the store, we use the `createStore` function, instead of `createContext`.
+
+Components will need the ability to observe what signals are being accessed from a store, and be notified when they change. Impact provides [observers](../observers.md) where a recent JavaScript feature has enabled a less intrusive way to make components observe. If you prefer a more traditional way, you are free to do so.
 
 ```tsx
-import { useStore, signal } from "impact-react";
+import { signal, createStore, useObserver } from "impact-react";
 
-// function CounterStore() { ... }
+// function CounterStore() {...}
+
+// const useCounterStore = createStore(CounterStore)
+
+function Counter() {
+  using _ = useObserver();
+
+  const { count, increase } = useCounterStore();
+
+  return <button onClick={increase}>Increase ({count()})</button>;
+}
 
 export default function App() {
-  using counterStore = useStore(CounterStore);
-
   return (
-    <button onClick={counterStore.increase}>
-      Increase ({counterStore.count})
-    </button>
+    <useCounterStore.Provider>
+      <Counter />
+    </useCounterStore.Provider>
   );
 }
 ```
 
-The `useStore` function consumes a store. It can be used inside components and other stores. In components `useStore` is used in combination with the `using` keyword. The reason Impact uses the new [Explicit Resource Management](https://medium.com/@bagherani/ecmascript-explicit-resource-management-early-implementation-in-typescript-5-2-5e4d08b2aee3) JavaScript API is because it is the least intrusive API for components. With the `using` keyword there is no need to import an observer function or define your components in a specific way.
+What you will notice with **Impact** is that consuming observable values requires you to call them, like the `count()`, to get the value. This is for technical reasons primarily, but it also highlights that indeed you are consuming an observable value.
+
+::: tip
+
+**Impact** allows you to combine its stores with other observable primitives, like [impact-react-mobx](https://github.com/christianalfoni/impact/tree/main/impact-react-mobx). The observable primitives from **Impact** is built to fit with React and its features, but you are free to use any of the other solutions.
+
+:::
 
 <ClientOnly>
   <Playground />
