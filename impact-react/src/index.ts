@@ -1,21 +1,17 @@
-import React, {
-  Component,
-  createContext,
-  createElement,
-  FunctionComponent,
-  ReactNode,
-  Suspense,
-  useContext,
-  useRef,
-  useSyncExternalStore,
-} from "react";
+import React, { FunctionComponent, useRef, useSyncExternalStore } from "react";
+import {
+  cleanup,
+  getResolvingStoreContainer,
+  createStore as createImpactStore,
+  Store,
+  receiver,
+  emitter,
+} from "impact-react-store";
+
+export { cleanup, receiver, emitter };
 
 // Use for memory leak debugging
 // const registry = new FinalizationRegistry((message) => console.log(message));
-
-// Polyfill this symbol as Safari currently does not have it
-// @ts-ignore
-Symbol.dispose ??= Symbol("Symbol.dispose");
 
 export type ObserverContextType = "component" | "derived" | "effect";
 
@@ -30,11 +26,6 @@ export const signalDebugHooks: {
   onEffectRun?: (effect: () => void) => void;
 } = {};
 
-const isProduction =
-  typeof process !== "undefined" && process.env.NODE_ENV === "production";
-
-const isUsingDebugger = () => typeof signalDebugHooks.onSetValue !== "function";
-
 // When on server we drop out of using "useSyncExternalStore" as there is really no
 // reason to run it (It holds no state, just subscribes to updates)
 const isServer = typeof window === "undefined";
@@ -43,115 +34,6 @@ const isServer = typeof window === "undefined";
 // can be tracked by React
 let currentSnapshot = 0;
 
-const GLOBAL_STORE = Symbol("GLOBAL_STORE");
-
-// A store container is like an injection container. It is responsible for resolving stores. As stores can resolve
-// other stores we keep track of the currently resolving stores
-const resolvingStoreContainers: Array<StoreContainer | typeof GLOBAL_STORE> =
-  [];
-
-// By default Impact resolves to a global store. If a store provider is created for a store we keep track of it. That
-// way we can throw an error if the provider has not been mounted when trying to consume the related store
-const storeProviders = new Set<Store<any, any>>();
-
-// We use a global reference to the resolved events of "receiver". This allows us
-// to attach the resolved events to the global store or the store container
-let lastResolvedEvents: any;
-
-// If we resolve to a global store we keep the resolved stores here
-const globalStores = new Map<
-  Store<any, any>,
-  {
-    store: any;
-    events: any;
-  }
->();
-
-// In development mode we want to throw an error if you use React hooks inside the store. We do that by
-// creating a globally controlled React dispatcher blocker
-let blockableDispatcher: any;
-let isBlockingDispatcher = false;
-const dispatchUnblocker = () => {
-  isBlockingDispatcher = false;
-};
-
-// This is only used in development
-function blockDispatcher() {
-  isBlockingDispatcher = true;
-
-  if (blockableDispatcher) {
-    return dispatchUnblocker;
-  }
-
-  // React allows access to its internals during development
-  const internals =
-    // @ts-ignore
-    React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
-    // @ts-ignore
-    React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
-
-  // TODO: Verify the dispatcher of React 19, is it consistently on H?
-  const dispatcher = internals.ReactCurrentDispatcher?.current ?? internals.H;
-
-  // If for some reason React changes its internals
-  if (!dispatcher) {
-    console.warn(
-      "Unable to warn about invalid hooks usage in Stores, please create an issue",
-    );
-
-    return () => {};
-  }
-
-  // There are different dispatchers in React, but when this function is called
-  // the active dispatcher is the one that allows hooks to be called. We only
-  // need to override it once
-  if (!blockableDispatcher) {
-    for (const key in dispatcher) {
-      const originHook = dispatcher[key];
-      dispatcher[key] = (...args: any[]) => {
-        if (isBlockingDispatcher) {
-          throw new Error("You can not use React hooks inside stores");
-        }
-
-        return originHook.apply(dispatcher, args);
-      };
-    }
-
-    blockableDispatcher = dispatcher;
-  }
-
-  return dispatchUnblocker;
-}
-
-function resolveGlobalStore(store: Store<any, any>) {
-  let globalStore = globalStores.get(store);
-
-  if (!globalStore) {
-    resolvingStoreContainers.push(GLOBAL_STORE);
-    // @ts-ignore
-    const resolvedStore = store();
-
-    globalStore = {
-      store: resolvedStore,
-      events: lastResolvedEvents,
-    };
-
-    globalStores.set(store, globalStore);
-
-    lastResolvedEvents = undefined;
-
-    resolvingStoreContainers.pop();
-  }
-
-  return globalStore.store;
-}
-
-// Identify if we have a resolving store. This allows the global "cleanup" function register cleanups to
-// the currently resolving store
-function getResolvingStoreContainer() {
-  return resolvingStoreContainers[resolvingStoreContainers.length - 1];
-}
-
 // We need to know if we are resolving a store with an active ObserverContext
 // for a component. If so we do not want to track signal access in the store
 // itself
@@ -159,331 +41,38 @@ function isResolvingStoreFromComponent(observerContext: ObserverContext) {
   return observerContext.type === "component" && getResolvingStoreContainer();
 }
 
-// The type for store, which is just a function with optional props returning an object
-export type Store<
+export function createStore<
   T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
-> = (props: A) => T;
+  A extends Record<string, () => any>,
+>(store: Store<T, A>) {
+  return createImpactStore(
+    store,
+    (props) => {
+      const signalProps: Record<string, Signal<any>> = {};
 
-// We keep track of the resolved state of a store
-export type StoreState =
-  | {
-      isResolved: true;
-      store: any;
-      storeRef: Store<any, any>;
-    }
-  | {
-      isResolved: false;
-      // The constructor is not the store itself, but a function created
-      // by StoreProvider which includes the props
-      storeConstr: () => any;
-      storeRef: Store<any, any>;
-    };
-
-// A store container is created by the StoreProvider in React. When using the "useStore" hook it first finds the
-// context providing the store container and then resolves the store
-class StoreContainer {
-  // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
-  // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
-  private _resolvementError?: Error;
-  private _state: StoreState;
-  private _disposers = new Set<() => void>();
-  // The RPC events registered with "receiver"
-  events: any;
-
-  // When constructing the provider for the store we only keep a reference to the store and
-  // any parent store container
-  constructor(
-    storeRef: Store<any, any>,
-    constr: () => any,
-    // When the StoreProvider mounts it uses the React context to find the parent
-    // store container
-    public parent: StoreContainer | null,
-  ) {
-    this._state = {
-      isResolved: false,
-      storeRef,
-      storeConstr: constr,
-    };
-  }
-  // When resolving the store we use a global "cleanup" function which accesses the currently resolving store
-  // and registers the cleanup function
-  registerCleanup(cleaner: () => void) {
-    this._disposers.add(cleaner);
-  }
-  resolve<
-    T extends Record<string, unknown>,
-    A extends Record<string, unknown> | void,
-  >(store: Store<T, A>): T {
-    // If there is an error resolving the store we throw it
-    if (this._resolvementError) {
-      throw this._resolvementError;
-    }
-
-    // If we are trying to resolve the store this container is responsbile for and
-    // it has already been resolved, we return it
-    if (this._state.isResolved && store === this._state.storeRef) {
-      return this._state.store;
-    }
-
-    // If we are trying to resolve the store this container is responsible for and
-    // it has NOT been resolved, we resolve it
-    if (!this._state.isResolved && this._state.storeRef === store) {
-      try {
-        // We push to our global tracking of resolvement
-        resolvingStoreContainers.push(this);
-        // We resolve simply by calling the constructor
-        this._state = {
-          isResolved: true,
-          store: this._state.storeConstr(),
-          storeRef: store,
-        };
-        // We have called the store and events might have been registered with "receiver"
-        this.events = lastResolvedEvents;
-        lastResolvedEvents = undefined;
-        // We pop off the resolvement tracker
-        resolvingStoreContainers.pop();
-
-        return this._state.store;
-      } catch (e) {
-        // See comment on why we need to do this
-        this._resolvementError =
-          new Error(`Could not initialize store "${store?.name}":
-${String(e)}`);
-        throw this._resolvementError;
-      }
-    }
-
-    // If the store is not matching this store container and we have a parent, we start resolving the
-    // store at the parent instead
-    if (this.parent) {
-      return this.parent.resolve(store);
-    }
-
-    // If we could not resolve the store through the context, but the store has a registered store provider,
-    // we throw an error
-    if (storeProviders.has(store)) {
-      throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
-      );
-    }
-
-    // At this point we default to creating a global store, if not already created
-    return resolveGlobalStore(store);
-  }
-  cleanup() {
-    this._disposers.forEach((cleaner) => {
-      cleaner();
-    });
-  }
-}
-
-// The context for the StoreContainer
-const storeContainerContext = createContext<StoreContainer | null>(null);
-
-// We allow running this "cleanup" function globally. It uses the
-// currently resolving container to register the cleanup function
-export function cleanup(cleaner: () => void) {
-  const resolvingStoreContainer = getResolvingStoreContainer();
-
-  if (resolvingStoreContainer === undefined) {
-    throw new Error('"cleanup" can only be used when creating a store');
-  }
-
-  // It is a global store. We only return here because effect and derived uses cleanup
-  // to ensure subscriptions are disposed and contexts are removed from signals
-  if (resolvingStoreContainer === GLOBAL_STORE) {
-    return;
-  }
-
-  resolvingStoreContainer.registerCleanup(cleaner);
-}
-
-// "useStore" can be used in both components and stores. When resolving from a component
-// it will create an observer context and resolve the store. If resolving from a store it will
-// only resolve the store
-export function useStore<
-  T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
->(store: Store<T, A>): T & { [Symbol.dispose](): void } {
-  const resolvingStoreContainer = getResolvingStoreContainer();
-  let resolvedStore: T;
-
-  // If we are not currently resolving a store, we assume that we are resolving from a component as
-  // you can really only initiate resolving stores from components
-  if (!resolvingStoreContainer) {
-    // We try to find a store container on the context first, to resolve a store from it
-    const storeContainer = useContext(storeContainerContext);
-
-    if (storeContainer && !isProduction) {
-      const unblockDispatcher = blockDispatcher();
-      try {
-        resolvedStore = storeContainer.resolve<T, A>(store);
-      } finally {
-        unblockDispatcher();
-      }
-    } else if (storeContainer) {
-      resolvedStore = storeContainer.resolve<T, A>(store);
-    } else if (storeProviders.has(store)) {
-      // If we created a store provider for the store we throw an error, as it is expected that
-      // the store provider should be mounted
-      throw new Error(
-        `The store ${store.name} should be provided on a context, but no provider was found`,
-      );
-    } else if (!isProduction) {
-      const unblockDispatcher = blockDispatcher();
-      try {
-        resolvedStore = resolveGlobalStore(store);
-      } finally {
-        unblockDispatcher();
-      }
-    } else {
-      // If we do not find a store container we resolve a global store
-      resolvedStore = resolveGlobalStore(store);
-    }
-
-    // @ts-ignore
-    return resolvedStore;
-  }
-
-  // At this point we are not in a component and we resolve the store as normal
-  if (resolvingStoreContainer === GLOBAL_STORE) {
-    // If we do not find a store container we resolve a global store
-    resolvedStore = resolveGlobalStore(store);
-  } else {
-    resolvedStore = resolvingStoreContainer.resolve(store);
-  }
-
-  // @ts-ignore
-  return resolvedStore;
-}
-
-// This function creates the actual StoreProvider component, which is responsible for converting
-// props into singals and keep them up to date. Also isolate the children in this component, as
-// those are not needed in the store
-export function createStoreProvider<
-  T extends Record<string, unknown>,
-  A extends Record<string, unknown> | void,
->(
-  store: Store<T, A>,
-): React.ComponentClass<
-  A extends void
-    ? { children: React.ReactNode }
-    : A & { children: React.ReactNode }
-> {
-  storeProviders.add(store);
-
-  // The StoreProvider provides the store container which resolves the store. We use a class because
-  // we need the "componentWillUnmount" lifecycle hook
-  class StoreProvider extends Component {
-    static displayName = store.name
-      ? `${store.name}Provider`
-      : "AnonymousStoreProvider";
-    static contextType = storeContainerContext;
-    // We need to track the mounted state, as StrictMode will call componentDidMount
-    // and componentWillUnmount twice, meaning we'll cleanup too early. These are safeguards
-    // for some common misuse of Reacts primitives. But here we know what we are doing. We
-    // want to instantiate the StoreContainer immediately so it is part of the rendering
-    // of the children and clean it up when this component unmounts
-    mounted = false;
-    // We convert props into signals
-    propsSignals: any = {};
-    storeConstructor = () => {
-      const propsSignalsGetters: any = {};
-      const propsSignals = this.propsSignals;
-
-      // The props we pass into the store is the same shape as
-      // the signals object, though we convert it into getters
-      // as it makes no sense to change a props signal, and
-      // we can now use normal typing
-      for (const key in propsSignals) {
-        Object.defineProperty(propsSignalsGetters, key, {
-          get() {
-            return propsSignals[key]();
-          },
-        });
-      }
-
-      return store(propsSignalsGetters);
-    };
-    container = new StoreContainer(
-      store,
-      this.storeConstructor,
-      // eslint-disable-next-line
-      // @ts-ignore
-      this.context,
-    );
-    constructor(props: any) {
-      super(props);
-
-      // We set the initial props as signals
       for (const key in props) {
         if (key !== "children") {
-          this.propsSignals[key] = signal(props[key]);
+          signalProps[key] = signal(props[key]);
         }
       }
-    }
-    componentDidMount(): void {
-      this.mounted = true;
-    }
-    componentDidUpdate() {
-      // We keep the signals updated
-      for (const key in this.propsSignals) {
-        // @ts-ignore
-        this.propsSignals[key](this.props[key]);
-      }
-    }
-    // When an error is thrown we dispose of the store. Then we throw the error up the component tree.
-    // This ensures that an error thrown during render phase does not keep any subscriptions etc. going.
-    // Recovering from the error in a parent error boundary will cause a new store to be created. Developers
-    // can still add nested error boundaries to control recoverable state
-    componentDidCatch(error: Error): void {
-      this.container.cleanup();
-      this.container = new StoreContainer(
-        store,
-        this.storeConstructor,
-        // eslint-disable-next-line
-        // @ts-ignore
-        this.context,
-      );
-      throw error;
-    }
-    componentWillUnmount(): void {
-      this.mounted = false;
-      Promise.resolve().then(() => {
-        if (!this.mounted) {
-          this.container.cleanup();
-        }
-      });
-    }
-    render(): ReactNode {
-      return createElement(
-        storeContainerContext.Provider,
-        {
-          value: this.container,
-        },
-        // We create a Suspense boundary for the store to throw an error of misuse. StoreProviders does not support
-        // suspense because they will be-reinstantiated or can risk not cleaning up as the parent Suspense boundary
-        // is unmounted and the "componentWillUnmount" will never be called. In practice it does not make sense
-        // to have these parent suspense boundaries, but just to help out
-        createElement(
-          Suspense,
-          {
-            fallback: createElement(() => {
-              throw new Error(
-                "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the components using suspense",
-              );
-            }),
-          },
-          // @ts-ignore
-          // eslint-disable-next-line
-          this.props.children,
-        ),
-      );
-    }
-  }
 
-  return StoreProvider as any;
+      return signalProps;
+    },
+    (props, signalProps) => {
+      for (const key in signalProps) {
+        signalProps[key][1](props[key]);
+      }
+    },
+    (signalProps) => {
+      const storeProps: any = {};
+
+      for (const key in signalProps) {
+        storeProps[key] = signalProps[key][0];
+      }
+
+      return storeProps;
+    },
+  );
 }
 
 // The observer context is responsible for keeping track of signals accessed in a component, derived or effect. It
@@ -605,11 +194,14 @@ export class SignalNotifier {
   }
 }
 
-export type Signal<T> = (
-  value?:
-    | T
-    | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
-) => T extends Promise<infer V> ? ObservablePromise<V> : T;
+export type Signal<T> = [
+  () => T extends Promise<infer V> ? ObservablePromise<V> : T,
+  (
+    value:
+      | T
+      | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
+  ) => T extends Promise<infer V> ? ObservablePromise<V> : T,
+];
 
 export function signal<T>(initialValue: T) {
   // If a signal has a promise we want to abort the current
@@ -673,8 +265,8 @@ export function signal<T>(initialValue: T) {
     return observablePromise;
   }
 
-  return ((...args: any[]) => {
-    if (!args.length) {
+  return [
+    () => {
       // Consuming a store might resolve it synchronously. During that resolvement we
       // do not want to track access to any signals, only the signals actually consumed
       // in the component function body
@@ -689,47 +281,46 @@ export function signal<T>(initialValue: T) {
       }
 
       return value;
-    }
+    },
+    (newValue: any) => {
+      // The update signature
+      if (typeof newValue === "function") {
+        newValue = newValue(value);
+      }
 
-    let newValue = args[0];
+      if (newValue instanceof Promise) {
+        newValue = createObservablePromise(newValue);
+      }
 
-    // The update signature
-    if (typeof newValue === "function") {
-      newValue = newValue(value);
-    }
+      // We do nothing if the values are the same
+      if (value === newValue) {
+        return value;
+      }
 
-    if (newValue instanceof Promise) {
-      newValue = createObservablePromise(newValue);
-    }
+      value = newValue;
 
-    // We do nothing if the values are the same
-    if (value === newValue) {
+      ObserverContext.current?.registerSetter(signalNotifier);
+
+      if (signalDebugHooks.onSetValue) {
+        signalDebugHooks.onSetValue(signalNotifier, value);
+      }
+
+      if (value instanceof Promise) {
+        // A promise could be an already resolved promise, in which case we do not want to notify as it is
+        // already done in "createObservablePromise". So we run our own micro task to check if the promise
+        // is still pending, where we do want to notify
+        Promise.resolve().then(() => {
+          if (value instanceof Promise && value.status === "pending") {
+            signalNotifier.notify();
+          }
+        });
+      } else {
+        signalNotifier.notify();
+      }
+
       return value;
-    }
-
-    value = newValue;
-
-    ObserverContext.current?.registerSetter(signalNotifier);
-
-    if (signalDebugHooks.onSetValue) {
-      signalDebugHooks.onSetValue(signalNotifier, value);
-    }
-
-    if (value instanceof Promise) {
-      // A promise could be an already resolved promise, in which case we do not want to notify as it is
-      // already done in "createObservablePromise". So we run our own micro task to check if the promise
-      // is still pending, where we do want to notify
-      Promise.resolve().then(() => {
-        if (value instanceof Promise && value.status === "pending") {
-          signalNotifier.notify();
-        }
-      });
-    } else {
-      signalNotifier.notify();
-    }
-
-    return value;
-  }) as Signal<T>;
+    },
+  ] as Signal<T>;
 }
 
 type PendingPromise<T> = Promise<T> & {
@@ -943,59 +534,4 @@ export function useObserver() {
   );
 
   return context;
-}
-
-type EventRPC = (...params: any[]) => any;
-
-export function receiver<T extends { [event: string]: EventRPC }>(events: T) {
-  if (!getResolvingStoreContainer()) {
-    throw new Error('Can not call "receiver" outside a store');
-  }
-
-  lastResolvedEvents = events;
-}
-
-export function emitter<T extends { [event: string]: EventRPC }>() {
-  const storeContainer = getResolvingStoreContainer();
-
-  if (!(storeContainer instanceof StoreContainer)) {
-    throw new Error('Can not call "emitter" in global stores');
-  }
-
-  if (!storeContainer) {
-    throw new Error('Can not call "emitter" outside a store');
-  }
-
-  return new Proxy(
-    {},
-    {
-      get(_, event: string) {
-        return (...params: any[]) => {
-          let currentStoreContainer = storeContainer;
-          while (currentStoreContainer) {
-            if (currentStoreContainer.events?.[event]) {
-              return currentStoreContainer.events[event](...params);
-            }
-
-            if (currentStoreContainer.parent) {
-              currentStoreContainer = currentStoreContainer.parent;
-              continue;
-            }
-
-            const events = Array.from(globalStores.values()).find(
-              (globalStore) => Boolean(globalStore.events?.[event]),
-            )?.events;
-
-            if (!events) {
-              throw new Error("There are no receivers for the event: " + event);
-            }
-
-            // @ts-ignore
-            console.log(events);
-            return events[event](...params);
-          }
-        };
-      },
-    },
-  ) as T;
 }

@@ -1,54 +1,56 @@
 ---
 codeCaption: Signals
 code: |
-  import { signal, useStore, observer } from 'impact-react'
+  import { signal, createStore, useObserver } from 'impact-react'
 
   function CounterStore() {
-    const count = signal(0)
-    const enabled = signal(false)
+    const [count, setCount] = signal(0)
+    const [enabled, setEnabled] = signal(false)
 
     return {
-      get count() {
-        return count()
-      },
-      get enabled() {
-        return enabled()
-      },
+      count,
+      enabled,
       increase() {
-        count(current => current + 1)
+        setCount(current => current + 1)
       },
       enable() {
-        enabled(true)
+        setEnabled(true)
       }
     }
   }
 
-  const Counter = observer(function Counter() {
+  const useCounterStore = createStore(CounterStore)
+
+  function Counter() {
+    using _ = useObserver()
+    
     const { count, increase } = useStore(CounterStore)
 
     return (
       <button onClick={increase}>
-        Increase ({count})
+        Increase ({count()})
       </button>
     )
-  })
+  }
 
-  const Enabler = observer(function Enabler() {
+  function Enabler() {
+    using _ = useObserver()
+    
     const { enabled, enable } = useStore(CounterStore)
 
     return (
       <button onClick={enable}>
-        {enabled ? "Enabled" : "Enable"}
+        {enabled() ? "Enabled" : "Enable"}
       </button>
     )
-  })
+  }
 
   export default function App() {
     return (
-      <>
+      <useCounterStore.Provider>
         <Counter />
         <Enabler />
-      </>
+      </useCounterStore.Provider>
     )
   }
 ---
@@ -61,19 +63,19 @@ code: |
 import { signal } from "impact-react";
 
 // Create signal
-const count = signal(0);
+const [count, setCount] = signal(0);
 
 // Unwrap value
 const value = count();
 
 // Set value
-count(1);
+setCount(1);
 
 // Update value
-count((current) => current + 1);
+setCount((current) => current + 1);
 ```
 
-The signal itself is a function and you call it to unwrap the value. When unwrapping a value in a component, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store; only the ones accessed in a component will cause that component to reconcile. Just like `useState`, the value of a signal is considered immutable and needs to _strictly_ change its value to trigger observation.
+The signal has the same interface as `useState`, only you need to unwrap the value. When unwrapping a value in a component, it will automatically observe any changes to that value. It does not matter how many signals are exposed through the store; only the ones accessed in a component will cause that component to reconcile. Just like `useState`, the value of a signal is considered immutable and needs to _strictly_ change its value to trigger observation.
 
 ::: info
 
@@ -81,25 +83,10 @@ The API of a signal is inspired by [Solid JS](https://www.solidjs.com/). It was 
 
 - Using a `.get/.set/.update` imperative API does not match the paradigm of functional React
 - Using a `.value` getter/setter fits the paradigm, but bloats the code with a lot of `.value` references, making it harder to read what is being accessed and changed
-- The function API just adds a couple of parenthesis and keeps the naming of the signal clear and concise in the code. It also naturally enables the use of a callback to update the value
+- Splitting getting and setting the value encourages signals being exposed as `readonly` values from the store, where you explicitly define methods to change them from the outside, when needed
+- It is always clear when you are consuming a signal... you call the value to unwrap it. This is especially important in component code to indicate where observation happens
 
 :::
-
-When exposing signals from a store it is common to use `getters`. The value becomes `readonly`, which is good practice when exposing state that should only be changed from within the store. Also unwrapping the value becomes implicit when consuming a signal from a component or a nested store.
-
-```ts
-import { signal } from "impact-react";
-
-function AppStore() {
-  const count = signal(0);
-
-  return {
-    get count() {
-      return count();
-    },
-  };
-}
-```
 
 ::: tip
 
@@ -109,9 +96,9 @@ function AppStore() {
 import { signal } from "impact-react";
 import { produce } from "immer";
 
-const list = signal([]);
+const [list, setList] = signal([]);
 
-list(
+setList(
   produce((draft) => {
     draft.push("foo");
   }),

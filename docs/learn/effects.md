@@ -1,11 +1,11 @@
 ---
 codeCaption: Using effects
 code: |
-  import { signal, effect, useStore, observer } from 'impact-react'
+  import { signal, effect, createStore, useObserver } from 'impact-react'
 
   function CounterStore() {
-    const count = signal(0)
-    const shouldAlert = signal(false)
+    const [count, setCount] = signal(0)
+    const [shouldAlert, setShouldAlert] = signal(false)
 
     effect(() => {
       if (count() === 5 && shouldAlert()) {
@@ -14,35 +14,43 @@ code: |
     })
 
     return {
-      get count() {
-        return count()
-      },
-      get shouldAlert() {
-        return shouldAlert()
-      },
+      count,
+      shouldAlert,
       increase() {
-        count(current => current + 1)
+        setCount(current => current + 1)
       },
       toggleShouldAlert() {
-        shouldAlert(current => !current)
+        setShouldAlert(current => !current)
       }
     }
   }
 
-  export default observer(function App() {
+  const useCounterStore = createStore(CounterStore)
+
+  function Counter() {
+    using _ = useObserver()
+    
     const { count, increase, shouldAlert, toggleShouldAlert } = useStore(CounterStore)
 
     return (
       <>
         <button onClick={increase}>
-          Increase ({count})
+          Increase ({count()})
         </button>
         <button onClick={toggleShouldAlert}>
-          Will {shouldAlert ? '' : 'not '}alert
+          Will {shouldAlert() ? '' : 'not '}alert
         </button>
       </>
     )
-  })
+  }
+
+  function App() {
+    return (
+      <useCounterStore.Provider>
+        <Counter />
+      </useCounterStore.Provider>
+    )
+  }
 ---
 
 # Effects
@@ -53,7 +61,7 @@ Unlike `useEffect`, the **Impact** `effect` is not intended as a way to subscrib
 
 ```ts
 function CounterStore() {
-  const count = signal(0);
+  const [count, setCount] = signal(0);
 
   effect(() => {
     if (count() === 10) {
@@ -62,11 +70,9 @@ function CounterStore() {
   });
 
   return {
-    get count() {
-      return count();
-    },
+    count,
     increase() {
-      count((current) => current + 1);
+      setCount((current) => current + 1);
     },
   };
 }
@@ -76,14 +82,12 @@ Instead, you can write the same logic as:
 
 ```ts
 function CounterStore() {
-  const count = signal(0);
+  const [count, setCount] = signal(0);
 
   return {
-    get count() {
-      return count();
-    },
+    count,
     increase() {
-      const newCount = count((current) => current + 1);
+      const newCount = setCount((current) => current + 1);
 
       if (newCount === 10) {
         alert("you gotz to 10");

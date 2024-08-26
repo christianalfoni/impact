@@ -10,17 +10,15 @@ Observable state. The value is considered immutable. If set with the same value,
 import { signal } from "impact-react";
 
 function CounterStore() {
-  const count = signal(0);
+  const [count, setCount] = signal(0);
 
   return {
-    get count() {
-      return count();
-    },
+    count,
     increase() {
-      count((current) => current + 1);
+      setCount((current) => current + 1);
     },
-    setCount(newCount) {
-      count(newCount);
+    reset() {
+      count(0);
     },
   };
 }
@@ -31,22 +29,23 @@ function CounterStore() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, useStore } from "impact-react";
+import { signal, createStore, useObserver } from "impact-react";
 
 function AsyncStore() {
-  const asyncValue = signal(createSomePromise());
+  const [asyncValue] = signal(createSomePromise());
 
   return {
-    get asyncValue() {
-      return asyncValue();
-    },
+    asyncValue,
   };
 }
 
-function App() {
-  using asyncStore = useStore(AsyncStore);
+const useAsyncStore = createStore(AsyncStore);
 
-  const asyncValue = asyncStore.asyncValue;
+function App() {
+  using _ = useObserver();
+
+  const { asyncValue } = useAsyncStore();
+  const currentAsyncValue = asyncValue();
 
   if (asyncValue.status === "pending") {
     return "Loading...";
@@ -64,8 +63,10 @@ Or you could have consumed it with the `use` hook, in combination with a suspens
 
 ```tsx
 function App() {
-  using asyncStore = useAsyncStore();
-  const value = use(asyncStore.asyncValue);
+  using _ = useObserver();
+
+  const { asyncValue } = useAsyncStore();
+  const value = use(asyncValue());
 
   return "Yeah, " + value;
 }
