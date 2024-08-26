@@ -436,10 +436,11 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
-function createStoreMountedEntry(storeName: string) {
+function createStoreMountedEntry(storeName: string, parentName?: string) {
   sendMessage({
     type: "store",
     name: storeName,
+    parentName,
   });
 }
 

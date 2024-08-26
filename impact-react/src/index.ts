@@ -73,6 +73,7 @@ export function createStore<
 
       return storeProps;
     },
+    signalDebugHooks.onStoreMounted,
   );
 }
 

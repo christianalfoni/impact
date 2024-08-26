@@ -32,7 +32,7 @@ function StateTimeline({ timeline }: { timeline: StateChange[] }) {
   );
 }
 
-export function ComponentDetails({ data }: { data: ComponentData | null }) {
+export function ComponentDetails({ data }: { data?: ComponentData }) {
   if (!data) return null;
 
   return (

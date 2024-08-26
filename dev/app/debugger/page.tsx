@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -12,58 +12,13 @@ import { DebugData } from "impact-react-debugger";
 import { Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
-import { set } from "mobx";
-
-export const mockComponentTree: ComponentData = {
-  id: "1",
-  name: "App",
-  props: { title: "My App" },
-  state: { count: 2 },
-  stateTimeline: [
-    { timestamp: Date.now() - 3000, key: "count", oldValue: 0, newValue: 1 },
-    { timestamp: Date.now() - 1000, key: "count", oldValue: 1, newValue: 2 },
-  ],
-  children: [
-    {
-      id: "2",
-      name: "Header",
-      props: { title: "Welcome" },
-      state: {},
-      stateTimeline: [],
-      children: [],
-    },
-    {
-      id: "3",
-      name: "Content",
-      props: {},
-      state: { items: ["Item 1", "Item 2", "Item 3"] },
-      stateTimeline: [
-        {
-          timestamp: Date.now() - 2000,
-          key: "items",
-          oldValue: ["Item 1", "Item 2"],
-          newValue: ["Item 1", "Item 2", "Item 3"],
-        },
-      ],
-      children: [
-        {
-          id: "4",
-          name: "List",
-          props: { items: ["Item 1", "Item 2", "Item 3"] },
-          state: {},
-          stateTimeline: [],
-          children: [],
-        },
-      ],
-    },
-  ],
-};
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [store, dispatch] = useReducer(storeReducer, []);
 
   const filterTree = (node: ComponentData): ComponentData | null => {
     if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -78,23 +33,11 @@ export default function ReactDevTool() {
     return null;
   };
 
-  const filteredTree = searchTerm
-    ? filterTree(mockComponentTree)
-    : mockComponentTree;
+  const filteredTrees = store
+    .map((tree) => (searchTerm ? filterTree(tree) : tree))
+    .filter((tree): tree is ComponentData => tree !== null);
 
-  const selectedComponent = findComponentById(mockComponentTree, selectedId);
-
-  function findComponentById(
-    node: ComponentData,
-    id: string | null
-  ): ComponentData | null {
-    if (node.id === id) return node;
-    for (const child of node.children) {
-      const found = findComponentById(child, id);
-      if (found) return found;
-    }
-    return null;
-  }
+  const selectedComponent = findComponentById(store, selectedId);
 
   useEffect(() => {
     const bridge = (e: MessageEvent<DebugData>) => {
@@ -108,8 +51,22 @@ export default function ReactDevTool() {
             break;
           }
 
-          default:
+          case "message": {
+            const type = payload.payload.type;
+
+            switch (type) {
+              case "store": {
+                dispatch({
+                  type: "add",
+                  payload: payload.payload,
+                });
+
+                break;
+              }
+            }
+
             break;
+          }
         }
       }
     };
@@ -118,7 +75,7 @@ export default function ReactDevTool() {
     return () => {
       window.removeEventListener("message", bridge);
     };
-  }, []);
+  }, [store]);
 
   if (isLoading) {
     return (
@@ -161,13 +118,14 @@ export default function ReactDevTool() {
           </div>
 
           <div className="overflow-auto flex-grow pt-4 pr-4">
-            {filteredTree && (
+            {filteredTrees.map((tree, index) => (
               <TreeNode
-                data={filteredTree}
+                key={index}
+                data={tree}
                 selectedId={selectedId}
                 onSelect={setSelectedId}
               />
-            )}
+            ))}
           </div>
         </div>
       )}
@@ -249,4 +207,88 @@ function TreeNode({
         ))}
     </div>
   );
+}
+
+let id = 0;
+function generateId() {
+  return Date.now().toString() + (id++).toString();
+}
+
+function createChild(name: string): ComponentData {
+  return {
+    id: generateId(),
+    name,
+    props: {},
+    state: {},
+    stateTimeline: [],
+    children: [],
+  };
+}
+
+type Action =
+  | { type: "add"; payload: { name: string; parentName?: string } }
+  | { type: "remove"; payload: { name: string } };
+
+function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
+  switch (action.type) {
+    case "add":
+      return addComponent(
+        state,
+        action.payload.name,
+        action.payload.parentName,
+      );
+
+    case "remove":
+      return removeComponent(state, action.payload.name);
+
+    default:
+      return state;
+  }
+}
+
+function addComponent(
+  state: ComponentData[],
+  name: string,
+  parentName?: string,
+): ComponentData[] {
+  if (!parentName) {
+    return state.some((item) => item.name === name)
+      ? state
+      : [...state, createChild(name)];
+  }
+
+  return state.map((item) => {
+    if (
+      item.name === parentName &&
+      !item.children.some((child) => child.name === name)
+    ) {
+      return { ...item, children: [...item.children, createChild(name)] };
+    }
+
+    return { ...item, children: addComponent(item.children, name, parentName) };
+  });
+}
+
+function removeComponent(
+  state: ComponentData[],
+  name: string,
+): ComponentData[] {
+  return state
+    .filter((item) => item.name !== name)
+    .map((item) => ({
+      ...item,
+      children: removeComponent(item.children, name),
+    }));
+}
+
+function findComponentById(
+  trees: ComponentData[],
+  id: string | null,
+): ComponentData | null {
+  for (const tree of trees) {
+    if (tree.id === id) return tree;
+    const found = findComponentById(tree.children, id);
+    if (found) return found;
+  }
+  return null;
 }
