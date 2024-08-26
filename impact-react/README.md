@@ -8,7 +8,7 @@
 <br />
 
 <p align="center">
-⚠️ <b>Release candidate</b> ⚠️
+⚠️ <b>In development</b> ⚠️
 </p>
 
 <p align="center">
@@ -25,5 +25,4 @@
 >
 > **State management** should not be hard because of **building UIs**
 >
-> *Engineering Zen Master, Christian Alfoni*
-
+> _Engineering Zen Master, Christian Alfoni_

@@ -38,7 +38,7 @@ features:
 
 <h1 align="center">
 
-:warning: Release candidate :warning:
+:warning: In development :warning:
 
 </h1>
 
