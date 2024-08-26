@@ -92,7 +92,7 @@ What you will notice with **Impact** is that consuming observable values require
 
 ::: tip
 
-**Impact** allows you to combine its stores with other observable primitives, like [impact-react-mobx](../../impact-react-mobx). The observable primitives from **Impact** is built to fit with React and its features, but you are free to use any of the other solutions.
+**Impact** allows you to combine its stores with other observable primitives, like [impact-react-mobx](https://github.com/christianalfoni/impact/tree/main/impact-react-mobx). The observable primitives from **Impact** is built to fit with React and its features, but you are free to use any of the other solutions.
 
 :::
 
