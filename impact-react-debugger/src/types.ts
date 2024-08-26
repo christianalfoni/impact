@@ -31,11 +31,14 @@ export type DebugDataDTO =
 
 export const CONNECT_DEBUG = {
   source: "impact-react-debugger",
-  payload: { event: "connect" },
+  payload: { event: "connected" },
 };
 
 export type DebugData =
-  | typeof CONNECT_DEBUG
+  | {
+      source: "impact-react-debugger";
+      payload: { event: "connected" };
+    }
   | {
       source: "impact-react-debugger";
       payload: { event: "message"; payload: DebugDataDTO };

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { receiver, emitter, createStore, signal, observer } from "impact-react";
+import { connectBridge } from "impact-react-debugger";
 // import { observable } from "mobx";
 // import { observer } from "mobx-react-lite";
 
@@ -52,8 +53,6 @@ const useGrocieresStore = createStore(GroceriesStore);
 const App = observer(function App() {
   const appStore = useAppStore();
 
-  console.log(appStore.groceries);
-
   return (
     <useGrocieresStore.Provider groceries={appStore.groceries}>
       <Groceries />
@@ -81,18 +80,36 @@ const Groceries = observer(function Groceries() {
         }}
       />
       <ul>
-        {groceries().map((grocery, index) => (
+        {/* {groceries().map((grocery, index) => (
           <li key={index}>{grocery.name()}</li>
-        ))}
+        ))} */}
       </ul>
     </div>
   );
 });
 
 export function Counter() {
+  const iframe = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const delayToAvoidCallTwice = setTimeout(() => {
+      if (iframe.current?.contentWindow) {
+        connectBridge(iframe.current.contentWindow);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(delayToAvoidCallTwice);
+    };
+  }, [iframe]);
+
   return (
     <useAppStore.Provider>
       <App />
+
+      <div className="rounded overflow-hidden m-5">
+        <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
+      </div>
     </useAppStore.Provider>
   );
 }

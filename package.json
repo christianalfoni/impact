@@ -9,7 +9,7 @@
     "dev"
   ],
   "scripts": {
-    "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",
+    "dev": "concurrently -n app,debugger,dev,store -c blue,yellow,green,red \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\" \"cd impact-react-store && yarn dev\" \"cd dev && yarn dev\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "node preBuild.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
