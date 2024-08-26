@@ -1,30 +1,31 @@
 import { signal } from "./signal";
 
-export type QueryState =
+export type MutationState<U> =
   | {
       status: "IDLE";
     }
   | {
-      status: "FETCHING";
-    }
-  | {
-      status: "REFETCHING";
+      status: "MUTATING";
+      data: U;
     };
 
-export function query<T>(fetchData: () => Promise<T>) {
+export function mutation<T, U>(mutator: (data: U) => Promise<T>) {
   let abortController: AbortController | undefined;
 
-  const [promise, setPromise] = signal<Promise<T>>(fetchData());
-  const [state, setState] = signal<QueryState>({
-    status: "FETCHING",
+  const [promise, setPromise] = signal<Promise<T> | undefined>(undefined);
+  const [state, setState] = signal<MutationState<U>>({
+    status: "IDLE",
   });
 
-  function invalidate() {
+  function mutate(data: U) {
     abortController?.abort();
     const currentAbortController = (abortController = new AbortController());
 
-    setState({ status: "REFETCHING" });
-    fetchData()
+    setState({
+      status: "MUTATING",
+      data,
+    });
+    mutator(data)
       .then((data) => {
         if (currentAbortController.signal.aborted) {
           return;
@@ -48,5 +49,5 @@ export function query<T>(fetchData: () => Promise<T>) {
       });
   }
 
-  return [{ promise, state }, invalidate] as const;
+  return [{ promise, state }, mutate] as const;
 }
