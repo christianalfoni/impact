@@ -7,11 +7,6 @@ import React, {
   useContext,
 } from "react";
 
-// This object is used by the "impact-react-debugger" to access internals
-export const signalDebugHooks: {
-  onStoreMounted?: (name: string) => void;
-} = {};
-
 // Polyfill this symbol as Safari currently does not have it
 // @ts-ignore
 Symbol.dispose ??= Symbol("Symbol.dispose");
@@ -268,7 +263,10 @@ export function createStore<
     observableProps: NoInfer<U>,
   ) => void,
   provideObservableProps: (props: NoInfer<U>) => K,
-  onStoreMounted?: (storeName: string, parentName?: string) => void,
+  onStoreMounted?: (
+    store: { name: string; props: any },
+    parentName?: string,
+  ) => void,
 ): (() => T) & {
   Provider: React.ComponentClass<
     A extends void
@@ -303,7 +301,10 @@ export function createStore<
       store.name,
     );
     componentDidMount(): void {
-      onStoreMounted?.(store.name, this.container.parent?.name);
+      onStoreMounted?.(
+        { name: store.name, props: { foo: "test" } },
+        this.container.parent?.name,
+      );
 
       this.mounted = true;
     }

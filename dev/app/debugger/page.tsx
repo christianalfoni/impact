@@ -214,11 +214,11 @@ function generateId() {
   return Date.now().toString() + (id++).toString();
 }
 
-function createChild(name: string): ComponentData {
+function createChild(name: string, props: any = {}): ComponentData {
   return {
     id: generateId(),
     name,
-    props: {},
+    props,
     state: {},
     stateTimeline: [],
     children: [],
@@ -226,15 +226,19 @@ function createChild(name: string): ComponentData {
 }
 
 type Action =
-  | { type: "add"; payload: { name: string; parentName?: string } }
+  | {
+      type: "add";
+      payload: { store: { name: string; props: any }; parentName?: string };
+    }
   | { type: "remove"; payload: { name: string } };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
   switch (action.type) {
     case "add":
+      console.log(action.payload);
       return addComponent(
         state,
-        action.payload.name,
+        action.payload.store,
         action.payload.parentName,
       );
 
@@ -248,24 +252,30 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 
 function addComponent(
   state: ComponentData[],
-  name: string,
+  store: { name: string; props: any },
   parentName?: string,
 ): ComponentData[] {
   if (!parentName) {
-    return state.some((item) => item.name === name)
+    return state.some((item) => item.name === store.name)
       ? state
-      : [...state, createChild(name)];
+      : [...state, createChild(store.name, store.props)];
   }
 
   return state.map((item) => {
     if (
       item.name === parentName &&
-      !item.children.some((child) => child.name === name)
+      !item.children.some((child) => child.name === store.name)
     ) {
-      return { ...item, children: [...item.children, createChild(name)] };
+      return {
+        ...item,
+        children: [...item.children, createChild(store.name, store.props)],
+      };
     }
 
-    return { ...item, children: addComponent(item.children, name, parentName) };
+    return {
+      ...item,
+      children: addComponent(item.children, store, parentName),
+    };
   });
 }
 

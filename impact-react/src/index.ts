@@ -24,7 +24,10 @@ export const signalDebugHooks: {
     derived?: boolean,
   ) => void;
   onEffectRun?: (effect: () => void) => void;
-  onStoreMounted?: (name: string) => void;
+  onStoreMounted?: (
+    store: { name: string; props: any },
+    parentName?: string,
+  ) => void;
 } = {};
 
 // When on server we drop out of using "useSyncExternalStore" as there is really no

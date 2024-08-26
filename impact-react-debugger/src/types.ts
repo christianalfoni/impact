@@ -27,7 +27,13 @@ export type DebugDataDTO =
       value: any;
     }
   | { id: number; type: "effect"; name: string; target: CodeLocation }
-  | { type: "store"; name: string; parentName?: string };
+  | {
+      type: "store";
+      store: StoreDebug;
+      parentName?: string;
+    };
+
+export type StoreDebug = { name: string; props: any };
 
 export const CONNECT_DEBUG = {
   source: "impact-react-debugger",

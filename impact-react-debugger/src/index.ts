@@ -6,7 +6,12 @@ import {
   SignalNotifier,
   signalDebugHooks,
 } from "impact-react";
-import { DebugData as _DebugData, CONNECT_DEBUG, DebugDataDTO } from "./types";
+import {
+  DebugData as _DebugData,
+  CONNECT_DEBUG,
+  DebugDataDTO,
+  StoreDebug,
+} from "./types";
 
 const cache: {
   [url: string]: Promise<StackFrame>;
@@ -436,10 +441,10 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
-function createStoreMountedEntry(storeName: string, parentName?: string) {
+function createStoreMountedEntry(store: StoreDebug, parentName?: string) {
   sendMessage({
     type: "store",
-    name: storeName,
+    store,
     parentName,
   });
 }
