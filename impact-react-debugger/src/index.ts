@@ -8,9 +8,10 @@ import {
 } from "impact-react";
 import {
   DebugData as _DebugData,
-  CONNECT_DEBUG,
-  DebugDataDTO,
-  StoreDebug,
+  CONNECT_DEBUG_MESSAGE,
+  DEBUG_SOURCE,
+  DebugDataPayload,
+  StoreDebugInfo,
 } from "./types";
 
 const cache: {
@@ -19,9 +20,7 @@ const cache: {
 
 const observedSignals = new WeakMap<
   SignalNotifier,
-  {
-    [cacheKey: string]: ObserverContextType;
-  }
+  { [cacheKey: string]: ObserverContextType }
 >();
 
 export type DebugData = _DebugData;
@@ -32,16 +31,16 @@ const awaitBridge = new Promise<Window>((resolve) => {
 });
 
 export function connectBridge(target: Window) {
-  target.postMessage(CONNECT_DEBUG, "*");
+  target.postMessage(CONNECT_DEBUG_MESSAGE, "*");
   promiseResolver(target);
 }
 
-async function sendMessage(payload: DebugDataDTO) {
+async function sendMessage(payload: DebugDataPayload) {
   const targetWindow = await awaitBridge;
 
   const message: DebugData = {
-    source: "impact-react-debugger",
-    payload: { event: "message", payload },
+    source: DEBUG_SOURCE,
+    payload,
   };
 
   targetWindow.postMessage(message, "*");
@@ -304,20 +303,6 @@ export function createSetterDebugEntry(
   const targetFrame = stackFrameData.shift() || sourceFrame;
 
   if (!sourceFrame) {
-    sendMessage({
-      id,
-      value,
-      observers: [],
-      source: {
-        name: "N/A",
-        path: "N/A",
-      },
-      target: {
-        name: "N/A",
-        path: "N/A",
-      },
-      type: isDerived ? "derived" : "signal",
-    });
     return;
   }
 
@@ -361,27 +346,28 @@ export function createSetterDebugEntry(
           (observingStackFrames) => {
             return setterPromise.then((targetFrame) => {
               sendMessage({
-                id,
-                value,
-                observers: observingStackFrames.map(
-                  (observingStackFrame, index) => ({
-                    type: observedSignal[observers[index]],
-                    name: cleanFunctionName(observingStackFrame.functionName),
-                    path: cleanFilePath(observingStackFrame),
-                  }),
-                ),
-                source: {
-                  name: cleanFunctionName(functionName),
-                  path: cleanFilePath(stackFrame),
-                },
-                target: {
-                  name: cleanFunctionName(
-                    targetFrame?.functionName || "ANONYMOUS",
+                [isDerived ? "derived_updated" : "signal_updated"]: {
+                  ref: id,
+                  value,
+                  observers: observingStackFrames.map(
+                    (observingStackFrame, index) => ({
+                      type: observedSignal[observers[index]],
+                      name: cleanFunctionName(observingStackFrame.functionName),
+                      path: cleanFilePath(observingStackFrame),
+                    }),
                   ),
-                  path: cleanFilePath(targetFrame),
+                  source: {
+                    name: cleanFunctionName(functionName),
+                    path: cleanFilePath(stackFrame),
+                  },
+                  target: {
+                    name: cleanFunctionName(
+                      targetFrame?.functionName || "ANONYMOUS",
+                    ),
+                    path: cleanFilePath(targetFrame),
+                  },
                 },
-                type: isDerived ? "derived" : "signal",
-              });
+              } as DebugDataPayload);
 
               return;
             });
@@ -426,26 +412,29 @@ function createEffectDebugEntry(effect: () => void) {
   }
 
   queue.add(() =>
-    // Not sure why TS yells here, we always assign a promise to this variable, hm
     stackFramePromise!.then((stackFrame) => {
       sendMessage({
-        id,
-        type: "effect",
-        name: effect.name,
-        target: {
-          name: cleanFunctionName(stackFrame?.functionName || "ANONYMOUS"),
-          path: cleanFilePath(stackFrame),
+        effect_updated: {
+          ref: id,
+          name: effect.name,
+          target: {
+            name: cleanFunctionName(stackFrame?.functionName || "ANONYMOUS"),
+            path: cleanFilePath(stackFrame),
+          },
         },
       });
     }),
   );
 }
 
-function createStoreMountedEntry(store: StoreDebug, parentName?: string) {
+function createStoreMountedEntry(store: StoreDebugInfo, parentName?: string) {
   sendMessage({
-    type: "store",
-    store,
-    parentName,
+    store_mounted: {
+      store,
+      parentStore: parentName,
+      props: {},
+      observables: [],
+    },
   });
 }
 
