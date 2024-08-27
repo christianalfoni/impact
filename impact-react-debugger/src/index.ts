@@ -1,4 +1,3 @@
-import StackTraceGPS from "stacktrace-gps";
 import StackFrame from "stackframe";
 import {
   ObserverContext,
@@ -13,22 +12,25 @@ import {
   DebugDataPayload,
   StoreDebugInfo,
 } from "./types";
+import { SerialQueue } from "./SerialQueue";
+import {
+  createSourceMappedStackFrame,
+  createStackFrameData,
+} from "./stackFrameUtils";
+import { cleanFilePath, cleanFunctionName, createDebugId } from "./utils";
 
-const cache: {
-  [url: string]: Promise<StackFrame>;
-} = {};
-
+const cache: { [url: string]: Promise<StackFrame> } = {};
 const observedSignals = new WeakMap<
   SignalNotifier,
   { [cacheKey: string]: ObserverContextType }
 >();
 
-export type DebugData = _DebugData;
-
 let promiseResolver: (value: Window) => void;
 const awaitBridge = new Promise<Window>((resolve) => {
   promiseResolver = resolve;
 });
+
+export type DebugData = _DebugData;
 
 export function connectBridge(target: Window) {
   target.postMessage(CONNECT_DEBUG_MESSAGE, "*");
@@ -46,167 +48,9 @@ async function sendMessage(payload: DebugDataPayload) {
   targetWindow.postMessage(message, "*");
 }
 
-class SerialQueue {
-  private queue: Array<() => Promise<void>> = [];
-  private processNextItem() {
-    const nextItem = this.queue[0];
-
-    if (!nextItem) {
-      return;
-    }
-
-    nextItem().finally(() => {
-      this.queue.shift();
-      this.processNextItem();
-    });
-  }
-  add(processItem: () => Promise<void>) {
-    this.queue.push(processItem);
-
-    if (this.queue.length === 1) {
-      this.processNextItem();
-    }
-  }
-}
-
 const queue = new SerialQueue();
 
-function createStackFrameData(stack: string) {
-  const stackFrameData: Array<{
-    file: string;
-    line: number;
-    column: number;
-    functionName: string;
-  }> = [];
-
-  // @ts-expect-error
-  if (window.next) {
-    const callSites = stack
-      .split("\n")
-      .slice(1)
-      .filter(
-        (line) =>
-          !line.includes("node_modules") &&
-          !line.includes("createSetterDebugEntry") &&
-          !line.includes("createGetterDebugEntry") &&
-          !line.includes("impact-react") &&
-          !line.includes("webpack.js") &&
-          !line.includes("chrome-extension://") &&
-          !line.includes("(<anonymous>)"),
-      );
-
-    for (const callSite of callSites) {
-      try {
-        let functionName =
-          callSite.match(/.*at (.*)?\(/)?.[1]?.trim() ?? "ANONYMOUS";
-        functionName = functionName.replace(" (webpack-internal:///", "");
-
-        let file = callSite.substring(
-          callSite.indexOf("webpack-internal:///(app-pages-browser)/"),
-        );
-
-        file = file.substring(0, file.length - 1);
-
-        const parts = file.split(":");
-
-        const column = Number(parts.pop());
-        const line = Number(parts.pop());
-
-        file = parts.join(":");
-
-        file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
-
-        stackFrameData.push({ file, line, column, functionName });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  } else if (window.navigator.userAgent.includes("Chrome")) {
-    const callSites = stack
-      .split("\n")
-      .slice(1)
-      .filter(
-        (line) =>
-          !line.includes("node_modules") &&
-          line.includes(window.location.origin) &&
-          !line.includes("createSetterDebugEntry") &&
-          !line.includes("createGetterDebugEntry") &&
-          !line.includes("impact-app") &&
-          // Vite
-          !line.includes("@fs"),
-      );
-
-    for (const callSite of callSites) {
-      try {
-        let functionName =
-          callSite.match(/.*at (.*)?\(/)?.[1]?.trim() ?? "ANONYMOUS";
-        functionName = functionName.split(".").pop()!;
-
-        let file = callSite.substring(callSite.indexOf(location.origin));
-
-        file = file.substring(0, file.length - 1);
-
-        const parts = file.split(":");
-
-        const column = Number(parts.pop());
-        const line = Number(parts.pop());
-
-        file = parts.join(":");
-
-        file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
-
-        stackFrameData.push({ file, line, column, functionName });
-      } catch (error) {
-        console.log(error);
-      }
-    }
-  }
-
-  return stackFrameData;
-}
-
-function createSourceMappedStackFrame(
-  file: string,
-  functionName: string,
-  line: number,
-  column: number,
-): Promise<StackFrame> {
-  // @ts-expect-error
-  if (window.next) {
-    const nextjsStackFrameUrl = `__nextjs_original-stack-frame?file=${encodeURIComponent(
-      file,
-    )}&methodName=${functionName}&lineNumber=${line}&column=${column}`;
-
-    return fetch(nextjsStackFrameUrl).then(async (response) => {
-      const payload = await response.json();
-
-      return {
-        fileName: payload.originalStackFrame.file,
-        functionName: payload.originalStackFrame.methodName,
-        lineNumber: payload.originalStackFrame.lineNumber,
-        columnNumber: payload.originalStackFrame.column,
-      } as StackFrame;
-    });
-  } else {
-    const stackframe = new StackFrame({
-      fileName: file,
-      functionName,
-      lineNumber: line,
-      columnNumber: column,
-    });
-
-    const gps = new StackTraceGPS();
-
-    return gps.pinpoint(stackframe).then((result) => {
-      // console.log("Pinpointed stackframe", functionName, stackframe, result);
-      result.setFunctionName(functionName);
-
-      return result;
-    });
-  }
-}
-
-export function createGetterDebugEntry(
+function createGetterDebugEntry(
   context: ObserverContext,
   signal: SignalNotifier,
 ) {
@@ -260,43 +104,12 @@ export function createGetterDebugEntry(
   }
 }
 
-function cleanFunctionName(functionName?: string) {
-  if (!functionName) {
-    return "ANONYMOUS";
-  }
-
-  // Remove "[as current]" etc.
-  functionName = functionName.replace(/\s\[.*\]/, "");
-
-  // Only return last part, as getters has a "get " in front
-  return functionName.split(" ").pop()!;
-}
-
-function cleanFilePath(stackFrame: StackFrame | null) {
-  if (!stackFrame || !stackFrame.fileName) {
-    return "UNKNOWN";
-  }
-
-  let path = stackFrame.fileName.replace(window.location.origin, "");
-
-  if (stackFrame.lineNumber) {
-    path += ":" + stackFrame.lineNumber;
-  }
-
-  if (stackFrame.columnNumber) {
-    path += ":" + stackFrame.columnNumber;
-  }
-
-  return path;
-}
-
-let debugDataId = 0;
-export function createSetterDebugEntry(
+function createSetterDebugEntry(
   signal: SignalNotifier,
   value: unknown,
   isDerived = false,
 ) {
-  const id = debugDataId++;
+  const id = createDebugId();
   const stack = new Error().stack!;
   const stackFrameData = createStackFrameData(stack);
   const sourceFrame = stackFrameData.pop()!;
@@ -386,7 +199,7 @@ export function createSetterDebugEntry(
 const effectsCachedStackFrame = new Map<() => void, Promise<StackFrame>>();
 
 function createEffectDebugEntry(effect: () => void) {
-  const id = debugDataId++;
+  const id = createDebugId();
 
   let stackFramePromise = effectsCachedStackFrame.get(effect);
 
@@ -438,6 +251,7 @@ function createStoreMountedEntry(store: StoreDebugInfo, parentName?: string) {
   });
 }
 
+// Set up debug hooks
 signalDebugHooks.onGetValue = createGetterDebugEntry;
 signalDebugHooks.onSetValue = createSetterDebugEntry;
 signalDebugHooks.onEffectRun = createEffectDebugEntry;
