@@ -4,7 +4,7 @@ import {
   ObserverContext,
   ObserverContextType,
   SignalNotifier,
-  signalDebugHooks,
+  debugHooks,
 } from "impact-react";
 import { mount, unmount, addDebugData } from "./ui";
 
@@ -399,6 +399,6 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
-signalDebugHooks.onGetValue = createGetterDebugEntry;
-signalDebugHooks.onSetValue = createSetterDebugEntry;
-signalDebugHooks.onEffectRun = createEffectDebugEntry;
+debugHooks.onGetValue = createGetterDebugEntry;
+debugHooks.onSetValue = createSetterDebugEntry;
+debugHooks.onEffectRun = createEffectDebugEntry;
