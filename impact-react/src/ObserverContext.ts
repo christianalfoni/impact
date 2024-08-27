@@ -12,7 +12,7 @@ let currentSnapshot = 0;
 // This is instantiated by a signal to keep track of what ObsererContexts are interested
 // in the signal and notifies them when the signal changes
 export class SignalNotifier {
-  private contexts = new Set<ObserverContext>();
+  contexts = new Set<ObserverContext>();
   constructor() {}
   // A signal holds a global snapshot value, which changes whenever the signal changes.
   // This snapshot is passed and stored on the ObserverContext to make sure
@@ -54,11 +54,11 @@ export class ObserverContext {
   // We need to keep track of what signals are being set/get. The reason is that in an effect you can
   // not both get and set a signal, as observation would trigger the effect again. So in an effect we
   // prevent notifying updates when a signal has both a getter and a setter. This is also used for debugging
-  private _getters = new Set<SignalNotifier>();
-  private _setters = new Set<SignalNotifier>();
+  _getters = new Set<SignalNotifier>();
+  _setters = new Set<SignalNotifier>();
   // An ObserverContext only has one subscriber at any time
-  private _subscriber?: () => void;
-  public stackTrace = "";
+  _subscriber?: () => void;
+  stackTrace = "";
   // Components are using "useSyncExternalStore" which expects a snapshot to indicate a change
   // to the store. We use a simple number for this to trigger reconciliation of a component. We start
   // out with the current as it reflects the current state of all signals

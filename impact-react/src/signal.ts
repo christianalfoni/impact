@@ -1,4 +1,3 @@
-import { getResolvingStoreContainer } from "impact-react-store";
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
 import { debugHooks } from "./debugHooks";
 import { isResolvingStoreFromComponent } from "./utils";

@@ -3,12 +3,20 @@ import { signal, Signal } from "./signal";
 
 export function createStore<
   T extends Record<string, unknown>,
-  A extends Record<string, () => any>,
->(store: Store<T, A>) {
-  return createImpactStore(
+  U extends Record<string, any>,
+  K extends Record<string, () => any>,
+>(store: Store<T, K>) {
+  return createImpactStore<
+    T,
+    {
+      [A in keyof K]: K[A] extends () => any ? ReturnType<K[A]> : never;
+    },
+    U,
+    K
+  >(
     store,
     (props) => {
-      const signalProps: Record<string, Signal<any>> = {};
+      const signalProps: any = {};
 
       for (const key in props) {
         if (key !== "children") {

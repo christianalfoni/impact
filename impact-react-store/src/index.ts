@@ -112,9 +112,9 @@ export type StoreState =
 class StoreContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
-  private _resolvementError?: Error;
-  private _state: StoreState;
-  private _disposers = new Set<() => void>();
+  _resolvementError?: Error;
+  _state: StoreState;
+  _disposers = new Set<() => void>();
   // The RPC events registered with "receiver"
   events: any;
 

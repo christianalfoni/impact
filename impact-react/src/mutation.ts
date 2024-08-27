@@ -1,30 +1,16 @@
 import { signal } from "./signal";
 
-export type MutationState<U> =
-  | {
-      status: "IDLE";
-    }
-  | {
-      status: "MUTATING";
-      data: U;
-    };
-
 export function mutation<T, U>(mutator: (data: U) => Promise<T>) {
   let abortController: AbortController | undefined;
 
   const [promise, setPromise] = signal<Promise<T> | undefined>(undefined);
-  const [state, setState] = signal<MutationState<U>>({
-    status: "IDLE",
-  });
+  const [optimisticData, setOptimisticData] = signal<U | undefined>(undefined);
 
   function mutate(data: U) {
     abortController?.abort();
     const currentAbortController = (abortController = new AbortController());
 
-    setState({
-      status: "MUTATING",
-      data,
-    });
+    setOptimisticData(data);
     mutator(data)
       .then((data) => {
         if (currentAbortController.signal.aborted) {
@@ -43,11 +29,9 @@ export function mutation<T, U>(mutator: (data: U) => Promise<T>) {
           return;
         }
 
-        setState({
-          status: "IDLE",
-        });
+        setOptimisticData(undefined);
       });
   }
 
-  return [{ promise, state }, mutate] as const;
+  return [{ promise, optimisticData }, mutate] as const;
 }
