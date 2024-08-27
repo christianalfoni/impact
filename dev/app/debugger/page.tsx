@@ -44,29 +44,20 @@ export default function ReactDevTool() {
       if (e.data.source === "impact-react-debugger") {
         const payload = e.data.payload;
 
-        switch (payload.event) {
-          case "connected": {
-            setIsLoading(false);
+        if ("connected" in payload) {
+          setIsLoading(false);
 
-            break;
-          }
+          return;
+        } else if ("store_mounted" in payload) {
+          dispatch({
+            type: "add",
+            payload: payload.store_mounted,
+          });
 
-          case "message": {
-            const type = payload.payload.type;
-
-            switch (type) {
-              case "store": {
-                dispatch({
-                  type: "add",
-                  payload: payload.payload,
-                });
-
-                break;
-              }
-            }
-
-            break;
-          }
+          return;
+        } else {
+          console.log("unknown payload");
+          console.log(payload);
         }
       }
     };
@@ -79,7 +70,7 @@ export default function ReactDevTool() {
 
   if (isLoading) {
     return (
-      <div className="bg-zinc-900 text-zinc-600 text-white h-screen flex font-mono flex">
+      <div className="bg-zinc-900 text-zinc-600 h-screen font-mono flex">
         <div className="m-auto flex flex-col items-center">
           <LogoMuted className="w-16 h-16" />
 
@@ -228,18 +219,17 @@ function createChild(name: string, props: any = {}): ComponentData {
 type Action =
   | {
       type: "add";
-      payload: { store: { name: string; props: any }; parentName?: string };
+      payload: { store: { name: string; props: any }; parentStore?: string };
     }
   | { type: "remove"; payload: { name: string } };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
   switch (action.type) {
     case "add":
-      console.log(action.payload);
       return addComponent(
         state,
         action.payload.store,
-        action.payload.parentName,
+        action.payload.parentStore,
       );
 
     case "remove":
