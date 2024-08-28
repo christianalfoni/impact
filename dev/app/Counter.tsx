@@ -1,49 +1,57 @@
 "use client";
 
-import { useState } from "react";
-import { receiver, emitter, createStore, signal, observer } from "impact-react";
+import { Suspense, useState } from "react";
+import {
+  createStore,
+  observer,
+  query,
+  mutation,
+  provide,
+  inject,
+  use,
+} from "impact-react";
 // import { observable } from "mobx";
 // import { observer } from "mobx-react-lite";
 
-type AppStoreEvents = {
+type AppStoreContext = {
   addGrocery(grocery: string): void;
 };
 
-function createGrocery(_name: string) {
-  const [name] = signal(_name);
-
-  return {
-    id: String(Math.random()),
-    name,
-  };
-}
-
-type Grocery = ReturnType<typeof createGrocery>;
+const _groceries: string[] = [];
+const getGroceries = () =>
+  new Promise<string[]>((resolve) =>
+    setTimeout(() => resolve(_groceries.slice()), 1000),
+  );
+const postGrocery = (grocery: string) =>
+  new Promise<void>((resolve) =>
+    setTimeout(() => {
+      console.log("WUUUT?", grocery);
+      _groceries.push(grocery);
+      resolve();
+    }, 1000),
+  );
 
 function AppStore() {
-  const [groceries, setGroceries] = signal<Grocery[]>([]);
-
-  receiver<AppStoreEvents>({
-    addGrocery(name) {
-      setGroceries((current) => [...current, createGrocery(name)]);
-    },
-  });
+  const [groceries, invalidateGroceries] = query(() => getGroceries());
+  const [addingGrocery, addGrocery] = mutation((grocery: string) =>
+    postGrocery(grocery).then(invalidateGroceries),
+  );
 
   return {
     groceries,
+    addingGrocery,
+    addGrocery,
   };
 }
 
 const useAppStore = createStore(AppStore);
 
-function GroceriesStore(props: { groceries: () => Grocery[] }) {
-  const emit = emitter<AppStoreEvents>();
+function GroceriesStore(props: { groceries: () => string[] }) {
+  const { addGrocery } = useAppStore();
 
   return {
     groceries: props.groceries,
-    addGrocery(grocery: string) {
-      emit.addGrocery(grocery);
-    },
+    addGrocery,
   };
 }
 
@@ -52,8 +60,11 @@ const useGrocieresStore = createStore(GroceriesStore);
 const App = observer(function App() {
   const appStore = useAppStore();
 
+  const groceries = use(appStore.groceries().promise);
+
   return (
-    <useGrocieresStore.Provider groceries={appStore.groceries()}>
+    <useGrocieresStore.Provider groceries={groceries}>
+      <h5>Groceries state: {appStore.groceries().state}</h5>
       <Groceries />
     </useGrocieresStore.Provider>
   );
@@ -61,15 +72,16 @@ const App = observer(function App() {
 
 const Groceries = observer(function Groceries() {
   const [grocery, setGrocery] = useState("");
+  const { addingGrocery } = useAppStore();
   const { groceries, addGrocery } = useGrocieresStore();
 
-  console.log(groceries());
   return (
     <div>
       <input
         value={grocery}
         style={{
           color: "black",
+          opacity: addingGrocery()?.promise.status === "pending" ? 0.5 : 1,
         }}
         onChange={(event) => setGrocery(event.target.value)}
         onKeyDown={(event) => {
@@ -81,8 +93,11 @@ const Groceries = observer(function Groceries() {
       />
       <ul>
         {groceries().map((grocery, index) => (
-          <li key={index}>{grocery.name()}</li>
+          <li key={index}>{grocery}</li>
         ))}
+        {addingGrocery()?.data ? (
+          <li>Optimistic: {addingGrocery()?.data}</li>
+        ) : null}
       </ul>
     </div>
   );
@@ -91,7 +106,9 @@ const Groceries = observer(function Groceries() {
 export function Counter() {
   return (
     <useAppStore.Provider>
-      <App />
+      <Suspense fallback={<h4>Loading groceries...</h4>}>
+        <App />
+      </Suspense>
     </useAppStore.Provider>
   );
 }

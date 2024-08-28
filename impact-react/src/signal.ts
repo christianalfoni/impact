@@ -21,13 +21,15 @@ export type ObservablePromise<T> =
   | FulfilledPromise<T>
   | RejectedPromise<T>;
 
-function createPendingPromise<T>(promise: Promise<T>): PendingPromise<T> {
+export function createPendingPromise<T>(
+  promise: Promise<T>,
+): PendingPromise<T> {
   return Object.assign(promise, {
     status: "pending" as const,
   });
 }
 
-function createFulfilledPromise<T>(
+export function createFulfilledPromise<T>(
   promise: Promise<T>,
   value: T,
 ): FulfilledPromise<T> {
@@ -37,7 +39,7 @@ function createFulfilledPromise<T>(
   });
 }
 
-function createRejectedPromise<T>(
+export function createRejectedPromise<T>(
   promise: Promise<T>,
   reason: unknown,
 ): RejectedPromise<T> {
@@ -47,13 +49,56 @@ function createRejectedPromise<T>(
   });
 }
 
+// This is responsible for creating the observable promise by
+// handling the resolved and rejected state of the initial promise and
+// notifying
+export function createObservablePromise<T>(
+  promise: Promise<any>,
+  abortController: AbortController,
+  onSettled: (promise: FulfilledPromise<T> | RejectedPromise<T>) => void,
+): ObservablePromise<T> {
+  const observablePromise = createPendingPromise(
+    promise
+      .then(function (resolvedValue) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        onSettled(
+          createFulfilledPromise(Promise.resolve(resolvedValue), resolvedValue),
+        );
+
+        return resolvedValue;
+      })
+      .catch((rejectedReason) => {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        const rejectedPromise = Promise.reject(rejectedReason);
+
+        onSettled(createRejectedPromise(rejectedPromise, rejectedReason));
+
+        return rejectedPromise;
+      }),
+  );
+
+  observablePromise.catch(() => {
+    // When consuming a promise form a signal we do not consider it an unhandled promise anymore.
+    // This catch prevents the browser from identifying it as unhandled, but will still be a rejected
+    // promise if you try to consume it
+  });
+
+  return observablePromise;
+}
+
 export type Signal<T> = [
   () => T extends Promise<infer V> ? ObservablePromise<V> : T,
-  (
+  <U extends T>(
     value:
-      | T
-      | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => T),
-  ) => T extends Promise<infer V> ? ObservablePromise<V> : T,
+      | U
+      | ((current: T extends Promise<infer V> ? ObservablePromise<V> : T) => U),
+  ) => U extends Promise<infer V> ? ObservablePromise<V> : U,
 ];
 
 export function signal<T>(initialValue: T) {
@@ -63,7 +108,7 @@ export function signal<T>(initialValue: T) {
 
   let value =
     initialValue && initialValue instanceof Promise
-      ? createObservablePromise(initialValue)
+      ? createSignalPromise(initialValue)
       : initialValue;
 
   const signalNotifier = new SignalNotifier();
@@ -71,51 +116,19 @@ export function signal<T>(initialValue: T) {
   // This is responsible for creating the observable promise by
   // handling the resolved and rejected state of the initial promise and
   // notifying
-  function createObservablePromise(
-    promise: Promise<any>,
-  ): ObservablePromise<T> {
+  function createSignalPromise(promise: Promise<any>): ObservablePromise<T> {
     currentAbortController?.abort();
 
     const abortController = (currentAbortController = new AbortController());
 
-    const observablePromise = createPendingPromise(
-      promise
-        .then(function (resolvedValue) {
-          if (abortController.signal.aborted) {
-            return;
-          }
-
-          value = createFulfilledPromise(
-            Promise.resolve(resolvedValue),
-            resolvedValue,
-          );
-
-          signalNotifier.notify();
-
-          return resolvedValue;
-        })
-        .catch((rejectedReason) => {
-          if (abortController.signal.aborted) {
-            return;
-          }
-
-          const rejectedPromise = Promise.reject(rejectedReason);
-
-          value = createRejectedPromise(rejectedPromise, rejectedReason);
-
-          signalNotifier.notify();
-
-          return rejectedPromise;
-        }),
+    return createObservablePromise(
+      promise,
+      abortController,
+      (settledObservablePromise) => {
+        value = settledObservablePromise;
+        signalNotifier.notify();
+      },
     );
-
-    observablePromise.catch(() => {
-      // When consuming a promise form a signal we do not consider it an unhandled promise anymore.
-      // This catch prevents the browser from identifying it as unhandled, but will still be a rejected
-      // promise if you try to consume it
-    });
-
-    return observablePromise;
   }
 
   return [
@@ -142,7 +155,7 @@ export function signal<T>(initialValue: T) {
       }
 
       if (newValue instanceof Promise) {
-        newValue = createObservablePromise(newValue);
+        newValue = createSignalPromise(newValue);
       }
 
       // We do nothing if the values are the same

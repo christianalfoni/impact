@@ -22,7 +22,7 @@ const resolvingStoreContainers: Array<StoreContainer> = [];
 
 // We use a global reference to the resolved events of "receiver". This allows us
 // to attach the resolved events to the global store or the store container
-let lastResolvedEvents: any;
+let lastResolvedInjectionContext: any;
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
 // creating a globally controlled React dispatcher blocker
@@ -116,7 +116,7 @@ class StoreContainer {
   _state: StoreState;
   _disposers = new Set<() => void>();
   // The RPC events registered with "receiver"
-  events: any;
+  injectionContext: any;
 
   // When constructing the provider for the store we only keep a reference to the store and
   // any parent store container
@@ -166,8 +166,8 @@ class StoreContainer {
           storeRef: store,
         };
         // We have called the store and events might have been registered with "receiver"
-        this.events = lastResolvedEvents;
-        lastResolvedEvents = undefined;
+        this.injectionContext = lastResolvedInjectionContext;
+        lastResolvedInjectionContext = undefined;
         // We pop off the resolvement tracker
         resolvingStoreContainers.pop();
 
@@ -357,46 +357,40 @@ export function createStore<
   return hook as any;
 }
 
-type EventRPC = (...params: any[]) => any;
-
-export function receiver<T extends { [event: string]: EventRPC }>(events: T) {
+export function provide<T extends Record<string, any>>(injectionContext: T) {
   if (!getResolvingStoreContainer()) {
-    throw new Error('Can not call "receiver" outside a store');
+    throw new Error('Can not call "provide" outside a store');
   }
 
-  lastResolvedEvents = events;
+  lastResolvedInjectionContext = injectionContext;
 }
 
-export function emitter<T extends { [event: string]: EventRPC }>() {
+export function inject<T extends Record<string, any>>() {
   const storeContainer = getResolvingStoreContainer();
 
-  if (!(storeContainer instanceof StoreContainer)) {
-    throw new Error('Can not call "emitter" in global stores');
-  }
-
   if (!storeContainer) {
-    throw new Error('Can not call "emitter" outside a store');
+    throw new Error('Can not call "inject" outside a store');
   }
 
   return new Proxy(
     {},
     {
-      get(_, event: string) {
-        return (...params: any[]) => {
-          let currentStoreContainer = storeContainer;
-          while (currentStoreContainer) {
-            if (currentStoreContainer.events?.[event]) {
-              return currentStoreContainer.events[event](...params);
-            }
-
-            if (currentStoreContainer.parent) {
-              currentStoreContainer = currentStoreContainer.parent;
-              continue;
-            }
-
-            throw new Error("There are no receivers for the event: " + event);
+      get(_, injectKey: string) {
+        let currentStoreContainer = storeContainer;
+        while (currentStoreContainer) {
+          if (currentStoreContainer.injectionContext?.[injectKey]) {
+            return currentStoreContainer.injectionContext[injectKey];
           }
-        };
+
+          if (currentStoreContainer.parent) {
+            currentStoreContainer = currentStoreContainer.parent;
+            continue;
+          }
+
+          throw new Error(
+            "There are no providers for the injection context: " + injectKey,
+          );
+        }
       },
     },
   ) as T;

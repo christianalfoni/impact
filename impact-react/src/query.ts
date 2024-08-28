@@ -1,52 +1,72 @@
-import { signal } from "./signal";
+import {
+  createFulfilledPromise,
+  createObservablePromise,
+  createRejectedPromise,
+  ObservablePromise,
+  signal,
+} from "./signal";
 
-export type QueryState =
-  | {
-      status: "IDLE";
-    }
-  | {
-      status: "FETCHING";
-    }
-  | {
-      status: "REFETCHING";
-    };
+export type QueryState = "IDLE" | "FETCHING" | "REFETCHING";
 
 export function query<T>(fetchData: () => Promise<T>) {
-  let abortController: AbortController | undefined;
+  let abortController = new AbortController();
 
-  const [promise, setPromise] = signal<Promise<T>>(fetchData());
-  const [state, setState] = signal<QueryState>({
-    status: "FETCHING",
+  const [data, setData] = signal<{
+    promise: ObservablePromise<T>;
+    state: QueryState;
+  }>({
+    promise: createObservablePromise(
+      fetchData(),
+      abortController,
+      (settledObservablePromise) => {
+        setData({
+          state: "IDLE",
+          promise: settledObservablePromise,
+        });
+      },
+    ),
+    state: "FETCHING",
   });
 
   function invalidate() {
     abortController?.abort();
     const currentAbortController = (abortController = new AbortController());
 
-    setState({ status: "REFETCHING" });
-    fetchData()
+    setData((current) => ({
+      ...current,
+      state: "REFETCHING",
+    }));
+
+    return fetchData()
       .then((data) => {
         if (currentAbortController.signal.aborted) {
           return;
         }
-        setPromise(Promise.resolve(data));
+        setData((current) => ({
+          ...current,
+          promise: createFulfilledPromise(Promise.resolve(data), data),
+        }));
       })
       .catch((error) => {
         if (currentAbortController.signal.aborted) {
           return;
         }
-        setPromise(Promise.reject(error));
+        setData((current) => ({
+          ...current,
+          promise: createRejectedPromise(Promise.reject(error), error),
+        }));
       })
       .finally(() => {
         if (currentAbortController.signal.aborted) {
           return;
         }
 
-        setState({
-          status: "IDLE",
-        });
+        setData((current) => ({
+          ...current,
+          state: "IDLE",
+        }));
       });
   }
 
-  return [{ promise, state }, invalidate] as const;
+  return [data, invalidate] as const;
 }
