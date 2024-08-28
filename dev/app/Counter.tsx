@@ -54,7 +54,7 @@ const App = observer(function App() {
   const appStore = useAppStore();
 
   return (
-    <useGrocieresStore.Provider groceries={appStore.groceries}>
+    <useGrocieresStore.Provider groceries={appStore.groceries()}>
       <Groceries />
     </useGrocieresStore.Provider>
   );
@@ -64,6 +64,7 @@ const Groceries = observer(function Groceries() {
   const [grocery, setGrocery] = useState("");
   const { groceries, addGrocery } = useGrocieresStore();
 
+  console.log(groceries());
   return (
     <div>
       <input

@@ -3,7 +3,7 @@ import {
   ObserverContext,
   ObserverContextType,
   SignalNotifier,
-  signalDebugHooks,
+  debugHooks,
 } from "impact-react";
 import {
   DebugData as _DebugData,
@@ -18,6 +18,7 @@ import {
   createStackFrameData,
 } from "./stackFrameUtils";
 import { cleanFilePath, cleanFunctionName, createDebugId } from "./utils";
+import { Store } from "impact-react-store";
 
 const cache: { [url: string]: Promise<StackFrame> } = {};
 const observedSignals = new WeakMap<
@@ -240,7 +241,7 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
-function createStoreMountedEntry(store: StoreDebugInfo, parentName?: string) {
+function createStoreMountedEntry(store: Store<any, any>, parentName?: string) {
   sendMessage({
     store_mounted: {
       store,
@@ -252,7 +253,7 @@ function createStoreMountedEntry(store: StoreDebugInfo, parentName?: string) {
 }
 
 // Set up debug hooks
-signalDebugHooks.onGetValue = createGetterDebugEntry;
-signalDebugHooks.onSetValue = createSetterDebugEntry;
-signalDebugHooks.onEffectRun = createEffectDebugEntry;
-signalDebugHooks.onStoreMounted = createStoreMountedEntry;
+debugHooks.onGetValue = createGetterDebugEntry;
+debugHooks.onSetValue = createSetterDebugEntry;
+debugHooks.onEffectRun = createEffectDebugEntry;
+debugHooks.onStoreMounted = createStoreMountedEntry;
