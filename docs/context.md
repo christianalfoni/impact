@@ -28,12 +28,12 @@ function GlobalStore() {
 }
 
 function SomeNestedStore() {
-  // We only need to create an emitter where we add the types of messages to send
+  // We only need to access the key on the context to consume it from a parent store that
+  // provides that key. If no key exists, an error is thrown
   const { addListItem } = context<GlobalStoreContext>();
 
   return {
     doSomething() {
-      // Simply call the method and any returned result will also be returned here
       addListItem("foo");
     },
   };
