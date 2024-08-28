@@ -1,13 +1,13 @@
-# Messages
+# Context
 
 When you return an interface from a store, that interface is public. That means all nested components and stores has access to that interface. Often there is certain management of state that should only be managed by the stores. You want a private interface between the stores.
 
-Since stores are decoupled from each other **Impact** uses an [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) implementation to achieve this. That means a store can define a `receiver`, handling messages from nested stores, and nested stores can define an `emitter`, sending messages to parent stores. A `message` is really just a method call where you can send any number of parameters and also get a result. This is what RPC conceptually is, decoupled method calling.
+Just like React has its context to inject values in nested components, **Impact** has its context to inject values in nested stores. Unlike the React context, which resolves with a context reference, **Impact** resolves with a simple key reference. This simplifies to providing and consumption of store contexts.
 
 ```ts
-import { receiver, emitter } from "impact-react";
+import { context } from "impact-react";
 
-export type GlobalStoreMessages = {
+export type GlobalStoreContext = {
   addListItem(item: string): void;
 };
 
@@ -15,8 +15,8 @@ function GlobalStore() {
   // We have some state that we only want to be changed by other stores
   const [list, setList] = signal<string[]>([]);
 
-  // We register a message we will handle to update the list
-  receiver<GlobalStoreMessages>({
+  // We register a function to handle updating the list
+  context<GlobalStoreContext>({
     addListItem(item) {
       setList((current) => [...current, item]);
     },
@@ -29,12 +29,12 @@ function GlobalStore() {
 
 function SomeNestedStore() {
   // We only need to create an emitter where we add the types of messages to send
-  const emit = emitter<GlobalStoreMessages>();
+  const { addListItem } = context<GlobalStoreContext>();
 
   return {
     doSomething() {
       // Simply call the method and any returned result will also be returned here
-      emit.addListItem("foo");
+      addListItem("foo");
     },
   };
 }

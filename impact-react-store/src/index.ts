@@ -22,7 +22,7 @@ const resolvingStoreContainers: Array<StoreContainer> = [];
 
 // We use a global reference to the resolved events of "receiver". This allows us
 // to attach the resolved events to the global store or the store container
-let lastResolvedInjectionContext: any;
+let lastProvidedStoreContext: any;
 
 // In development mode we want to throw an error if you use React hooks inside the store. We do that by
 // creating a globally controlled React dispatcher blocker
@@ -166,8 +166,8 @@ class StoreContainer {
           storeRef: store,
         };
         // We have called the store and events might have been registered with "receiver"
-        this.injectionContext = lastResolvedInjectionContext;
-        lastResolvedInjectionContext = undefined;
+        this.injectionContext = lastProvidedStoreContext;
+        lastProvidedStoreContext = undefined;
         // We pop off the resolvement tracker
         resolvingStoreContainers.pop();
 
@@ -357,19 +357,19 @@ export function createStore<
   return hook as any;
 }
 
-export function provide<T extends Record<string, any>>(injectionContext: T) {
-  if (!getResolvingStoreContainer()) {
-    throw new Error('Can not call "provide" outside a store');
-  }
-
-  lastResolvedInjectionContext = injectionContext;
-}
-
-export function inject<T extends Record<string, any>>() {
+export function context<T extends Record<string, any>>(): T;
+export function context<T extends Record<string, any>>(context: T): void;
+export function context<T extends Record<string, any>>(context?: T) {
   const storeContainer = getResolvingStoreContainer();
 
   if (!storeContainer) {
-    throw new Error('Can not call "inject" outside a store');
+    throw new Error('Can not call "context" outside a store');
+  }
+
+  if (context) {
+    lastProvidedStoreContext = context;
+
+    return;
   }
 
   return new Proxy(

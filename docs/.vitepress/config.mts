@@ -77,6 +77,10 @@ export default defineConfig({
             link: "/cleanup",
           },
           {
+            text: "context",
+            link: "/context",
+          },
+          {
             text: "createStore",
             link: "/createStore",
           },
@@ -88,10 +92,7 @@ export default defineConfig({
             text: "effect",
             link: "/effect",
           },
-          {
-            text: "messages",
-            link: "/messages",
-          },
+
           {
             text: "observers",
             link: "/observers",
