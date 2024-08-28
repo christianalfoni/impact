@@ -10,7 +10,6 @@ import {
   CONNECT_DEBUG_MESSAGE,
   DEBUG_SOURCE,
   DebugDataPayload,
-  StoreDebugInfo,
 } from "./types";
 import { SerialQueue } from "./SerialQueue";
 import {

@@ -1,5 +1,6 @@
 import { createStore as createImpactStore, Store } from "impact-react-store";
 import { signal } from "./signal";
+import { debugHooks } from "./debugHooks";
 
 export function createStore<
   T extends Record<string, unknown>,
@@ -40,5 +41,6 @@ export function createStore<
 
       return storeProps;
     },
+    debugHooks.onStoreMounted,
   );
 }

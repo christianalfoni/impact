@@ -1,3 +1,5 @@
+import { Store } from "impact-react-store";
+
 type SourceLocation = {
   name: string;
   path: string;
@@ -47,8 +49,8 @@ type EffectUpdatedPayload = {
 
 type StoreMountedPayload = {
   store_mounted: {
-    store: any;
-    parentStore: any;
+    store: Store<any, any>;
+    parentStore: string;
     props: Record<string, any>;
     observables: Array<
       | {

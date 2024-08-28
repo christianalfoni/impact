@@ -12,6 +12,7 @@ import { DebugData } from "impact-react-debugger";
 import { Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
+import { Store } from "impact-react-store";
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +44,8 @@ export default function ReactDevTool() {
     const bridge = (e: MessageEvent<DebugData>) => {
       if (e.data.source === "impact-react-debugger") {
         const payload = e.data.payload;
+
+        console.log(payload);
 
         if ("connected" in payload) {
           setIsLoading(false);
@@ -205,11 +208,11 @@ function generateId() {
   return Date.now().toString() + (id++).toString();
 }
 
-function createChild(name: string, props: any = {}): ComponentData {
+function createChild(name: string): ComponentData {
   return {
     id: generateId(),
     name,
-    props,
+    props: {},
     state: {},
     stateTimeline: [],
     children: [],
@@ -219,7 +222,7 @@ function createChild(name: string, props: any = {}): ComponentData {
 type Action =
   | {
       type: "add";
-      payload: { store: { name: string; props: any }; parentStore?: string };
+      payload: { store: Store<any, any>; parentStore?: string };
     }
   | { type: "remove"; payload: { name: string } };
 
@@ -242,13 +245,13 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 
 function addComponent(
   state: ComponentData[],
-  store: { name: string; props: any },
+  store: Store<any, any>,
   parentName?: string,
 ): ComponentData[] {
   if (!parentName) {
     return state.some((item) => item.name === store.name)
       ? state
-      : [...state, createChild(store.name, store.props)];
+      : [...state, createChild(store.name)];
   }
 
   return state.map((item) => {
@@ -258,7 +261,7 @@ function addComponent(
     ) {
       return {
         ...item,
-        children: [...item.children, createChild(store.name, store.props)],
+        children: [...item.children, createChild(store.name)],
       };
     }
 

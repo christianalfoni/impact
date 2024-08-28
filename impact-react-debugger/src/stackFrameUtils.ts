@@ -93,12 +93,19 @@ function parseNextJsCallSite(callSite: string) {
   let file = callSite.substring(
     callSite.indexOf("webpack-internal:///(app-pages-browser)/"),
   );
+
   file = file.substring(0, file.length - 1);
 
-  const { line, column } = extractLineAndColumn(file);
-  file = cleanFilePathFromStack(file);
+  const parts = file.split(":");
 
-  return { functionName, file, line, column };
+  const column = Number(parts.pop());
+  const line = Number(parts.pop());
+
+  file = parts.join(":");
+
+  file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
+
+  return { file, line, column, functionName };
 }
 
 function parseChromeCallSite(callSite: string) {
@@ -106,23 +113,19 @@ function parseChromeCallSite(callSite: string) {
   functionName = functionName.split(".").pop()!;
 
   let file = callSite.substring(callSite.indexOf(location.origin));
+
   file = file.substring(0, file.length - 1);
 
-  const { line, column } = extractLineAndColumn(file);
-  file = cleanFilePathFromStack(file);
-
-  return { functionName, file, line, column };
-}
-
-function extractLineAndColumn(file: string) {
   const parts = file.split(":");
+
   const column = Number(parts.pop());
   const line = Number(parts.pop());
-  return { line, column };
-}
 
-function cleanFilePathFromStack(file: string) {
-  return file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
+  file = parts.join(":");
+
+  file = file.includes("?") ? file.substring(0, file.indexOf("?")) : file;
+
+  return { functionName, file, line, column };
 }
 
 export function createSourceMappedStackFrame(
