@@ -1,37 +1,38 @@
-import { signal } from "./signal";
+import { createObservablePromise, ObservablePromise, signal } from "./signal";
 
 export function mutation<T, U>(mutator: (data: U) => Promise<T>) {
   let abortController: AbortController | undefined;
 
-  const [promise, setPromise] = signal<Promise<T> | undefined>(undefined);
-  const [optimisticData, setOptimisticData] = signal<U | undefined>(undefined);
+  const [mutation, setMutation] = signal<
+    | {
+        promise: ObservablePromise<void>;
+        data: U;
+      }
+    | undefined
+  >(undefined);
 
   function mutate(data: U) {
     abortController?.abort();
     const currentAbortController = (abortController = new AbortController());
 
-    setOptimisticData(data);
-    mutator(data)
-      .then((data) => {
-        if (currentAbortController.signal.aborted) {
-          return;
-        }
-        setPromise(Promise.resolve(data));
-      })
-      .catch((error) => {
-        if (currentAbortController.signal.aborted) {
-          return;
-        }
-        setPromise(Promise.reject(error));
-      })
-      .finally(() => {
-        if (currentAbortController.signal.aborted) {
-          return;
-        }
-
-        setOptimisticData(undefined);
-      });
+    return setMutation({
+      promise: createObservablePromise(
+        mutator(data),
+        currentAbortController,
+        (settledObservablePromise) => {
+          if (settledObservablePromise.status === "fulfilled") {
+            setMutation(undefined);
+          } else {
+            setMutation({
+              data,
+              promise: settledObservablePromise,
+            });
+          }
+        },
+      ),
+      data,
+    }).promise;
   }
 
-  return [{ promise, optimisticData }, mutate] as const;
+  return [mutation, mutate] as const;
 }

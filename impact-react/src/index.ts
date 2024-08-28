@@ -1,7 +1,7 @@
-import { cleanup, receiver, emitter } from "impact-react-store";
+import { cleanup, context } from "impact-react-store";
 import { ObservablePromise } from "./signal";
 
-export { cleanup, receiver, emitter };
+export { cleanup, context };
 export { Observer, observer, useObserver } from "./observers";
 export { debugHooks } from "./debugHooks";
 export { createStore } from "./store";

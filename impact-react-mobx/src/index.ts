@@ -3,11 +3,10 @@ import {
   cleanup,
   createStore as createImpactStore,
   Store,
-  receiver,
-  emitter,
+  context,
 } from "impact-react-store";
 
-export { cleanup, receiver, emitter };
+export { cleanup, context };
 
 export function createStore<
   T extends Record<string, unknown>,
