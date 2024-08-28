@@ -284,11 +284,11 @@ function removeComponent(
 function findComponentById(
   trees: ComponentData[],
   id: string | null,
-): ComponentData | null {
+): ComponentData | undefined {
   for (const tree of trees) {
     if (tree.id === id) return tree;
     const found = findComponentById(tree.children, id);
     if (found) return found;
   }
-  return null;
+  return undefined;
 }
