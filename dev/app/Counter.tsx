@@ -50,6 +50,17 @@ function GroceriesStore(props: { groceries: () => Grocery[] }) {
 
 const useGrocieresStore = createStore(GroceriesStore);
 
+function ConditionalStore() {
+  const [show, setShow] = signal(false);
+
+  return {
+    show,
+    setShow,
+  };
+}
+
+const useConditionalStore = createStore(ConditionalStore);
+
 const App = observer(function App() {
   const appStore = useAppStore();
 
@@ -64,7 +75,6 @@ const Groceries = observer(function Groceries() {
   const [grocery, setGrocery] = useState("");
   const { groceries, addGrocery } = useGrocieresStore();
 
-  console.log(groceries());
   return (
     <div>
       <input
@@ -81,9 +91,9 @@ const Groceries = observer(function Groceries() {
         }}
       />
       <ul>
-        {/* {groceries().map((grocery, index) => (
+        {groceries().map((grocery, index) => (
           <li key={index}>{grocery.name()}</li>
-        ))} */}
+        ))}
       </ul>
     </div>
   );
@@ -91,6 +101,7 @@ const Groceries = observer(function Groceries() {
 
 export function Counter() {
   const iframe = useRef<HTMLIFrameElement>(null);
+  const [showConditionalStore, setShowConditionalStore] = useState(false);
 
   useEffect(() => {
     const delayToAvoidCallTwice = setTimeout(() => {
@@ -107,6 +118,16 @@ export function Counter() {
   return (
     <useAppStore.Provider>
       <App />
+
+      <button onClick={() => setShowConditionalStore(!showConditionalStore)}>
+        Toggle conditional store
+      </button>
+
+      {showConditionalStore && (
+        <useConditionalStore.Provider>
+          <p>Hello</p>
+        </useConditionalStore.Provider>
+      )}
 
       <div className="rounded overflow-hidden m-5">
         <iframe ref={iframe} width="100%" height="500px" src="/debugger" />

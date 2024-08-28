@@ -6,6 +6,7 @@ import React, {
   Suspense,
   useContext,
 } from "react";
+import { types } from "impact-react-debugger";
 
 // Polyfill this symbol as Safari currently does not have it
 // @ts-ignore
@@ -31,6 +32,8 @@ let isBlockingDispatcher = false;
 const dispatchUnblocker = () => {
   isBlockingDispatcher = false;
 };
+
+const storeRefs = new Map<StoreContainer, string>();
 
 // This is only used in development
 function blockDispatcher() {
@@ -263,7 +266,10 @@ export function createStore<
     observableProps: NoInfer<U>,
   ) => void,
   provideObservableProps: (props: NoInfer<U>) => K,
-  onStoreMounted?: (store: Store<any, any>, parentName?: string) => void,
+  onStoreMounted?: (props: types.StoreMountedPayload["store_mounted"]) => void,
+  onStoreUnmounted?: (
+    props: types.StoreUnmountedPayload["store_unmounted"],
+  ) => void,
 ): (() => T) & {
   Provider: React.ComponentClass<
     A extends void
@@ -271,6 +277,8 @@ export function createStore<
       : A & { children: React.ReactNode }
   >;
 } {
+  const storeRefId = createUniqueId();
+
   // The StoreProvider provides the store container which resolves the store. We use a class because
   // we need the "componentWillUnmount" lifecycle hook
   class StoreProvider extends Component {
@@ -298,7 +306,27 @@ export function createStore<
       store.name,
     );
     componentDidMount(): void {
-      onStoreMounted?.(store, this.container.parent?.name);
+      if (!storeRefs.has(this.container)) {
+        storeRefs.set(this.container, storeRefId);
+      }
+
+      const parent = this.context;
+
+      onStoreMounted?.({
+        store: {
+          id: storeRefId,
+          name: store.name,
+          // eslint-disable-next-line
+          // @ts-ignore
+          parent: parent
+            ? // eslint-disable-next-line
+              // @ts-ignore
+              { parent: parent.name, id: storeRefs.get(parent) }
+            : undefined,
+        },
+        props: {}, // TODO: Add props
+        observables: [], // TODO: Add observables
+      });
 
       this.mounted = true;
     }
@@ -323,6 +351,11 @@ export function createStore<
     }
     componentWillUnmount(): void {
       this.mounted = false;
+
+      onStoreUnmounted?.({
+        storeRefId,
+      });
+
       Promise.resolve().then(() => {
         if (!this.mounted) {
           this.container.cleanup();
@@ -406,4 +439,8 @@ export function emitter<T extends { [event: string]: EventRPC }>() {
       },
     },
   ) as T;
+}
+
+function createUniqueId() {
+  return Math.random().toString(36).substring(2, 15);
 }

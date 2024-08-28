@@ -8,11 +8,11 @@ import {
   XIcon,
   ChevronDownIcon,
 } from "lucide-react";
-import { DebugData } from "impact-react-debugger";
+
 import { Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
-import { Store } from "impact-react-store";
+import { types } from "impact-react-debugger";
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +41,7 @@ export default function ReactDevTool() {
   const selectedComponent = findComponentById(store, selectedId);
 
   useEffect(() => {
-    const bridge = (e: MessageEvent<DebugData>) => {
+    const bridge = (e: MessageEvent<types.DebugData>) => {
       if (e.data.source === "impact-react-debugger") {
         const payload = e.data.payload;
 
@@ -55,6 +55,13 @@ export default function ReactDevTool() {
           dispatch({
             type: "add",
             payload: payload.store_mounted,
+          });
+
+          return;
+        } else if ("store_unmounted" in payload) {
+          dispatch({
+            type: "stale",
+            payload: { id: payload.store_unmounted.storeRefId },
           });
 
           return;
@@ -187,6 +194,14 @@ function TreeNode({
           className={`text-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
         >
           {data.name}
+          {data.stale && (
+            <>
+              {" "}
+              <span className="border border-orange-500/50 text-orange-400 px-1 rounded-sm text-xs">
+                Stale
+              </span>
+            </>
+          )}
         </span>
       </div>
       {isExpanded &&
@@ -203,40 +218,35 @@ function TreeNode({
   );
 }
 
-let id = 0;
-function generateId() {
-  return Date.now().toString() + (id++).toString();
-}
-
-function createChild(name: string): ComponentData {
+function createChild(
+  payload: types.StoreMountedPayload["store_mounted"],
+  stale: boolean,
+): ComponentData {
   return {
-    id: generateId(),
-    name,
-    props: {},
-    state: {},
-    stateTimeline: [],
+    id: payload.store.id,
+    name: payload.store.name,
+    props: {}, // todo
+    state: {}, // todo
+    stateTimeline: [], // todo
     children: [],
+    stale,
   };
 }
 
 type Action =
   | {
       type: "add";
-      payload: { store: Store<any, any>; parentStore?: string };
+      payload: types.StoreMountedPayload["store_mounted"];
     }
-  | { type: "remove"; payload: { name: string } };
+  | { type: "stale"; payload: { id: string } };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
   switch (action.type) {
     case "add":
-      return addComponent(
-        state,
-        action.payload.store,
-        action.payload.parentStore,
-      );
+      return addComponent(state, action.payload);
 
-    case "remove":
-      return removeComponent(state, action.payload.name);
+    case "stale":
+      return markComponentAsStale(state, action.payload.id);
 
     default:
       return state;
@@ -245,43 +255,64 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 
 function addComponent(
   state: ComponentData[],
-  store: Store<any, any>,
-  parentName?: string,
+  payload: types.StoreMountedPayload["store_mounted"],
 ): ComponentData[] {
-  if (!parentName) {
-    return state.some((item) => item.name === store.name)
-      ? state
-      : [...state, createChild(store.name)];
+  if (!payload.store.parent) {
+    return state.some((item) => item.id === payload.store.id)
+      ? state.map((item) =>
+          item.id === payload.store.id ? { ...item, stale: false } : item,
+        )
+      : [...state, createChild(payload, false)];
   }
 
   return state.map((item) => {
-    if (
-      item.name === parentName &&
-      !item.children.some((child) => child.name === store.name)
-    ) {
+    if (item.id === payload.store.parent!.id) {
+      const existingChildIndex = item.children.findIndex(
+        (child) => child.name === payload.store.name,
+      );
+
+      if (existingChildIndex !== -1) {
+        // If child exists and is stale, remove it
+        if (item.children[existingChildIndex].stale) {
+          const newChildren = [...item.children];
+          newChildren.splice(existingChildIndex, 1);
+          return {
+            ...item,
+            children: [...newChildren, createChild(payload, false)],
+          };
+        }
+        // If child exists and is not stale, don't modify
+        return item;
+      }
+
+      // If child doesn't exist, add it
       return {
         ...item,
-        children: [...item.children, createChild(store.name)],
+        children: [...item.children, createChild(payload, false)],
       };
     }
 
     return {
       ...item,
-      children: addComponent(item.children, store, parentName),
+      children: addComponent(item.children, payload),
     };
   });
 }
 
-function removeComponent(
+function markComponentAsStale(
   state: ComponentData[],
-  name: string,
+  id: string,
 ): ComponentData[] {
-  return state
-    .filter((item) => item.name !== name)
-    .map((item) => ({
+  return state.map((item) => {
+    if (item.id === id) {
+      return { ...item, stale: true };
+    }
+
+    return {
       ...item,
-      children: removeComponent(item.children, name),
-    }));
+      children: markComponentAsStale(item.children, id),
+    };
+  });
 }
 
 function findComponentById(

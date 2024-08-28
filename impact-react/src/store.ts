@@ -42,5 +42,6 @@ export function createStore<
       return storeProps;
     },
     debugHooks.onStoreMounted,
+    debugHooks.onStoreUnmounted,
   );
 }

@@ -5,19 +5,16 @@ import {
   SignalNotifier,
   debugHooks,
 } from "impact-react";
-import {
-  DebugData as _DebugData,
-  CONNECT_DEBUG_MESSAGE,
-  DEBUG_SOURCE,
-  DebugDataPayload,
-} from "./types";
+
 import { SerialQueue } from "./SerialQueue";
 import {
   createSourceMappedStackFrame,
   createStackFrameData,
 } from "./stackFrameUtils";
 import { cleanFilePath, cleanFunctionName, createDebugId } from "./utils";
-import { Store } from "impact-react-store";
+
+import * as types from "./types";
+export * as types from "./types";
 
 const cache: { [url: string]: Promise<StackFrame> } = {};
 const observedSignals = new WeakMap<
@@ -30,18 +27,16 @@ const awaitBridge = new Promise<Window>((resolve) => {
   promiseResolver = resolve;
 });
 
-export type DebugData = _DebugData;
-
 export function connectBridge(target: Window) {
-  target.postMessage(CONNECT_DEBUG_MESSAGE, "*");
+  target.postMessage(types.CONNECT_DEBUG_MESSAGE, "*");
   promiseResolver(target);
 }
 
-async function sendMessage(payload: DebugDataPayload) {
+async function sendMessage(payload: types.DebugDataPayload) {
   const targetWindow = await awaitBridge;
 
-  const message: DebugData = {
-    source: DEBUG_SOURCE,
+  const message: types.DebugData = {
+    source: types.DEBUG_SOURCE,
     payload,
   };
 
@@ -180,7 +175,7 @@ function createSetterDebugEntry(
                     path: cleanFilePath(targetFrame),
                   },
                 },
-              } as DebugDataPayload);
+              } as types.DebugDataPayload);
 
               return;
             });
@@ -240,15 +235,16 @@ function createEffectDebugEntry(effect: () => void) {
   );
 }
 
-function createStoreMountedEntry(store: Store<any, any>, parentName?: string) {
-  sendMessage({
-    store_mounted: {
-      store,
-      parentStore: parentName,
-      props: {},
-      observables: [],
-    },
-  });
+function createStoreMountedEntry(
+  props: types.StoreMountedPayload["store_mounted"],
+) {
+  sendMessage({ store_mounted: props });
+}
+
+function createStoreUnmountedEntry(
+  props: types.StoreUnmountedPayload["store_unmounted"],
+) {
+  sendMessage({ store_unmounted: props });
 }
 
 // Set up debug hooks
@@ -256,3 +252,4 @@ debugHooks.onGetValue = createGetterDebugEntry;
 debugHooks.onSetValue = createSetterDebugEntry;
 debugHooks.onEffectRun = createEffectDebugEntry;
 debugHooks.onStoreMounted = createStoreMountedEntry;
+debugHooks.onStoreUnmounted = createStoreUnmountedEntry;

@@ -12,4 +12,5 @@ export type ComponentData = {
   state: Record<string, any>;
   children: ComponentData[];
   stateTimeline: StateChange[];
+  stale: boolean;
 };
