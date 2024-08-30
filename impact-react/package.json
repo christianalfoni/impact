@@ -40,6 +40,6 @@
     "react": "*"
   },
   "dependencies": {
-    "impact-react-store": "^1.0.0"
+    "impact-react-store": "^1.1.0"
   }
 }
