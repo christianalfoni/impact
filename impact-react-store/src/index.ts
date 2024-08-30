@@ -246,115 +246,141 @@ function useStore<
   return resolvingStoreContainer.resolve(store);
 }
 
-// This function creates the actual hook and related StoreProvider component, which is responsible for converting
-// props into signals and keep them up to date. Also isolate the children in this component, as
-// those are not needed in the store
-export function createStore<
-  T extends Record<string, unknown>,
-  A extends Record<string, any> | void,
-  U extends Record<string, any>,
-  K extends Record<string, any>,
->(
-  store: Store<T, K>,
-  createObservableProps: (props: Record<string, any>) => U,
-  updateObservableProps: (
-    props: Record<string, any>,
-    observableProps: NoInfer<U>,
-  ) => void,
-  provideObservableProps: (props: NoInfer<U>) => K,
-): (() => T) & {
-  Provider: React.ComponentClass<
-    A extends void
-      ? { children: React.ReactNode }
-      : A & { children: React.ReactNode }
-  >;
-} {
-  // The StoreProvider provides the store container which resolves the store. We use a class because
-  // we need the "componentWillUnmount" lifecycle hook
-  class StoreProvider extends Component {
-    static displayName = store.name
-      ? `${store.name}Provider`
-      : "AnonymousStoreProvider";
-    static contextType = storeContainerContext;
-    // We need to track the mounted state, as StrictMode will call componentDidMount
-    // and componentWillUnmount twice, meaning we'll cleanup too early. These are safeguards
-    // for some common misuse of Reacts primitives. But here we know what we are doing. We
-    // want to instantiate the StoreContainer immediately so it is part of the rendering
-    // of the children and clean it up when this component unmounts
-    mounted = false;
-    // We convert props into signals
-    observableProps: any = createObservableProps(this.props);
-    storeConstructor = () => {
-      return store(provideObservableProps(this.observableProps));
-    };
-    container = new StoreContainer(
-      store,
-      this.storeConstructor,
-      // eslint-disable-next-line
-      // @ts-ignore
-      this.context,
-    );
-    componentDidMount(): void {
-      this.mounted = true;
-    }
-    componentDidUpdate() {
-      updateObservableProps(this.props, this.observableProps);
-    }
-    // When an error is thrown we dispose of the store. Then we throw the error up the component tree.
-    // This ensures that an error thrown during render phase does not keep any subscriptions etc. going.
-    // Recovering from the error in a parent error boundary will cause a new store to be created. Developers
-    // can still add nested error boundaries to control recoverable state
-    componentDidCatch(error: Error): void {
-      this.container.cleanup();
-      this.container = new StoreContainer(
+type Converter<T> = (prop: T) => {
+  get(): any;
+  set(newProp: T): void;
+};
+
+type Convert<V, T extends Converter<V>> = ReturnType<ReturnType<T>["get"]>;
+
+export function configureStore<U extends Converter<any>>(toObservableProp: U) {
+  // This function creates the actual hook and related StoreProvider component, which is responsible for converting
+  // props into signals and keep them up to date. Also isolate the children in this component, as
+  // those are not needed in the store
+  return function createStore<
+    T extends Record<string, unknown>,
+    A extends Record<string, any> | void,
+  >(
+    store: Store<
+      T,
+      {
+        [K in keyof A]: Convert<A[K], U>;
+      }
+    >,
+  ): (() => T) & {
+    Provider: React.ComponentClass<
+      A extends void
+        ? { children: React.ReactNode }
+        : A & { children: React.ReactNode }
+    >;
+  } {
+    // The StoreProvider provides the store container which resolves the store. We use a class because
+    // we need the "componentWillUnmount" lifecycle hook
+    class StoreProvider extends Component {
+      static displayName = store.name
+        ? `${store.name}Provider`
+        : "AnonymousStoreProvider";
+      static contextType = storeContainerContext;
+      // We need to track the mounted state, as StrictMode will call componentDidMount
+      // and componentWillUnmount twice, meaning we'll cleanup too early. These are safeguards
+      // for some common misuse of Reacts primitives. But here we know what we are doing. We
+      // want to instantiate the StoreContainer immediately so it is part of the rendering
+      // of the children and clean it up when this component unmounts
+      mounted = false;
+      // We convert props into signals
+      observableProps: any = {};
+      constructor(props: any, context: any) {
+        super(props, context);
+        for (const key in props) {
+          if (key === "children") {
+            continue;
+          }
+          this.observableProps[key] = toObservableProp(props[key]);
+        }
+      }
+      storeConstructor = () => {
+        const observableProps: any = {};
+        for (const key in this.observableProps) {
+          Object.defineProperty(observableProps, key, {
+            get: () => {
+              return this.observableProps[key].get();
+            },
+          });
+        }
+        return store(observableProps);
+      };
+      container = new StoreContainer(
         store,
         this.storeConstructor,
         // eslint-disable-next-line
         // @ts-ignore
         this.context,
       );
-      throw error;
-    }
-    componentWillUnmount(): void {
-      this.mounted = false;
-      Promise.resolve().then(() => {
-        if (!this.mounted) {
-          this.container.cleanup();
-        }
-      });
-    }
-    render(): ReactNode {
-      return createElement(
-        storeContainerContext.Provider,
-        {
-          value: this.container,
-        },
-        // We create a Suspense boundary for the store to throw an error of misuse. StoreProviders does not support
-        // suspense because they will be-reinstantiated or can risk not cleaning up as the parent Suspense boundary
-        // is unmounted and the "componentWillUnmount" will never be called. In practice it does not make sense
-        // to have these parent suspense boundaries, but just to help out
-        createElement(
-          Suspense,
-          {
-            fallback: createElement(() => {
-              throw new Error(
-                "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the components using suspense",
-              );
-            }),
-          },
+      componentDidMount(): void {
+        this.mounted = true;
+      }
+      componentDidUpdate() {
+        for (const key in this.observableProps) {
           // @ts-ignore
+          this.observableProps[key].set(this.props[key]);
+        }
+      }
+      // When an error is thrown we dispose of the store. Then we throw the error up the component tree.
+      // This ensures that an error thrown during render phase does not keep any subscriptions etc. going.
+      // Recovering from the error in a parent error boundary will cause a new store to be created. Developers
+      // can still add nested error boundaries to control recoverable state
+      componentDidCatch(error: Error): void {
+        this.container.cleanup();
+        this.container = new StoreContainer(
+          store,
+          this.storeConstructor,
           // eslint-disable-next-line
-          this.props.children,
-        ),
-      );
+          // @ts-ignore
+          this.context,
+        );
+        throw error;
+      }
+      componentWillUnmount(): void {
+        this.mounted = false;
+        Promise.resolve().then(() => {
+          if (!this.mounted) {
+            this.container.cleanup();
+          }
+        });
+      }
+      render(): ReactNode {
+        return createElement(
+          storeContainerContext.Provider,
+          {
+            value: this.container,
+          },
+          // We create a Suspense boundary for the store to throw an error of misuse. StoreProviders does not support
+          // suspense because they will be-reinstantiated or can risk not cleaning up as the parent Suspense boundary
+          // is unmounted and the "componentWillUnmount" will never be called. In practice it does not make sense
+          // to have these parent suspense boundaries, but just to help out
+          createElement(
+            Suspense,
+            {
+              fallback: createElement(() => {
+                throw new Error(
+                  "The StoreProvider does not support suspense. Please add a Suspense boundary between the StoreProvider and the components using suspense",
+                );
+              }),
+            },
+            // @ts-ignore
+            // eslint-disable-next-line
+            this.props.children,
+          ),
+        );
+      }
     }
-  }
 
-  const hook = () => useStore(store);
+    const hook = () => useStore(store);
 
-  hook.Provider = StoreProvider;
+    hook.Provider = StoreProvider;
 
-  return hook as any;
+    return hook as any;
+  };
 }
 
 export function context<T extends Record<string, any>>(): T;
