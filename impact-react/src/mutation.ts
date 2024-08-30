@@ -1,5 +1,15 @@
 import { createObservablePromise, ObservablePromise, signal } from "./signal";
 
+export type Mutation<T> = [
+  () =>
+    | {
+        promise: ObservablePromise<void>;
+        data: T;
+      }
+    | undefined,
+  (data: T) => ObservablePromise<void>,
+];
+
 export function mutation<T, U>(mutator: (data: U) => Promise<T>) {
   let abortController: AbortController | undefined;
 

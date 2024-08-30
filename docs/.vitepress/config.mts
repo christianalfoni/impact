@@ -52,6 +52,10 @@ export default defineConfig({
             link: "/deep-dive/stores",
           },
           {
+            text: "Nested Stores",
+            link: "/deep-dive/nested-stores",
+          },
+          {
             text: "Resolving Stores",
             link: "/deep-dive/resolving-stores",
           },
@@ -92,10 +96,17 @@ export default defineConfig({
             text: "effect",
             link: "/effect",
           },
-
+          {
+            text: "mutation",
+            link: "/mutation",
+          },
           {
             text: "observers",
             link: "/observers",
+          },
+          {
+            text: "query",
+            link: "/query",
           },
           {
             text: "signal",

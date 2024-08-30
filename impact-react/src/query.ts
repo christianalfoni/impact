@@ -6,7 +6,15 @@ import {
   signal,
 } from "./signal";
 
-export type QueryState = "IDLE" | "FETCHING" | "REFETCHING";
+export type Query<T> = [
+  () => {
+    promise: ObservablePromise<T>;
+    state: QueryState;
+  },
+  () => void,
+];
+
+export type QueryState = "idle" | "fetching" | "refetching";
 
 export function query<T>(fetchData: () => Promise<T>) {
   let abortController = new AbortController();
@@ -20,12 +28,12 @@ export function query<T>(fetchData: () => Promise<T>) {
       abortController,
       (settledObservablePromise) => {
         setData({
-          state: "IDLE",
+          state: "idle",
           promise: settledObservablePromise,
         });
       },
     ),
-    state: "FETCHING",
+    state: "fetching",
   });
 
   function invalidate() {
@@ -34,7 +42,7 @@ export function query<T>(fetchData: () => Promise<T>) {
 
     setData((current) => ({
       ...current,
-      state: "REFETCHING",
+      state: "refetching",
     }));
 
     return fetchData()
@@ -63,7 +71,7 @@ export function query<T>(fetchData: () => Promise<T>) {
 
         setData((current) => ({
           ...current,
-          state: "IDLE",
+          state: "idle",
         }));
       });
   }

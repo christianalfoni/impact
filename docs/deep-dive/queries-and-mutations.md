@@ -1,218 +1,266 @@
 # Queries and Mutations
 
-One of the most common things you do in any web application is fetching data from the server and changing data on the server. Under the hood, this is typically based on promises. The [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but managing these promises is not something React is good at or should even consider doing.
+One of the most common things you do in any web application is fetching data from the server and changing data on the server. Under the hood, this is typically based on promises. The [new use hook](https://blixtdev.com/all-about-reacts-new-use-hook) allows you to consume promises directly in components in combination with suspense and error boundaries. This is great, but there is more to queries and mutations than just a promise.
 
-There are several data fetching solutions for React, like [react-query](https://tanstack.com/query/v4/docs/react/reference/useQuery) and [swr](https://swr.vercel.app/), which you can use in combination with **Impact**. But you can also choose to use signals.
+## Simple data fetching
 
-**Impact** signals is a powerful primitive that makes promises observable and suspendable. This is a lower abstraction than the above mentioned tools, but that makes them flexible and usable for all kinds of async state management, including queries and mutations.
+When it is a matter of just fetching some initial data, a `signal` can manage that:
 
 ```ts
-import { signal, createStore } from "impact-react";
-import { useGlobalStore, PostDTO } from "./GlobalStore";
+function AppStore() {
+  const [data] = signal(fetchData());
 
-export type PostDTOUpdate = Partial<Omit<PostDTO, "id">>;
+  return { data };
 
-export const usePostsStore = createStore(PostsStore);
-
-// Imagine that we have a posts page where we want to
-// fetch and cache any posts we open
-function PostsStore() {
-  const { api } = useGlobalStore();
-
-  // We cache any queries for posts using a record of the post id
-  // with the promise of the post as a signal
-  const posts: Record<string, Signal<Promise<PostDTO>>> = {};
-
-  return {
-    fetchPost(id: string) {
-      let postSignal = posts[id];
-
-      if (!postSignal) {
-        postSignal = posts[id] = signal(fetchPost(id));
-      }
-
-      const [post] = postSignal;
-
-      return post;
-    },
-    async updatePost(id: string, update: PostDTOUpdate) {
-      const [post, setPost] = posts[id];
-      // The post is a promise, so we first await the current post
-      const currentPost = await post();
-
-      // We run the request to update the post
-      const updatePost = api.putPost(id, update);
-
-      setPost(
-        // We set the new post using the "updatePost" request so that any
-        // simultanious update will wait for this to finish
-        updatePost
-          .then(() => ({
-            // We update it when it is done
-            ...currentPost,
-            ...update,
-          }))
-          // Or keep the current post if it fails
-          .catch(() => currentPost),
-      );
-
-      // We return the promise of updating the post on the server
-      // to handle any rejection where the update was requested
-      return updatePost;
-    },
-  };
-
-  async function fetchPost(id): PostDTO {
-    const response = await fetch("/posts/" + id);
-
-    return response.json();
+  function fetchData() {
+    return fetch("/data").then((response) => response.json());
   }
 }
 ```
 
-You choose how this cache operates. In this example, we never invalidate the cache, but you are free to do so at any time. You could also subscribe to the posts to keep them up to date.
+This `data` is now an observable promise that can be declaratively consumed in components using suspense or the state of the promise:
 
-When a signal initializes with a promise, it will enhance it with status details. Whenever the promise status details update, so does the signal. That means you can observe data fetching and other asynchronous processes directly in your components. Additionally, the status details added to the promise allow you to suspend the promise using the `use` hook.
-
-```tsx
-import { use, useObserver } from "impact-react";
-import { usePostsStore } from "../stores/PostsStore";
-
-function Post(props) {
+```ts
+function MyComponent() {
   using _ = useObserver();
 
-  const { fetchPost } = usePostsStore();
-  const postPromise = fetchPost(props.id);
-  const post = use(postPromise());
+  const { data } = useAppStore();
+
+  const currentData = use(data());
+}
+```
+
+And also in stores:
+
+```ts
+function AppStore() {
+  const [data] = signal(fetchData());
+
+  return {
+    data,
+    async logData() {
+      const currentData = await data();
+
+      console.log(currentData);
+    },
+  };
+
+  function fetchData() {
+    return fetch("/data").then((response) => response.json());
+  }
+}
+```
+
+## Refetching data
+
+A popular pattern popularised by [react-query](https://tanstack.com/query/latest/docs/framework/react/overview) and [swr](https://swr.vercel.app/) is to use a [stale-while-revalidate](https://tools.ietf.org/html/rfc5861) pattern. **Impact** enables this pattern with its `query` primitive.
+
+```ts
+function AppStore() {
+  const [dataQuery, invalidateDataQuery] = query(() => fetchData());
+
+  return {
+    dataQuery,
+    invalidateDataQuery,
+  };
+
+  function fetchData() {
+    return fetch("/data").then((response) => response.json());
+  }
+}
+```
+
+Now components and stores will still consume an observable promise, but they can also access the current state of the query. By _invalidating_ the query a background process will run the query again and update the promise only when resolved or rejected.
+
+```tsx
+function MyComponent() {
+  using _ = useObserver();
+
+  const { dataQuery, invalidateDataQuery } = useAppStore();
 
   return (
     <div>
-      <h1>{post.title}</h1>
-      <p>{post.body}</p>
+      <h1>Query state is: {dataQuery().state}</h1>
+      <h2>Promise state is: {dataQuery().promise.status}</h2>
+      <button onClick={invalidateDataQuery}>Refetch</button>
     </div>
   );
 }
 ```
 
-But maybe you do not want to use suspense and prefer to deal with the status of the promise directly in the component:
+## Caching queries
 
-```tsx
-import { useObserver } from "impact-react";
-import { usePostsStore } from "../stores/PostsStore";
-
-function Post(props) {
-  using _ = useObserver();
-
-  const { fetchPost } = usePostsStore();
-  const postPromise = fetchPost(props.id);
-  const currentPostPromise = postPromise();
-
-  if (currentPostPromise.status === "pending") {
-    return <div>Loading...</div>;
-  }
-
-  if (currentPostPromise.status === "rejected") {
-    return <div>Some error: {currentPostPromise.reason}</div>;
-  }
-
-  const post = currentPostPromise.value;
-
-  return <div>{post.title}</div>;
-}
-```
-
-However, data fetching is not only about getting and displaying data; it is also about mutations. We can use a promise signal to track the state of mutations.
-
-We'll create a store for any Post so that we can manage the complexity of editing a post.
+When you want to fetch data and cache it you can use a simple record in a store mounted at the level of the component tree where the caching should live. If you want the caching to live only on a single page, within a feature or for the whole session of the user, you choose the store that reflects that.
 
 ```ts
-import { PostDTO } from "./GlobalStore";
-import { usePostsStore } from "./PostsStore";
-import { signal, createStore } from "impact-app";
-
-export const usePostStore = createStore(PostStore);
-
-type Props = {
-  post: () => PostDTO;
-};
-
-// We create a store tied to a specific post
-function PostStore(props: Props) {
-  const { updatePost } = usePostsStore();
-
-  const post = props.post();
-  const id = post.id;
-
-  const [title, setTitle] = signal(post.title);
-  const [savingTitle, setSavingTitle] = signal<Promise<void> | undefined>(
-    undefined,
-  );
+function AppStore() {
+  const itemQueries: Record<string, Query<ItemDTO>> = {};
 
   return {
-    id,
-    title,
-    savingTitle,
-    changeTitle(newTitle) {
-      setTitle(newTitle);
+    queryItem(id: string) {
+      itemQueries[id] = itemQueries[id] || query(() => getItem(id));
 
-      // If saving the title failed, we'll reset
-      // the promise signal when changing the title again
-      if (savingTitle()?.status === "rejected") {
-        setSavingTitle(undefined);
-      }
-    },
-    saveTitle() {
-      // If for some reason we save again while pending, the previous promise
-      // is automatically aborted
-      setSavingTitle(updatePost(id, { title: title() }));
+      return itemQueries[id];
     },
   };
+
+  function getItem(id: string) {
+    return fetch("/items/" + id).then((response) => response.json());
+  }
 }
 ```
 
-We can now consume this mutation signal to evaluate the state of the mutation declaratively in the component.
+Now we rather create a method to dynamically create queries for different items when needed.
+
+## Simple mutation
+
+Just like data fetching, you can also perform mutations with a `signal`.
+
+```ts
+function AppStore() {
+  const [mutation, setMutation] = signal<Promise<void> | undefined>(undefined);
+
+  return {
+    mutation,
+    mutate() {
+      setMutation(putData());
+    },
+  };
+
+  async function putData() {
+    await fetch("/data", {
+      method: "PUT",
+    });
+  }
+}
+```
+
+In a component or other stores you can consume this mutation signal.
 
 ```tsx
-import { useObserver } from "impact-react";
-import { usePostsStore } from "../stores/PostsStore";
-import { usePostStore, PostStoreProvider } from "../stores/PostStore";
-
-function PostContent() {
+function MyComponent() {
   using _ = useObserver();
 
-  const { title, changeTitle, saveTitle, savingTitle } = usePostStore();
+  const { mutation, mutate } = useAppStore();
 
   return (
     <div>
+      <h1>Mutation status: {mutation()?.status}</h1>
+      <button onClick={mutate}>Run mutation</button>
+    </div>
+  );
+}
+```
+
+This gives you full control of how the mutation behaves, but just like `query` giving you a good pattern for handling data fetching, the `mutation` primitive will give you a good pattern for handling mutation.
+
+## Mutation with refetch
+
+**Impact** provides a primitive called `mutation` which simplifies mutations, optimistic updates and refetching. This example considers all the states related to querying an item and changing its title. Handling optimistic UI and any errors.
+
+```ts
+function ItemStore(props) {
+  const [itemQuery, invalidateItemQuery] = query(getItem);
+  const [titleMutation, mutateTitle] = mutation((title: string) =>
+    putItemTitle(title).then(invalidateItemQuery),
+  );
+  const [editedTitle, setEditedTitle] = signal<string | null>(null);
+
+  return {
+    itemQuery,
+    titleMutation,
+    mutateTitle(title: string) {
+      mutateTitle(title);
+      setEditedTitle(null);
+    },
+    editedTitle,
+    setEditedTitle,
+  };
+
+  function getItem() {
+    return fetch("/items/" + props.id()).then((response) => response.json());
+  }
+
+  async function putItemTitle(title: string) {
+    await fetch("/items/" + props.id(), {
+      method: "PUT",
+      body: JSON.stringify({ title }),
+    });
+  }
+}
+```
+
+We can now manage all of this complexity declaratively in a component:
+
+```tsx
+function Item() {
+  using _ = useObserver();
+
+  const {
+    itemQuery,
+    titleMutation,
+    mutateTitle,
+    isEditingTitle,
+    editedTitle,
+    setEditedTitle,
+  } = useItemStore();
+  const currentItemQuery = itemQuery();
+  const item = use(currentItemQuery.promise);
+  const currentEditedTitle = editedTitle();
+  const currentTitleMutation = titleMutation();
+
+  let title: React.ReactNode;
+
+  if (currentTitleMutation) {
+    title = (
+      <>
+        {currentTitleMutation.promise.status === "rejected" ? (
+          <div>
+            Something went wrong saving the title{" "}
+            <button onClick={() => mutateTitle(currentTitleMutation.data)}>
+              Try again
+            </button>
+          </div>
+        ) : null}
+        <h1
+          style={{
+            opacity:
+              currentTitleMutation.promise.status === "pending"
+                ? 0.5
+                : currentItemQuery.state === "refetching"
+                ? 0.75
+                : 1,
+          }}
+        >
+          {currentTitleMutation.data}
+        </h1>
+      </>
+    );
+  } else if (currentEditedTitle !== null) {
+    title = (
       <input
-        // Now we can just check if we have a pending changing title
-        disabled={savingTitle()?.status === "pending" ?? false}
-        value={title()}
-        onChange={(event) => changeTitle(event.target.value)}
+        value={currentEditedTitle}
+        onChange={(event) => setEditedTitle(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "ENTER") {
-            saveTitle();
+          if (event.key === "Enter") {
+            mutateTitle(currentEditedTitle);
           }
         }}
       />
-      {savingTitle()?.status === "rejected" ? "Could not update title" : null}
-    </div>
-  );
-}
-
-export function Post({ id }) {
-  using _ = useObserver();
-
-  const { fetchPost } = usePostsStore();
-
-  const postData = use(fetchPost(id));
+    );
+  } else {
+    title = (
+      <h1>
+        {item.title} <i onClick={() => setEditedTitle(itemt.title)}>edit</i>
+      </h1>
+    );
+  }
 
   return (
-    // We set a key on the provider to bind the id of a post
-    // to the instance of the store
-    <PostProvider key={id} post={postData}>
-      <PostContent />
-    </PostProvider>
+    <div>
+      {title}
+      <p>{item.description}</p>
+    </div>
   );
 }
 ```

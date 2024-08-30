@@ -111,7 +111,7 @@ if (promise.status === "fulfilled") {
 }
 ```
 
-Signal promises can be used for data queries, mutations or producing any other asynchronous value. They can also be combined with `derived` and `effect`. You can learn more about [queries and mutations](../deep-dive/queries-and-mutations.md) in the advanced section.
+Signal promises can be used for data queries, mutations or producing any other asynchronous value. They can also be combined with `derived` and `effect`. Signal promises are also the underlying mechanism for the [query](../query.md) and [mutation](../mutation.md) primitive of **Impact**. You can learn more about [queries and mutations](../deep-dive/queries-and-mutations.md) in the advanced section.
 
 ::: tip
 
