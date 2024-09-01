@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: "Impact"
+  name: "impact-react"
   tagline: "/** \n
-  * Complex single page applications with React \n
+  * Nested observable stores \n
 */
 \n\n
 By CodeSandbox team
@@ -17,19 +17,19 @@ By CodeSandbox team
       text: Learn
       link: /learn/
     - theme: alt
+      text: Deep Dive
+      link: /deep-dive/stores
+    - theme: alt
       text: API Reference
       link: /cleanup
-    - theme: alt
-      text: Start from template 
-      link: https://codesandbox.io/p/devbox/impact-template-fp6gd9
 
 features:
   - title: The best of both worlds
-    details: Use Impacts observation model to manage state. Use Reacts reconciliation model to manage UI.
-  - title: Performant and predictable
-    details: Primitives of signal, derived and effect, combined with automatic observation in components.
-  - title: Nested stores
-    details: Built on React context. Provide stores, pass them props and consume them from any nested component or store.
+    details: Use your favourite observable primitives to manage state. Use Reacts reconciliation model to manage UI.
+  - title: Performant and accessible
+    details: Observe state from any parent store, combined with observation in components.
+  - title: Nested functional stores
+    details: Built on React context. Provide functional stores, pass them observable props and consume from nested components and stores.
 ---
 
 <HomeContent>
@@ -52,6 +52,28 @@ If you have used Impact in an application or you think it has valuable perspecti
 
 ```sh
 npm install impact-react
+```
+
+## Configure store
+
+### Mobx
+
+```ts
+import { configureStore } from "impact-react";
+import { observable } from "mobx";
+
+export const createStore = configureStore((propValue) => {
+  const value = observable.box(propValue);
+
+  return {
+    get() {
+      return value.get();
+    },
+    set(newPropValue) {
+      value.set(newPropValue);
+    },
+  };
+});
 ```
 
 ## Install debugger

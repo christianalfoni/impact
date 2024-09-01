@@ -20,7 +20,7 @@ code: |
 
 # Introduction
 
-Before learning about **Impact**, we have to understand the problem it solves. To do so, we are going to spend the first chapters looking at what state management in React looks like and why it has its shortcomings.
+Before learning about **impact-react**, we have to understand the problem it solves. To do so, we are going to spend the first chapters looking at what state management in React looks like and why it has its shortcomings.
 
 We start our journey with a `count` and the ability to `increase` that count. This example shows what React fundamentally does: you can create component functions that return a declarative description of its UI.
 

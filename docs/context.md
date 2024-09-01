@@ -2,7 +2,7 @@
 
 When you return an interface from a store, that interface is public. That means all nested components and stores has access to that interface. Often there is certain management of state that should only be managed by the stores. You want a private interface between the stores.
 
-Just like React has its context to inject values in nested components, **Impact** has its context to inject values in nested stores. Unlike the React context, which resolves with a context reference, **Impact** resolves with a simple key reference. This simplifies to providing and consumption of store contexts.
+Just like React has its context to inject values in nested components, **impact-react** has its context to inject values in nested stores. Unlike the React context, which resolves with a context reference, **impact-react** resolves with a simple key reference. This simplifies to providing and consumption of store contexts.
 
 ```ts
 import { context } from "impact-react";

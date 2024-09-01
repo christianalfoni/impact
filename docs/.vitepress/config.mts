@@ -38,10 +38,8 @@ export default defineConfig({
           { text: "Context", link: "/learn/context" },
           { text: "Store", link: "/learn/store" },
           { text: "Nested Stores", link: "/learn/nested-stores" },
-          { text: "Signals", link: "/learn/signals" },
-          { text: "Derived", link: "/learn/derived" },
-          { text: "Effects", link: "/learn/effects" },
-          { text: "Promises", link: "/learn/promises" },
+          { text: "Lifecycle", link: "/learn/lifecycle" },
+          { text: "Store Context", link: "/learn/store-context" },
         ],
       },
       {
@@ -52,24 +50,12 @@ export default defineConfig({
             link: "/deep-dive/stores",
           },
           {
-            text: "Nested Stores",
-            link: "/deep-dive/nested-stores",
-          },
-          {
             text: "Resolving Stores",
             link: "/deep-dive/resolving-stores",
           },
           {
             text: "Teamwork",
             link: "/deep-dive/teamwork",
-          },
-          {
-            text: "Lists",
-            link: "/deep-dive/lists",
-          },
-          {
-            text: "Queries and Mutations",
-            link: "/deep-dive/queries-and-mutations",
           },
         ],
       },

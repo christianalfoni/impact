@@ -1,52 +1,25 @@
----
-codeCaption: Creating a store
-code: |
-  import { signal, createStore, useObserver } from 'impact-react'
-
-  function CounterStore() {
-    const [count, setCount] = signal(0)
-
-    return {
-      count,
-      increase() {
-        setCount(current => current + 1)
-      }
-    }
-  }
-
-  const useCounterStore = createStore(CounterStore)
-
-  function Counter() {
-    using _ = useObserver()
-    
-    const { count, increase } = useCounterStore()
-
-    return (
-      <button onClick={increase}>
-        Increase ({count()})
-      </button>
-    )
-  }
-
-  export default function App() {    
-    return (
-      <useCounterStore.Provider>
-        <Counter />
-      </useCounterStore.Provider>
-    )
-  }
----
-
 # Store
 
-When the React context does not work for us we have a tendency to replace it with global state management. Doing so definitely solves a friction, but we also leave something behind. With Impact we rather make the React contexts observable, gaining the benefits we find in global state management, without leaving behind the benefits of the React context.
+When the React context does not work for us we have a tendency to replace it with global state management. Doing so definitely solves friction, but we also leave something behind. With **impact-react** we rather make the React contexts compatible with the performant and accessible primitives we use for global state management.
 
-So let us implement the [previous](./context.md) React context example with **Impact**.
+**impact-react** implements an observable context we call a store. It is a function with the same mental model as a hook. You return a public interface for components and other stores. The difference is that we are not reconciling. This store function only runs once.
 
 ```ts
-import { signal, createStore } from "impact-react";
+function AppStore() {
+  return {
+    message: "Hello World",
+  };
+}
+```
 
-function CounterStore() {
+**impact-react** supports several observable primitive. The stores is just a mechanism for you to continue using React context and create a bridge between the world of reconciliation and your observable primitives of choice.
+
+::: code-group
+
+```ts [Impact]
+import { createStore, signal } from "impact-react/signals";
+
+function AppStore() {
   const [count, setCount] = signal(0);
 
   return {
@@ -57,45 +30,105 @@ function CounterStore() {
   };
 }
 
-const useCounterStore = createStore(CounterStore);
+export const useAppStore = createStore(AppStore);
 ```
 
-We have bailed out of the reconciliation loop and rather use observable primitives. We use `signal` instead of `useState` to define our state. To create the hook and provider to consume the store, we use the `createStore` function, instead of `createContext`.
+```ts [Preact]
+import { createStore } from "impact-react/preact-signals";
+import { signal } from "@preact/signals-core";
 
-Components will need the ability to observe what signals are being accessed from a store, and be notified when they change. Impact provides [observers](../observers.md) where a recent JavaScript feature has enabled a less intrusive way to make components observe. If you prefer a more traditional way, you are free to do so.
+function AppStore() {
+  const count = signal(0);
 
-```tsx
-import { signal, createStore, useObserver } from "impact-react";
-
-// function CounterStore() {...}
-
-// const useCounterStore = createStore(CounterStore)
-
-function Counter() {
-  using _ = useObserver();
-
-  const { count, increase } = useCounterStore();
-
-  return <button onClick={increase}>Increase ({count()})</button>;
+  return {
+    get count() {
+      return count.value;
+    },
+    increase() {
+      count.value++;
+    },
+  };
 }
 
-export default function App() {
-  return (
-    <useCounterStore.Provider>
-      <Counter />
-    </useCounterStore.Provider>
-  );
-}
+export const useAppStore = createStore(AppStore);
 ```
 
-What you will notice with **Impact** is that consuming observable values requires you to call them, like the `count()`, to get the value. This is for technical reasons primarily, but it also highlights that indeed you are consuming an observable value.
+```ts [Mobx (OO)]
+import { createStore } from "impact-react/mobx";
+import { makeAutoObservable } from "mobx";
 
-::: tip
+class AppStore {
+  count = 0;
+  increase() {
+    this.count++;
+  }
+}
 
-**Impact** allows you to combine its stores with other observable primitives, like [impact-react-mobx](https://github.com/christianalfoni/impact/tree/main/impact-react-mobx). The observable primitives from **Impact** is built to fit with React and its features, but you are free to use any of the other solutions.
+export const useAppStore = createStore(() =>
+  makeAutoObservable(new AppStore()),
+);
+```
+
+```ts [Mobx]
+import { createStore } from "impact-react/mobx";
+import { observable, action } from "mobx";
+
+function AppStore() {
+  const state = observable({
+    count: 0,
+  });
+
+  return {
+    get count() {
+      return state.count;
+    },
+    increase: action(() {
+      state.count++;
+    }),
+  };
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+```ts [LegendApp]
+import { createStore } from "impact-react/legendapp";
+import { observable } from "@legendapp/state";
+
+function AppStore() {
+  const count$ = observable(0);
+
+  return {
+    get count() {
+      return count$.get();
+    },
+    increase() {
+      count$.update((current) => current + 1);
+    },
+  };
+}
+
+export const useAppStore = createStore(AppStore);
+```
 
 :::
 
-<ClientOnly>
-  <Playground />
-</ClientOnly>
+The hook returned from `createStore` includes the provider.
+
+```tsx
+import { useAppStore } from "./stores/AppStore";
+
+function Counter() {
+  const appStore = useAppStore();
+
+  return <div />;
+}
+
+function App() {
+  return (
+    <useAppStore.Provider>
+      <Counter />
+    </useAppStore.Provider>
+  );
+}
+```
