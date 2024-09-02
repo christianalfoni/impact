@@ -1,8 +1,8 @@
-# Store
+# Observable Context
 
 When the React context does not work for us we have a tendency to replace it with global state management. Doing so definitely solves friction, but we also leave something behind. With **impact-react** we rather make the React contexts compatible with the performant and accessible primitives we use for global state management.
 
-**impact-react** implements an observable context we call a store. It is a function with the same mental model as a hook. You return a public interface for components and other stores. The difference is that we are not reconciling. This store function only runs once.
+**impact-react** implements an observable context. We express this context as a function. It is the same mental model as a hook. You return a public interface for components and other observable contexts. The difference is that we are not reconciling. This function only runs once.
 
 ```ts
 function AppStore() {
@@ -12,12 +12,12 @@ function AppStore() {
 }
 ```
 
-**impact-react** supports several observable primitive. The stores is just a mechanism for you to continue using React context and create a bridge between the world of reconciliation and your observable primitives of choice.
+**impact-react** supports several observable primitives. The observable context is just a mechanism for you to continue using React context and create a bridge between the world of reconciliation and your observable primitives of choice.
 
 ::: code-group
 
 ```ts [Impact]
-import { createStore, signal } from "impact-react/signals";
+import { createObservableContext, signal } from "impact-react-signals";
 
 function AppStore() {
   const [count, setCount] = signal(0);
@@ -30,11 +30,11 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createStore(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 ```ts [Preact]
-import { createStore } from "impact-react/preact-signals";
+import { createObservableContext } from "impact-react-preact";
 import { signal } from "@preact/signals-core";
 
 function AppStore() {
@@ -50,11 +50,11 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createStore(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 ```ts [Mobx (OO)]
-import { createStore } from "impact-react/mobx";
+import { createObservableContext } from "impact-react-mobx";
 import { makeAutoObservable } from "mobx";
 
 class AppStore {
@@ -64,13 +64,13 @@ class AppStore {
   }
 }
 
-export const useAppStore = createStore(() =>
+export const useAppStore = createObservableContext(() =>
   makeAutoObservable(new AppStore()),
 );
 ```
 
 ```ts [Mobx]
-import { createStore } from "impact-react/mobx";
+import { createObservableContext } from "impact-react-mobx";
 import { observable, action } from "mobx";
 
 function AppStore() {
@@ -88,11 +88,11 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createStore(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 ```ts [LegendApp]
-import { createStore } from "impact-react/legendapp";
+import { createObservableContext } from "impact-react-legendapp";
 import { observable } from "@legendapp/state";
 
 function AppStore() {
@@ -108,12 +108,12 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createStore(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 :::
 
-The hook returned from `createStore` includes the provider.
+The hook returned from `createObservableContext` includes the provider.
 
 ```tsx
 import { useAppStore } from "./stores/AppStore";

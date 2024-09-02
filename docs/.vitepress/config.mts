@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "Impact",
+  title: "impact-react",
   head: [["link", { rel: "icon", href: "/favicon.ico" }]],
   description: "Complex single page applications with React",
   cleanUrls: true,
@@ -36,8 +36,8 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "Store", link: "/learn/store" },
-          { text: "Nested Stores", link: "/learn/nested-stores" },
+          { text: "Observable Context", link: "/learn/observable-context" },
+          { text: "Nested Contexts", link: "/learn/nested-contexts" },
           { text: "Lifecycle", link: "/learn/lifecycle" },
           { text: "Store Context", link: "/learn/store-context" },
         ],

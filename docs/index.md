@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "impact-react"
   tagline: "/** \n
-  * Nested observable stores \n
+  * Observable React contexts \n
 */
 \n\n
 By CodeSandbox team
@@ -27,9 +27,9 @@ features:
   - title: The best of both worlds
     details: Use your favourite observable primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
-    details: Observe state from any parent store, combined with observation in components.
-  - title: Nested functional stores
-    details: Built on React context. Provide functional stores, pass them observable props and consume from nested components and stores.
+    details: Observable primitives are more performant and gives an accessible developer experience for state management.
+  - title: Nested state management
+    details: Use the provider to expose your state management in React and receive props as observable primitives
 ---
 
 <HomeContent>
@@ -50,50 +50,28 @@ If you have used Impact in an application or you think it has valuable perspecti
 
 ## Install impact-react
 
-```sh
-npm install impact-react
-```
-
-## Configure store
-
-### Mobx
-
-```ts
-import { configureStore } from "impact-react";
-import { observable } from "mobx";
-
-export const createStore = configureStore((propValue) => {
-  const value = observable.box(propValue);
-
-  return {
-    get() {
-      return value.get();
-    },
-    set(newPropValue) {
-      value.set(newPropValue);
-    },
-  };
-});
-```
-
-## Install debugger
-
-The Debugger will show you what signals and effects are being executed. With sourcemaps you'll see the exact point in the file where signals are changed.
+**Impact React Signals** - [documentation](https://)
 
 ```sh
-npm install impact-react-debugger
+npm install impact-react-signals
 ```
 
-```ts
-if (import.meta.env.DEV) {
-  import("impact-react-debugger");
-}
+**Mobx** - [documentation](https://)
+
+```sh
+npm install impact-react-mobx
 ```
 
-::: tip
+**Preact Signals** - [documentation](https://)
 
-Hit SHIFT twice to toggle the debugger
+```sh
+npm install impact-react-preact
+```
 
-:::
+**LegendApp** - [documentation](https://)
+
+```sh
+npm install impact-react-legendapp
+```
 
 </HomeContent>

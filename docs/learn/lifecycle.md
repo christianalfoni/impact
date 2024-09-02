@@ -1,8 +1,8 @@
 # Lifecycle
 
-React has two mounting phases. The _render_ phase and the _commit_ phase. The stores are instantiated during the _render_ phase as they expose state consumed by the components. When the _commit_ phase has been performed and the components has been mounted, they can unmount.
+React has two mounting phases. The _render_ phase and the _commit_ phase. The observable contexts are instantiated during the _render_ phase as they expose state consumed by the components. When the _commit_ phase has been performed and the components has been mounted, the provider for the observable context can unmount.
 
-**impact-react** stores allows you to hook into when its related Provider component unmounts. This is called `cleanup`.
+**impact-react** allows you to intercept when its related Provider component unmounts. This is called `cleanup`.
 
 ```ts
 import { cleanup } from "impact-react";
@@ -26,7 +26,9 @@ function AppStore() {
 }
 ```
 
-Since our store is just a function scope we are free to do state management beyond just the state we expose to components. In this case we run an interval for as long as the `AppStore` is mounted. But this could have been a subscription or some instance you need to dipose of when the store unmounts.
+Since our observable context is just a function scope, we are free to do state management beyond just the state we expose to components. In this case we run an interval for as long as the `AppStore` is mounted. But this could have been a subscription or some instance you need to dispose of when the store unmounts.
+
+You can force an observable context to remount by using the `key` property on the provider. For example you can use the `id` of a user to ensure that all state management related to the current user will be disposed.
 
 Consider including a `Suspense` and `Error` boundary when providing a store. This ensures that the store stays instantiated when using the `use` hook or an error occurs during the _render_ phase.
 
