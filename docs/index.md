@@ -71,10 +71,10 @@ npm install @impact-react/mobx
 npm install @impact-react/preact
 ```
 
-**LegendApp** - [documentation](https://legendapp.com/open-source/state/v3/)
+**Legend State** - [documentation](https://legendapp.com/open-source/state/v3/)
 
 ```sh
-npm install @impact-react/legendapp
+npm install @impact-react/legend
 ```
 
 </HomeContent>

@@ -126,7 +126,7 @@ Since our reactive context is just a function scope, we are free to do state man
 
 You can force a reactive context to remount by using the `key` property on the provider. For example you can use the `id` of a user to ensure that all state management related to the current user will be disposed.
 
-Consider including a `Suspense` and `Error` boundary when providing a store. This ensures that the store stays instantiated when using the `use` hook or an error occurs during the _render_ phase.
+Consider including a `Suspense` and `Error` boundary when providing a reactive context. This ensures that the context stays instantiated when using the `use` hook or an error occurs during the _render_ phase.
 
 ::: info
 
@@ -134,6 +134,6 @@ There are two scenarios where React starts the _render_ phase, initialising the 
 
 1. **If a nested component during its render phase throws an error**. In this scenario the reactive context provider catches the error, cleans up and throws the error up the component tree. This allows any parent error boundary to re-render the component tree and the reactive context is initialised again. It is recommended that you add your own error boundary as a nested component of the observable context provider.
 
-2. **If a nested component during its render phase throws a promise**. The reactive context provider includes a Suspense boundary that catches the thrown promise and throws an error that you need to add your own suspense boundary. The reason for this is that React does not provide any mechanism to know when a component tree is disposed before the _commit_ phase. In other words, there would be a risk while suspending where the user changes the state of the application and the reactive context provider would not run its cleanup.
+2. **If a nested component during its render phase throws a promise**. The reactive context provider includes a Suspense boundary that catches the thrown promise and throws an error warning that you need to add your own suspense boundary. The reason for this is that React does not provide any mechanism to know when a component tree is disposed before the _commit_ phase. In other words, there would be a risk while suspending where the user changes the state of the application and the reactive context provider would not run its cleanup.
 
 :::

@@ -440,7 +440,7 @@ class AppStore {
 }
 
 const useAppStore = createStore((props: StoreProps) => {
-  const appStore = new AppStore(props);
+  const appStore = makeAutoObservable(new AppStore(props));
 
   cleanup(() => appStore.dispose());
 

@@ -92,7 +92,7 @@ export const useAppStore = createReactiveContext(AppStore);
 ```
 
 ```ts [Legend State]
-import { createReactiveContext } from "@impact-react/legendapp";
+import { createReactiveContext } from "@impact-react/legend";
 import { observable } from "@legendapp/state";
 
 function AppStore() {
@@ -103,7 +103,7 @@ function AppStore() {
       return count$.get();
     },
     increase() {
-      count$.update((current) => current + 1);
+      count$.set((current) => current + 1);
     },
   };
 }

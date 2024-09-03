@@ -24,7 +24,7 @@ function AppStore() {
 }
 ```
 
-This `data` is now an observable promise that can be declaratively consumed in components using suspense or the state of the promise:
+This `data` is now an observable promise that can be declaratively consumed in components using suspense:
 
 ```ts
 function MyComponent() {
@@ -33,6 +33,30 @@ function MyComponent() {
   const { data } = useAppStore();
 
   const currentData = use(data());
+}
+```
+
+Or consuming the promise status:
+
+```ts
+function MyComponent() {
+  using _ = useObserver();
+
+  const { data } = useAppStore();
+
+  const currentData = data();
+
+  if (currentData.status === "pending") {
+    return "Loading...";
+  }
+
+  if (currentData.status === "rejected") {
+    return "Ops, error";
+  }
+
+  const value = currentData.value;
+
+  return <div>{value}</div>
 }
 ```
 
@@ -158,7 +182,7 @@ function MyComponent() {
 }
 ```
 
-This gives you full control of how the mutation behaves, but just like `query` giving you a good pattern for handling data fetching, the `mutation` primitive will give you a good pattern for handling mutation.
+This gives you full control of how the mutation behaves, but just like `query` giving you a good pattern for handling data fetching, the `mutation` primitive will give you a good pattern for handling mutations.
 
 ## Optimistic invalidating mutation
 
@@ -184,11 +208,11 @@ function ItemStore(props) {
   };
 
   function getItem() {
-    return fetch("/items/" + props.id()).then((response) => response.json());
+    return fetch("/items/" + props.id).then((response) => response.json());
   }
 
   async function putItemTitle(title: string) {
-    await fetch("/items/" + props.id(), {
+    await fetch("/items/" + props.id, {
       method: "PUT",
       body: JSON.stringify({ title }),
     });

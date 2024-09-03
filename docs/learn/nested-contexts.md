@@ -1,31 +1,31 @@
-# Nested State Management
+# Nested Contexts
 
-As **Impact** builds on the existing React context you will be able to instantiate state management related to specific pages, features or even for each item in a list.
+As **impact-react** builds on the existing React context you will be able to instantiate state management related to specific pages, features or even for each item in a list.
 
-The reactive context provider can receive props from React, just like normal React context providers. The props are received as an object where each prop returns a reactive primitive representing the value of that prop. This is because React can update the props through reconciliation. You can use the props with observing primitives like computed, effect etc. and also expose them from the reactive context itself to be used in nested components or contexts.
+The store can receive props from React. This props object has a `getter` for each prop which returns an observable primitive for that prop. This is because React might update the props through reconciliation. You can use the props with observing primitives like computed, effect etc. and also expose them from the context to be used in nested components or contexts.
 
-The hook returned from `createReactiveContext` can be used in both components and other contexts.
+The hook returned from `createObservableContext` can be used in both components and other contexts, both React contexts and observable contexts.
 
 ::: code-group
 
-```ts [Impact Signals]
+```ts [Impact]
 import {
-  createReactiveContext,
+  createObservableContext,
   cleanup,
   signal,
   effect,
-} from "@impact-react/signals";
+} from "impact-react-signals";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {
-  // You can use parent reactive contexts
+  // You can use parent observable contexts
   const globalStore = useGlobalStore();
 
   // The "initialCount" is observable, but we only want to use
   // it as an initial count
   const [count, setCount] = signal(props.initialCount);
 
-  // Accessing the props will observe them. Impact Signals effect
+  // Accessing the props will observe them. This effect
   // will automatically cleanup
   effect(() => {
     console.log(props.user, props.initialCount);
@@ -43,15 +43,17 @@ function AppStore(props) {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
-```ts [Mobx (OO)]
-import { cleanup, createReactiveContext } from "@impact-react/mobx";
-import { observable, autorun, makeAutoObservable } from "mobx";
+```ts [Mobx]
+import { cleanup, createObservableContext } from "impact-react-mobx";
+import { observable, autorun } from "mobx";
 import { useGlobalStore } from "./GlobalStore";
 
 class AppStore {
+  // You can use parent observable contexts
+  private globalStore = useGlobalStore();
   // The "initialCount" is observable, but we only want to use
   // it as an initial count
   count = this.props.initialCount;
@@ -62,39 +64,28 @@ class AppStore {
     // store, any consumer of this store user property will update
     return this.props.user;
   }
-  private disposeEffect;
-  constructor(
-    private globalStore,
-    private props,
-  ) {
+  constructor(private props) {
     // Accessing the props will observe them
-    disposeEffect = autorun(() => {
-      console.log(props.user, props.initialCount);
-    });
-  }
-  dispose() {
-    this.disposeEffect();
+    cleanup(
+      autorun(() => {
+        console.log(props.user, props.initialCount);
+      }),
+    );
   }
 }
 
-export const useAppStore = createReactiveContext((props) => {
-  // You can use parent reactive contexts
-  const globalStore = useGlobalStore();
-  const appStore = makeAutoObservable(new AppStore(globalStore, props));
-
-  cleanup(() => appStore.dispose());
-
-  return appStore;
-});
+export const useAppStore = createObservableContext((props) =>
+  makeAutoObservable(new AppStore(props)),
+);
 ```
 
 ```ts [Mobx]
-import { cleanup, createReactiveContext } from "@impact-react/mobx";
+import { cleanup } from "impact-react-mobx";
 import { observable, autorun } from "mobx";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {
-  // You can use parent reactive contexts
+  // You can use parent observable contexts
   const globalStore = useGlobalStore();
 
   // The "initialCount" is observable, but we only want to use
@@ -124,16 +115,16 @@ function AppStore(props) {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
-```ts [Preact Signals]
-import { cleanup, createReactiveContext } from "@impact-react/preact";
+```ts [Preact]
+import { cleanup } from "impact-react-preact";
 import { signal, effect } from "@preactjs/signals-core";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {
-  // You can use parent reactive contexts
+  // You can use parent observable contexts
   const globalStore = useGlobalStore();
 
   // The "initialCount" is observable, but we only want to use
@@ -161,16 +152,16 @@ function AppStore(props) {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 ```ts [Legend State]
-import { cleanup, createReactiveContext } from "@impact-react/legend";
+import { cleanup } from "impact-react-legendapp";
 import { observable, observe } from "@legendapp/state";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {
-  // You can use parent reactive contexts
+  // You can use parent observable contexts
   const globalStore = useGlobalStore();
 
   // The "initialCount" is observable, but we only want to use
@@ -198,13 +189,13 @@ function AppStore(props) {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createObservableContext(AppStore);
 ```
 
 :::
 
 ::: tip
 
-Another aspect of nested state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having many non functional `if` statements to please the type checker. This does not happen with **Impact** because a context is only initialized when its dependent state is available, passed as props.
+Another aspect of scoping state management is related to typing. Global state management typically defines `null` values for uninitialized state. With [strict null checking](https://www.typescriptlang.org/tsconfig/strictNullChecks.html) enabled you are likely to find your code having many non functional `if` statements to please the type checker. This does not happen with **impact-react** because a context is only initialized when its dependent state is available, passed as props.
 
 :::
