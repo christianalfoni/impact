@@ -1,4 +1,7 @@
-import { cleanup, getResolvingStoreContainer } from "impact-react-store";
+import {
+  cleanup,
+  getResolvingReactiveContextContainer,
+} from "@impact-react/reactive-context";
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
 import { isResolvingStoreFromComponent } from "./utils";
 import { debugHooks } from "./debugHooks";
@@ -6,7 +9,7 @@ import { debugHooks } from "./debugHooks";
 export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
-  if (getResolvingStoreContainer() === undefined) {
+  if (getResolvingReactiveContextContainer() === undefined) {
     throw new Error('You can only run "derived" when creating a store');
   }
 

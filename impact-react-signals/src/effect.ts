@@ -1,9 +1,12 @@
-import { cleanup, getResolvingStoreContainer } from "impact-react-store";
+import {
+  cleanup,
+  getResolvingReactiveContextContainer,
+} from "@impact-react/reactive-context";
 import { ObserverContext } from "./ObserverContext";
 import { debugHooks } from "./debugHooks";
 
 export function effect(cb: () => void) {
-  if (getResolvingStoreContainer() === undefined) {
+  if (getResolvingReactiveContextContainer() === undefined) {
     throw new Error('You can only run "effect" when creating a store');
   }
 

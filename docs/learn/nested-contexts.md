@@ -120,7 +120,7 @@ export const useAppStore = createObservableContext(AppStore);
 
 ```ts [Preact]
 import { cleanup } from "impact-react-preact";
-import { signal, effect } from "@preactjs/signals-core";
+import { signal, effect } from "@preact/signals-react";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {

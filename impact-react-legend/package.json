@@ -1,7 +1,7 @@
 {
-  "name": "impact-react-store",
-  "version": "1.2.0",
-  "description": "Impact React nested stores",
+  "name": "@impact-react/legend",
+  "version": "1.0.0",
+  "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -29,15 +29,18 @@
     "react",
     "context",
     "reactive",
+    "signals",
     "state",
-    "global",
-    "store",
-    "observable"
+    "global"
   ],
   "files": [
     "dist"
   ],
   "peerDependencies": {
-    "react": "*"
+    "react": "*",
+    "@legendapp/state": "*"
+  },
+  "dependencies": {
+    "@impact-react/reactive-context": "^1.0.0"
   }
 }

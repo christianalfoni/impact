@@ -1,10 +1,10 @@
-import { cleanup, context } from "impact-react-store";
+import { cleanup, context } from "@impact-react/reactive-context";
 import { ObservablePromise } from "./signal";
 
 export { cleanup, context };
 export { Observer, observer, useObserver } from "./observers";
 export { debugHooks } from "./debugHooks";
-export { createStore } from "./store";
+export { createReactiveContext } from "./reactiveContext";
 export { effect } from "./effect";
 export { signal } from "./signal";
 export type { Signal } from "./signal";

@@ -73,7 +73,7 @@ export const useAppStore = createReactiveContext(AppStore);
 
 ```ts [Preact Signals]
 import { createReactiveContext } from "@impact-react/preact";
-import { signal } from "@preact/signals-core";
+import { signal } from "@preact/signals-react";
 
 function AppStore() {
   const count = signal(0);

@@ -69,7 +69,7 @@ function AppStore() {
 ```
 
 ```ts [Preact Signals]
-import { signal } from "@preactjs/signals-core";
+import { signal } from "@preact/signals-react";
 
 function AppStore() {
   const count = signal(0);
@@ -151,7 +151,7 @@ function AppStore() {
 ```
 
 ```ts [Preact Signals]
-import { signal } from "@preactjs/signals-core";
+import { signal } from "@preact/signals-react";
 
 function AppStore() {
   const count = signal(0);
@@ -275,7 +275,7 @@ export const useAppStore = createReactiveContext(AppStore);
 
 ```ts [Preact Signals]
 import { createReactiveContext } from "@impact-react/preact";
-import { signal } from "@preactjs/signals-core";
+import { signal } from "@preact/signals-react";
 
 function AppStore() {
   const counter = createCounter();
@@ -491,7 +491,7 @@ const useAppStore = createStore(AppStore);
 
 ```ts [Preact Signals]
 import { createReactiveContext, cleanup } from "@impact-react/preact";
-import { signal, computed, effect } from "@preactjs/signals-core";
+import { signal, computed, effect } from "@preact/signals-react";
 
 type StoreProps = {
   // Do not use optional props, but rather undefined

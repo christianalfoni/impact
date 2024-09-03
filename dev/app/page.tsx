@@ -1,5 +1,8 @@
 import Image from "next/image";
-import { Counter } from "./Counter";
+import { SignalsExample } from "./SignalsExample";
+import { MobxExample } from "./MobxExample";
+import { PreactExample } from "./PreactExample";
+import { LegendExample } from "./LegendExample";
 
 export default function Home() {
   return (
@@ -40,9 +43,21 @@ export default function Home() {
         />
       </div>
 
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <Counter />
+      <hr />
+      <h4>Signals</h4>
+      <SignalsExample />
+      <hr />
+      <h4>Mobx</h4>
+      <MobxExample />
+      <hr />
+      <h4>Preact</h4>
+      <PreactExample />
+      <hr />
+      <h4>Legend</h4>
+      <LegendExample />
+      <hr />
 
+      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
         <a
           href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
           className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"

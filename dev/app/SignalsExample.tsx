@@ -1,7 +1,13 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { createStore, observer, query, mutation, use } from "impact-react";
+import {
+  createReactiveContext,
+  observer,
+  query,
+  mutation,
+  use,
+} from "@impact-react/signals";
 // import { observable } from "mobx";
 // import { observer } from "mobx-react-lite";
 
@@ -36,18 +42,20 @@ function AppStore() {
   };
 }
 
-const useAppStore = createStore(AppStore);
+const useAppStore = createReactiveContext(AppStore);
 
-function GroceriesStore(props: { groceries: () => string[] }) {
+function GroceriesStore(props: { groceries: string[] }) {
   const { addGrocery } = useAppStore();
 
   return {
-    groceries: props.groceries,
+    groceries() {
+      return props.groceries;
+    },
     addGrocery,
   };
 }
 
-const useGrocieresStore = createStore(GroceriesStore);
+const useGrocieresStore = createReactiveContext(GroceriesStore);
 
 const App = observer(function App() {
   const appStore = useAppStore();
@@ -95,7 +103,7 @@ const Groceries = observer(function Groceries() {
   );
 });
 
-export function Counter() {
+export function SignalsExample() {
   return (
     <useAppStore.Provider>
       <Suspense fallback={<h4>Loading groceries...</h4>}>

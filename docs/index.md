@@ -65,7 +65,7 @@ npm install @impact-react/signals
 npm install @impact-react/mobx
 ```
 
-**Preact Signals** - [documentation](https://preactjs.com/guide/v10/signals/)
+**Preact Signals** - [documentation](https://preact.com/guide/v10/signals/)
 
 ```sh
 npm install @impact-react/preact

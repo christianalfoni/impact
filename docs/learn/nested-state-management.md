@@ -129,7 +129,7 @@ export const useAppStore = createReactiveContext(AppStore);
 
 ```ts [Preact Signals]
 import { cleanup, createReactiveContext } from "@impact-react/preact";
-import { signal, effect } from "@preactjs/signals-core";
+import { signal, effect } from "@preact/signals-react";
 import { useGlobalStore } from "./GlobalStore";
 
 function AppStore(props) {

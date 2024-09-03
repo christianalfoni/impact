@@ -1,7 +1,7 @@
 {
-  "name": "impact-react",
-  "version": "1.14.3",
-  "description": "Reactive state management for React",
+  "name": "@impact-react/preact",
+  "version": "1.0.0",
+  "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "type": "module",
@@ -37,9 +37,10 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": "*"
+    "react": "*",
+    "@preact/signals-core": "*"
   },
   "dependencies": {
-    "impact-react-store": "^1.2.0"
+    "@impact-react/reactive-context": "^1.0.0"
   }
 }
