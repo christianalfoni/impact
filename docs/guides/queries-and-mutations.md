@@ -2,7 +2,7 @@
 
 ::: warning
 
-This guide is specifically for the **Impact** signal primitives!
+This guide is specifically for the **Impact Signals** primitives!
 
 :::
 
@@ -111,7 +111,7 @@ function MyComponent() {
   return (
     <div>
       <h1>Query state is: {dataQuery().state}</h1>
-      <h2>Promise state is: {dataQuery().promise.status}</h2>
+      <h2>Promise status is: {dataQuery().promise.status}</h2>
       <button onClick={invalidateDataQuery}>Refetch</button>
     </div>
   );

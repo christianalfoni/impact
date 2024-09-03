@@ -1,6 +1,6 @@
 # Nested State Management
 
-As **Impact** builds on the existing React context you will be able to instantiate state management related to specific pages, features or even for each item in a list.
+As **Impact** builds on the existing React context you will be able to instantiate reactive state management related to specific pages, features or even for each item in a list.
 
 The reactive context provider can receive props from React, just like normal React context providers. The props are received as an object where each prop returns a reactive primitive representing the value of that prop. This is because React can update the props through reconciliation. You can use the props with observing primitives like computed, effect etc. and also expose them from the reactive context itself to be used in nested components or contexts.
 
