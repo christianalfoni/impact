@@ -1,12 +1,8 @@
-
-
-
-
 <p align="center">
   <img align="center" src="./Icon.png" />
 </p>
 <p align="center">
-  <b>Reactive state management for React</b>
+  <b>Reactive contexts for React</b>
 </p>
 
 <br />
@@ -29,5 +25,4 @@
 >
 > **State management** should not be hard because of **building UIs**
 >
-> *Engineering Zen Master, Christian Alfoni*
-
+> _Engineering Zen Master, Christian Alfoni_
