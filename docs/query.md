@@ -3,7 +3,7 @@
 A popular pattern popularised by [react-query](https://tanstack.com/query/latest/docs/framework/react/overview) and [swr](https://swr.vercel.app/) is to use a [stale-while-revalidate](https://tools.ietf.org/html/rfc5861) pattern. **Impact** enables this pattern with its `query` primitive.
 
 ```ts
-import { query } from "impact-react";
+import { query } from "@impact-react/signals";
 import { createApi } from "./api";
 
 function AppStore() {

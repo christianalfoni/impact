@@ -2,9 +2,11 @@
   "name": "impact-react-monorepo",
   "private": true,
   "workspaces": [
-    "impact-react-store",
-    "impact-react",
+    "impact-react-reactive-context",
+    "impact-react-signals",
     "impact-react-mobx",
+    "impact-react-preact",
+    "impact-react-legend",
     "impact-react-debugger",
     "dev"
   ],
@@ -19,6 +21,9 @@
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",
   "devDependencies": {
+    "@legendapp/state": "^2.1.15",
+    "@preact/signals-core": "^1.8.0",
+    "@preact/signals-react": "^2.2.0",
     "@types/node": "^20.10.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",

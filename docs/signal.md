@@ -4,10 +4,10 @@ outline: deep
 
 # signal
 
-Observable state. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value.
+Observable values. The value is considered immutable. If set with the same value, the signal will not trigger. You can set a new value directly or use a callback where you receive the current value, which returns the new value.
 
 ```ts
-import { signal } from "impact-react";
+import { signal } from "@impact-react/signals";
 
 function CounterStore() {
   const [count, setCount] = signal(0);
@@ -29,7 +29,11 @@ function CounterStore() {
 Assigning a promise to a signal will enhance that promise to comply with React's [use](https://react.dev/reference/react/use) specification. That means the promise will expose a `.status` property and related `.value` or `.reason`, depending on its resolvement.
 
 ```tsx
-import { signal, createStore, useObserver } from "impact-react";
+import {
+  signal,
+  createReactiveContext,
+  useObserver,
+} from "@impact-react/signals";
 
 function AsyncStore() {
   const [asyncValue] = signal(createSomePromise());
@@ -39,7 +43,7 @@ function AsyncStore() {
   };
 }
 
-const useAsyncStore = createStore(AsyncStore);
+const useAsyncStore = createReactiveContext(AsyncStore);
 
 function App() {
   using _ = useObserver();
@@ -66,9 +70,9 @@ function App() {
   using _ = useObserver();
 
   const { asyncValue } = useAsyncStore();
-  const value = use(asyncValue());
+  const currentAsyncValue = use(asyncValue());
 
-  return "Yeah, " + value;
+  return "Yeah, " + currentAsyncValue;
 }
 ```
 
