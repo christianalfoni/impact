@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "impact-react",
+  title: "Impact",
   head: [["link", { rel: "icon", href: "/favicon.ico" }]],
   description: "Complex single page applications with React",
   cleanUrls: true,
@@ -24,8 +24,9 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Deep Dive", link: "/deep-dive/stores" },
-      { text: "API Reference", link: "/cleanup" },
+      { text: "Guides", link: "/guides/queries-and-mutations" },
+      { text: "Impact API", link: "/createReactiveContext" },
+      { text: "Signals API", link: "/signal" },
     ],
 
     sidebar: [
@@ -36,32 +37,35 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "Observable Context", link: "/learn/observable-context" },
-          { text: "Nested Contexts", link: "/learn/nested-contexts" },
+          { text: "Reactive Context", link: "/learn/reactive-context" },
+          {
+            text: "Nested State Management",
+            link: "/learn/nested-state-management",
+          },
           { text: "Lifecycle", link: "/learn/lifecycle" },
-          { text: "Store Context", link: "/learn/store-context" },
-        ],
-      },
-      {
-        text: "Deep Dive",
-        items: [
+          { text: "Shared Context", link: "/learn/shared-context" },
           {
             text: "Stores",
-            link: "/deep-dive/stores",
-          },
-          {
-            text: "Resolving Stores",
-            link: "/deep-dive/resolving-stores",
-          },
-          {
-            text: "Teamwork",
-            link: "/deep-dive/teamwork",
+            link: "/learn/stores",
           },
         ],
       },
       {
-        text: "API Reference",
+        text: "Guides",
         items: [
+          {
+            text: "Queries and Mutations",
+            link: "/guides/queries-and-mutations",
+          },
+        ],
+      },
+      {
+        text: "Impact API",
+        items: [
+          {
+            text: "createReactiveContext",
+            link: "/createReactiveContext",
+          },
           {
             text: "cleanup",
             link: "/cleanup",
@@ -70,9 +74,14 @@ export default defineConfig({
             text: "context",
             link: "/context",
           },
+        ],
+      },
+      {
+        text: "Signals API",
+        items: [
           {
-            text: "createStore",
-            link: "/createStore",
+            text: "signal",
+            link: "/signal",
           },
           {
             text: "derived",
@@ -83,10 +92,6 @@ export default defineConfig({
             link: "/effect",
           },
           {
-            text: "mutation",
-            link: "/mutation",
-          },
-          {
             text: "observers",
             link: "/observers",
           },
@@ -95,8 +100,8 @@ export default defineConfig({
             link: "/query",
           },
           {
-            text: "signal",
-            link: "/signal",
+            text: "mutation",
+            link: "/mutation",
           },
         ],
       },

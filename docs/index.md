@@ -2,9 +2,9 @@
 layout: home
 
 hero:
-  name: "impact-react"
+  name: "Impact"
   tagline: "/** \n
-  * Observable React contexts \n
+  * Reactive contexts for React \n
 */
 \n\n
 By CodeSandbox team
@@ -17,19 +17,20 @@ By CodeSandbox team
       text: Learn
       link: /learn/
     - theme: alt
-      text: Deep Dive
-      link: /deep-dive/stores
+      text: Guides
+      link: /guides/queries-and-mutations
     - theme: alt
-      text: API Reference
-      link: /cleanup
+      text: Impact API
+      link: /createReactiveContext
+
 
 features:
   - title: The best of both worlds
-    details: Use your favourite observable primitives to manage state. Use Reacts reconciliation model to manage UI.
+    details: Use your favourite reactive primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
-    details: Observable primitives are more performant and gives an accessible developer experience for state management.
+    details: Reactive primitives are more performant and enables an accessible developer experience for state management.
   - title: Nested state management
-    details: Use the provider to expose your state management in React and receive props as observable primitives
+    details: Provide your reactive state management for specific pages, features or complex components. Receive reactive props and use any parent reactive context.
 ---
 
 <HomeContent>
@@ -44,34 +45,36 @@ features:
 
 ## Presenting Impact
 
+> **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love, and bridge the world of React with your reactive state management at any point in the component tree.
+
 [🍿 Impact Presentation 🍿](https://www.youtube.com/watch?v=1QHn8LVlPYE) - [🍿 Impact Technical Deep Dive 🍿](https://www.youtube.com/watch?v=yOAZo1SUYrM)
 
 If you have used Impact in an application or you think it has valuable perspectives or concepts for a discussion, please use the [Template Slides Deck](https://docs.google.com/presentation/d/1pHBW-HxkugtK8Ny1ebj3a_klqu3HzHnSPvbVNw1drnU/edit?usp=sharing). Present Impact at your company, a local meetup or at a conference. Please reach out if you have any questions or think the slide deck should be updated.
 
-## Install impact-react
+## Install Impact
 
-**Impact React Signals** - [documentation](https://)
+**Impact Signals** - [documentation](./signal)
 
 ```sh
-npm install impact-react-signals
+npm install @impact-react/signals
 ```
 
-**Mobx** - [documentation](https://)
+**Mobx** - [documentation](https://mobx.js.org/README.html)
 
 ```sh
-npm install impact-react-mobx
+npm install @impact-react/mobx
 ```
 
-**Preact Signals** - [documentation](https://)
+**Preact Signals** - [documentation](https://preactjs.com/guide/v10/signals/)
 
 ```sh
-npm install impact-react-preact
+npm install @impact-react/preact
 ```
 
-**LegendApp** - [documentation](https://)
+**LegendApp** - [documentation](https://legendapp.com/open-source/state/v3/)
 
 ```sh
-npm install impact-react-legendapp
+npm install @impact-react/legendapp
 ```
 
 </HomeContent>
