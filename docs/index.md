@@ -53,7 +53,7 @@ If you have used Impact in an application or you think it has valuable perspecti
 
 ## Install Impact
 
-**Impact Signals** - [documentation](./signal)
+**Impact Signals** - [documentation](./signal) - [Get started template](https://codesandbox.io/p/devbox/impact-template-fp6gd9?file=%2Fsrc%2FApp.tsx%3A13%2C5)
 
 ```sh
 npm install @impact-react/signals
