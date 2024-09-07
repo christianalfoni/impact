@@ -2,13 +2,15 @@
 
 ## Introduction
 
-After the summer 2014 I quit my job as a consultant. Up to that point I had worked on several projects, amongst those building a highly interactive web based switchboard for mobile phones. It would take events from the GSM network to produce your call state, show queues of callers, conference calls, sms, phonebooks, call groups, outlook sync etc. It was all written in JavaScript and we used no frameworks. It gave me a solid understanding of the language and how to organise and scale code.
+After the summer of 2014 I quit my job as a consultant. Up to that point I had worked on several projects, amongst those building a highly interactive web based switchboard for mobile phones. It would take events from the GSM network to produce your call state, show queues of callers, conference calls, sms, phonebooks, call groups, outlook sync etc. It was all written in JavaScript and we used no frameworks. It gave me a solid understanding of the language and how to organise and scale code.
 
-I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Updating UIs - Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Recuding the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
+I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
+
+In this article I am going to share some strong opinions and even though these opinions are based on my experience with React, it is also based on the types of applications I have been building. React is a tool I honestly owe my whole career to. Please keep this in mind as you read on.
 
 ## User interfaces as a function of state
 
-I quit my job in 2014 because my partner and me where moving across the country and I wanted to spend 6 months self educating. I was increadibly lucky because at this point React and Webpack was starting to take a hold. I remember being hesitant to begin with, but long story short the idea of `(state) => ui` resonates as strongly with me today, as it did when I first got it.
+I quit my job in 2014 because my partner and me where moving across the country and I wanted to spend 6 months self educating. I was increadibly lucky because at this point React and Webpack was starting to take hold. I remember being hesitant to begin with, but long story short the idea of `(state) => ui` resonates as strongly with me today, as it did when I first got it.
 
 ```ts
 function Counter(props) {
@@ -42,7 +44,7 @@ function Counter() {
 
 Embracing the component as a function makes sense, but the introduction of hooks disrupted React developers intuition about how code is executed in the language runtime. For example every time this component reconciles it looks like it will initialise the count state, but that is not true, it will only do it on the first call of the component function. The function looks stateless and pure, but there is this hidden state in React that you can not see by reading the code.
 
-This disruption becomes even a bigger problem as hooks introduces multiple function closures in the component scope. Without hooks there are no active closures. Let us insect the `Counter` again.
+This disruption becomes an even bigger problem as hooks can introduce multiple function closures in the component scope. Without hooks there are no active closures. Let us inspect the `Counter` again.
 
 ```ts
 function Counter(props) {
@@ -70,7 +72,7 @@ function Counter(props) {
 }
 ```
 
-The callback passed to `useEffect` creates a "stuck" function scope for the effect based on `props.toggled` we put in the dependency array. That means some of the code in your component lives longer than the reconciliation of the user interface. But not only that, different closures are bound to different past reconcilations:
+The callback passed to `useEffect` creates a "stuck" function scope for the effect based on `props.toggled` we put in the dependency array. That means some of the code in your component lives longer than the last reconciliation of the user interface. But not only that, different closures are bound to different past reconcilations:
 
 ```ts
 function Counter(props) {
@@ -86,7 +88,7 @@ function Counter(props) {
 }
 ```
 
-If this component reconciles during the timeout, due to `count` being increased, the log will still show `0`. I know it is a silly example, but the point is that hooks disrupted our intuition about how code executes in the language runtime and it is a big additional mental overhead to the simplicity of `(state) => ui`.
+If this component reconciles during the timeout, due to `count` being increased, the log will still show `0`. I know it is a silly example, but the point is that hooks disrupted our intuition on how code executes and it is an additional mental overhead to the simplicity of `(state) => ui`.
 
 ## Making it faster
 
@@ -111,9 +113,9 @@ function ParentComponent() {
 }
 ```
 
-When the `count` updates in `ParentComponent` it will by default reconcile the `MyComponent` as well, even though it takes no props. Why reconcile `(state) => ui` if there is no `state`? And then there is a question why `memo` is not just part of any component taking props? There is of course an argument that the comparing of the props is overhead when they often change. The extreme case would just add work as it would compare the props _and_ reconcile every time. But calling a component, evaluate all the hooks and reconcile the returned user interface description... my intuition just tells me that this comparing of props would end up net positive. But who am I to challenge this. The reason I talk about it though is what follows.
+When the `count` updates in `ParentComponent` it will by default reconcile the `MyComponent` as well, even though it takes no props. Why reconcile `(state) => ui` if there is no `state`? And then there is a question why `memo` is not internally added on any component taking props? There is of course an argument that the comparing of the props is overhead when they often change. The extreme case would just add work as it would compare the props _and_ reconcile every time. But calling a component, evaluate all the hooks and reconcile the returned user interface description... my intuition just tells me that this default comparing of props would end up net positive. But who am I to challenge this. The reason I talk about it though is what follows.
 
-As React had performance issues it introduced concurrent mode. Concurrent mode allowed React to split up its reconciliation work. Previously the reconciliation was blocking, meaning that there was risk of jank in the user interface when the component trees was big and `memo` was not efficiently used. And with the planned concurrent mode we got `StrictMode`. `StrictMode` was thought of as a way to help developers detect side effects in their components due to wrong hooks usage. In development React will call components, hooks and lifecycle hooks twice to ensure that there are no side effects. This was important as concurrent mode needs a guarantee that any pending reconciled component tree can be thrown away. But with this addition the inuition of how a React component works was disrupted again. Previously you could safely:
+As React had performance issues it introduced concurrent mode. Concurrent mode allowed React to split up its reconciliation work. Previously the reconciliation was blocking, meaning that there was risk of jank in the user interface when the component trees are big and `memo` is not efficiently used. And with concurrent mode we got `StrictMode`. `StrictMode` was thought of as a way to help developers detect side effects in their components due to wrong hooks usage. In development, React will call components, hooks and lifecycle hooks twice to ensure that there are no side effects. This is important as concurrent mode needs a guarantee that any pending reconciled component tree can be thrown away. But with this addition the inuition of how a React component works was disrupted again. Previously you could safely:
 
 ```ts
 function MyComponent() {
@@ -126,7 +128,7 @@ function MyComponent() {
 }
 ```
 
-But this was no longer possible and added confusion as things are running twice in development. We basically lost the most basic lifecycle hook for components... when the user interface is mounted and when it is unmounted.
+But this was no longer possible and added confusion as things are running twice in development. We basically lost the most basic lifecycle hook for components; when the user interface is mounted and when it is unmounted.
 
 And now we are here with React 19 and its compiler. The compiler optimises your code, adding memoization for you. But there is one thing the compiler will not fix, and it is the most important source of performance issues in my experience; contexts. One of the main reasons for performance issues is sharing state across components. To do that efficiently we use a React context. The consuming components will reconcile when the value from the context changes:
 
@@ -142,7 +144,7 @@ function MyContext({ children }) {
 }
 ```
 
-What this means in practice is that consuming components will reconcile regardless of what state from this reducer they are consuming. This is something the React Compiler can not fix. It can memoize as much as it wants in `MyContext`, but at the end of the day the value passed on the context has to change and every single consuming components will reconcile.
+What this means in practice is that consuming components will reconcile regardless of what state from this reducer they are consuming. This is something the React Compiler can not fix. It can memoize as much as it wants in `MyContext`, but at the end of the day the value passed on the context has to change and every single consuming component will reconcile.
 
 So even with the React Compiler we will still be leaning towards global state management solutions to fix the performance issues of React. And this is my biggest friction with React. Why do we need to work with two different sets of state management primitives, in different types of runtimes to build applications?
 
@@ -150,9 +152,9 @@ So even with the React Compiler we will still be leaning towards global state ma
 
 So let us move back in time. There is no React Compiler, there is no concurrent mode, no strict mode and no hooks... back to `(state) => ui`. If React rather introduced reactive primitives and made components observers, could we have avoided having to deal with the mental overhead of hooks, strict mode, no lifecycle hooks, react compiler and a secondary global state management solution?
 
-I am of course in no position to evaluate that, but I am allowed to ask the question right?
+I am of course in no position to conclude on that, but I am allowed to ask the question right?
 
-But maybe there is a solution out there that did take a different path. That allows us to keep what we fundamentally love about React, but without all this overhead and performance concerns with state management? Let us list what it needs to fulfill:
+We will never know, but maybe there is a solution out there that did take a different path. A solution that allows us to keep what we fundamentally love about React, but without all this overhead and performance concerns with state management? Let us list what it needs to fulfill:
 
 - JSX support
 - Reconciles the user interface, adhearing to `(state) => ui`
@@ -160,7 +162,7 @@ But maybe there is a solution out there that did take a different path. That all
 - Reactive primitives defined in a separate scope, but exposed to the component where we reconcile the user interface
 - Lifecycle hooks
 
-The contestants we have to break up with React is one of the other larger communities around a framework. Community is important. So the choices we have is [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off Svelte and Angular as templates, compilation and custom type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces. That leaves us with **Vue**. Now, most people knows Vue for its templating language and single file component. But actually one tiny little change gives us everything we want.
+Even though we are trying to break out of a relationship due to the technical decisions of React, we still want a community and ecosystem. So the choices we have is [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off **Svelte** and **Angular** as templates, compilation (Emphasize magic of templates) and custom type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces. That leaves us with **Vue**. Now, most people knows Vue for its templating language and single file component. But actually one tiny little change gives us everything we want.
 
 All Vue projects uses [Vite](), also developed by the Vue team. In the configuration we just have to change:
 
@@ -192,7 +194,7 @@ import { App } from "./App";
 createApp(App).mount("#root");
 ```
 
-Currently there is no real difference. Let us start by introducing some props:
+We can also use props:
 
 ```tsx
 function HelloWorld(props: { message: string }) {
@@ -203,8 +205,6 @@ export function App() {
   return <HelloWorld message="This is Vue" />;
 }
 ```
-
-Again there is no difference from what we do in React.
 
 Now let us look at the final core mechanic, children. So in React we use `props.children`, but Vue has a different approach, called `slots`.
 
