@@ -4,7 +4,7 @@
 
 After the summer of 2014 I quit my job as a consultant. Up to that point I had worked on several projects, amongst those building a highly interactive web based switchboard for mobile phones. It would take events from the GSM network to produce your call state, show queues of callers, conference calls, sms, phonebooks, call groups, outlook sync etc. It was all written in JavaScript and we used no frameworks. It gave me a solid understanding of the language and how to organise and scale code.
 
-I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
+I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
 
 In this article I am going to share some strong opinions and even though these opinions are based on my experience with React, it is also based on the types of applications I have been building. React is a tool I honestly owe my whole career to. Please keep this in mind as you read on.
 
@@ -101,12 +101,10 @@ function MyComponent() {
   return <div>Hello there</div>
 }
 
-function ParentComponent() {
-  const [count, setCount] = useState(0)
-
+function ParentComponent({ count }) {
   return (
     <div>
-      <h1 onClick={() => setCount(count + 1)}>Count {count}</h1>
+      <h1>Count {count}</h1>
       <MyComponent />
     </div>
   )
@@ -162,9 +160,13 @@ We will never know, but maybe there is a solution out there that did take a diff
 - Reactive primitives defined in a separate scope, but exposed to the component where we reconcile the user interface
 - Lifecycle hooks
 
-Even though we are trying to break out of a relationship due to the technical decisions of React, we still want a community and ecosystem. So the choices we have is [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off **Svelte** and **Angular** as templates, compilation (Emphasize magic of templates) and custom type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces. That leaves us with **Vue**. Now, most people knows Vue for its templating language and single file component. But actually one tiny little change gives us everything we want.
+Even though we are trying to break up with React due to the technical decisions, we still want a community and ecosystem. With that in mind our choices are [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off **Svelte** and **Angular** as templates and custom type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces. That leaves us with **Vue**.
 
-All Vue projects uses [Vite](), also developed by the Vue team. In the configuration we just have to change:
+We are going to continue now by first evaluating the the API available to use in Vue. Just see how far we get and what tradeoffs we have to make. Then we are going to see if we can do something about these tradeoffs.
+
+## Evaluating Vue
+
+All Vue projects uses [Vite](), also developed by the Vue team. In the default configuration we just change to `@vitejs/plugin-vue-jsx`. We are ready to embrace reconciling user interfaces and observing state.
 
 ```ts
 import { defineConfig } from "vite";
@@ -176,8 +178,6 @@ export default defineConfig({
   plugins: [vueJsx()],
 });
 ```
-
-By simply changing to `@vitejs/plugin-vue-jsx` we are ready to embrace reconciling user interfaces observing state.
 
 Let us start by defining a simple component and render it:
 
@@ -222,27 +222,184 @@ export function App() {
 }
 ```
 
-It is certainly simpler to use `{ children }` from the props and with React they will also be typed when consuming the component. For now this typing benefit is something we need to give up, AFAIK. But remember that this mechanism in Vue is one of the core components of performance.
+It is certainly simpler to use `{ children }` from the props and with React they will also be typed when consuming the component.
 
-But now let us introduce some state management. As mentioned our state management will be defined in its own function scope which is called when the component mounts. And then we use a different reconciling function scope to update the user interface.
+Talking about state, let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
 
-Vue exports a `defineComponent` function that we will need to take advantage of.
+Let us first look at how we would write this in React:
+
+```tsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  function increase() {
+    setCount(count + 1);
+  }
+
+  return (
+    <div>
+      <h4>Count is {count}</h4>
+      <button onClick={increase}>Increase count</button>
+    </div>
+  );
+}
+```
+
+And now let us see how this would be defined with what we have from Vue by default, using `defineComponent`:
 
 ```tsx
 import { ref, defineComponent } from "vue";
 
-const HelloWorld = defineComponent(() => {
-  // State management scope
+export const Counter = defineComponent(() => {
   const count = ref(0);
 
-  return () => {
-    // Reconciling scope
+  function increase() {
+    count.value++;
+  }
+
+  return function Counter() {
     return (
       <div>
         <h4>Count is {count.value}</h4>
-        <button onClick={() => count.value++}>Increase count</button>
+        <button onClick={increase}>Increase count</button>
       </div>
     );
   };
 });
 ```
+
+`defineComponent` is a low level API that I personally do not think communicates well enough the higher level terminology of Vue and how our reactive state management scope and our reconciling user interface scope relates to each other. This signature is simply not good enough to convince a React developer to use Vue and convincing a React developer to move to templates is an even harder sell.... like, I am one of them.
+
+Let us imagine that Vue rather exported a `createComponent` that better communicates what we are trying to conceptualise and give a nod to the name of an early React API at the same time.
+
+First the example of React again:
+
+```tsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  function increase() {
+    setCount(count + 1);
+  }
+
+  return (
+    <div>
+      <h4>Count is {count}</h4>
+      <button onClick={increase}>Increase count</button>
+    </div>
+  );
+}
+```
+
+Now how Vue single file components would do it:
+
+```html
+<script setup lang="ts">
+  import { ref } from "vue";
+
+  let count = ref(0);
+</script>
+<template>
+  <div>
+    <h4>Count is {count}</h4>
+    <button onClick="{()" ="">count++}>Increase count</button>
+  </div>
+</template>
+```
+
+And now using `createComponent`:
+
+```tsx
+import { ref, createComponent } from "vue";
+
+function Setup() {
+  const count = ref(0);
+
+  function increase() {
+    count.value++;
+  }
+
+  return {
+    get count() {
+      return count.value;
+    },
+    increase,
+  };
+}
+
+function Template(state) {
+  return (
+    <div>
+      <h4>Count is {state.count}</h4>
+      <button onClick={state.increase}>Increase count</button>
+    </div>
+  );
+}
+
+export default createComponent("Counter", Setup, Template);
+```
+
+What we achieve now are three things:
+
+1. We properly separate the two scopes. Our `Setup` function is our reactive scope for state management. The `Template` is the scope for the reconciling user interface
+2. If you compare this to the Vue template they use the same terminology and even look very much the same
+3. Our `Setup` completely controls the changes to state. With `defineComponent` state changes can be made from both the state management scope and the user interface scope
+
+But what if we wanted to share the state of this counter with other components? Instead of wiring up a context and risk performance issues or adopt a global state management solution with its own primitives and perspectives, what if Vue exported a similar `createStore` function?
+
+```tsx
+import { ref, createStore } from "vue";
+
+function Setup() {
+  const count = ref(0);
+
+  function increase() {
+    count.value++;
+  }
+
+  return {
+    get count() {
+      return count.value;
+    },
+    increase,
+  };
+}
+
+const [CounterProvider, injectCounter] = createStore(Setup);
+
+export { CounterProvider, injectCounter };
+```
+
+And given that we provide the Counter we are now able to use this counter in any nested component, it being the _template_ or the _setup_.
+
+```tsx
+// <CounterProvider>
+function Counter(state) {
+  const globalStore = injectCounter();
+
+  return (
+    <div>
+      <h4>Count is {globalStore.count}</h4>
+      <button onClick={globalStore.increase}>Increase count</button>
+    </div>
+  );
+}
+// </CounterProvider>
+```
+
+The important thing to highlight here is:
+
+1. We just renamed our `CounterSetup` to `CounterStore`. This is not about time spent refactoring, but that local, scoped and global state is defined _exactly_ the same. It is only about how it is provided
+2. We did not have to choose different primitives to do shared state management
+3. There are absolutely no concerns on performance. The stores can be as big as you want, only the state components actually access from the store is what causes it to reconcile, and optimally so
+
+## Beyond state and ui
+
+- True open source UI framework
+- Debugger
+- Vite
+- Complete toolchain
