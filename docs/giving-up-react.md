@@ -248,7 +248,7 @@ export function App() {
 }
 ```
 
-It is certainly simpler to use `{ children }` from the props and with React they will also be typed when consuming the component. Generally the type definitions for JSX is not that great. For example element event listeners does not have typed events. **Typing is the first thing we need to address.**
+It is certainly simpler to use `{ children }` from the props and with React they will also be typed when consuming the component. Generally the type definitions for JSX is not that great in Vue. For example element event listeners does not have typed events and you can not type the slots for consumption of the component. **Typing is the first thing we need to address.**
 
 Talking about state, let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
 
@@ -275,11 +275,11 @@ export const Counter = defineComponent(() => {
 });
 ```
 
-The `defineComponent` function introduces two function scopes. The passed function is your state management scope, called `Setup` and the returned function is the user interface scope, which will reconcile on observed changes.
+The `defineComponent` function introduces two function scopes. The passed function is your state management scope, called `Setup`, and the returned function is the user interface scope, which will reconcile on observed changes.
 
-This signature forces us to define the component function inside `defineComponent`. This diverges too much from React. **This is the second thing to address.**
+This signature forces us to define the user interface function inside `defineComponent`. This prevents us from making state _readonly_ in the user interface and it can quickly grow to a point where you can not clearly parse out what is state and what is user interface. Also you can not just define a component as a standalone function like we do in React. **This is the second thing to address.**
 
-Vue also has a behaviour called [Fallthrough attributes](https://vuejs.org/guide/components/attrs). This allows you to add certain native attributes to components, like `style`, `class` or `onClick`. These attributes will automatically be added to the root element returned inside the component. In React we want the behaviour of the component to be controlled completely from the component and any outside influence should happen through props. **This is the third thing to address**.
+Vue also has a behaviour called [Fallthrough attributes](https://vuejs.org/guide/components/attrs). This allows you to add certain native attributes to components when consuming them, like `style`, `class` or `onClick`. These attributes will automatically be added to the root element returned inside the component. In React we want the behaviour of the component to be controlled completely from the component and any outside influence should happen through props. **This is the third thing to address**.
 
 ## Addressing the issues
 
@@ -298,7 +298,7 @@ To fix the typing we need to provide our own `jsxImportSource` which adds the `s
 }
 ```
 
-To be able to consume the actual `slots` though the `props`, and deal with the other issues, we need to create an abstraction to create components. As a nod back to early versions of React, let us implement a `createComponent` function.
+To be able to consume the actual `slots` though the `props` ad runtime, and deal with the other issues mentioned, we need to create an abstraction to create components. As a nod back to early versions of React, let us implement a `createComponent` function.
 
 ```ts
 import { createComponent } from 'vue-productivity'
@@ -314,7 +314,7 @@ function Title(props: Props) {
 export default createComponent(Title)
 ```
 
-This addition of having to call `createComponent` handles the `slots`, prevents the _Fallthrough Attributes_ and it gives us the abstraction we need to separate the state definition from the user interface definition. Which brings us to the last issue that now resolved:
+This addition of having to call `createComponent` handles the `slots`, prevents the _Fallthrough Attributes_ and it gives us the abstraction we need to separate the state definition from the user interface definition. Which brings us to resolving the last issue:
 
 ```tsx
 import { ref } from "vue";
@@ -337,7 +337,7 @@ function Counter(state: State) {
 export default createComponent(State, Counter);
 ```
 
-Now the `Setup` and the `Counter` are separated scopes, where the `Setup` runs when the component is created and the `Counter` will reconcile, based on its observed changes. What is especially great about this is that we can easily take a small step further and expose this state to any nested component:
+Now the `Setup` and the `Counter` are separated scopes, where the `Setup` runs when the component is created and the `Counter` will reconcile based on its observed state. What is especially great about this is that we can easily take a small step further and expose this state to any nested component:
 
 ```tsx
 import { ref } from "vue";
@@ -364,9 +364,9 @@ function Counter(state: State) {
 export default createComponent(State, Counter);
 ```
 
-Just like that and any nested component can consume the counter, also in its `Setup`. This creates a natural progressive handling of state.
+Just like that and any nested component can consume the counter. This creates a natural progressive handling of state.
 
-And this is all you need. You can create components that only provides state management. They can be as big as you want, since only acessed state causes the consuming component to reconcile. They can also receive props from other components as it operates as a natural part of your existing component tree.
+And this is all you need. You can create stateless user interface components, statful user interface components or simply a component that provides state to any nested component. The `Setup` can be as big as you want, since only acessed state causes the consuming components to reconcile. They can also receive props from other components as they operate as a natural part of your existing component tree.
 
 The following features are now also available to you:
 
