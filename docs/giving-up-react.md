@@ -2,15 +2,11 @@
 
 ## Introduction
 
-After the summer of 2014 I quit my job as a consultant. Up to that point I had worked on several projects, amongst those building a highly interactive web based switchboard for mobile phones. It would take events from the GSM network to produce your call state, show queues of callers, conference calls, sms, phonebooks, call groups, outlook sync etc. It was all written in JavaScript and we used no existing tooling. It gave me a solid understanding of the language and how to organise and build tooling to scale code.
+After the summer of 2014 I quit my job as a consultant. Up to that point I had worked on several projects, amongst those building a highly interactive web based switchboard for mobile phones. It would take events from the GSM network to produce your call state, show queues of callers, conference calls, sms, phonebooks, call groups, outlook sync etc. It was all written in JavaScript and we used no existing tooling. It gave me a solid understanding of the language and how to organise and build tooling to scale code. Also during this project, and later projects, I have been working with junior engineers and experienced how productive we can all be using tools that reflects a strong mental model of how to build an application.
 
-I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
+I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this complexity I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
 
-In this article I am going to share some strong opinions about React. React is a tool I honestly owe my whole career to.
-
-- Specific type of apps
-- Scaling with teams
-- Moving fast
+In this article I am going to share some strong opinions about React. At some points I am honestly just venting, but I will do my best to explain the source of the frustration. React is a tool I honestly owe my whole career to, so this is not stating that my time with React was a waste of time. On the contrary, it has been exceptionally educational. That said, my main priority is to simplify the process of building applications and creating a balance between moving fast and still be able to scale. React has become this partner I
 
 ## User interfaces as a function of state
 
