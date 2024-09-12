@@ -1,4 +1,4 @@
-# Giving up on React
+# Giving up on React (WIP)
 
 ## Introduction
 
@@ -182,11 +182,10 @@ All Vue projects uses [Vite](), also developed by the Vue team. In the default c
 ```ts
 import { defineConfig } from "vite";
 // import vue from "@vitejs/plugin-vue";
-import vueJsx from "@vitejs/plugin-vue-jsx";
+import vue from "@vitejs/plugin-vue-jsx";
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vueJsx()],
+  plugins: [vue()],
 });
 ```
 
@@ -228,15 +227,11 @@ export function App() {
 }
 ```
 
-Now let us look at the final core mechanic, children. So in React we use `props.children`, but Vue has a different approach, called `slots`.
+Vue as of recent now also supports the common `children` prop:
 
 ```tsx
-import { useSlots } from "vue";
-
-function HelloWorld() {
-  const slots = useSlots();
-
-  return <h1>Hello World: {slots.default?.()}</h1>;
+function HelloWorld(props: { children: string }) {
+  return <h1>Hello World: {props.children}</h1>;
 }
 
 export function App() {
@@ -244,7 +239,28 @@ export function App() {
 }
 ```
 
-It is certainly simpler to use `{ children }` from the props and with React they will also be typed when consuming the component. Generally the type definitions for JSX is not that great in Vue. For example element event listeners does not have typed events and you can not type the slots for consumption of the component. **Typing is the first thing we need to address.**
+Vue has a feature called [Fallthrough Attributes](https://vuejs.org/guide/components/attrs.html#fallthrough-attributes). In Vue applications this reduces greatly the need to pass props.
+
+```tsx
+import { NativeElements } from "vue";
+
+function Header(props: { children: string } & NativeElements["h1"]) {
+  return <h1>{props.children}</h1>;
+}
+
+export function App() {
+  return (
+    <Header
+      class="my-class"
+      onClick={() => {
+        console.log("Clicked the header");
+      }}
+    >
+      Hello World
+    </Header>
+  );
+}
+```
 
 Talking about state, let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
 
