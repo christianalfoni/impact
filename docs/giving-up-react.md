@@ -6,7 +6,7 @@ After the summer of 2014 I quit my job as a consultant. Up to that point I had w
 
 I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this complexity I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
 
-In this article I am going to share some strong opinions about React. I will do my best to explain the source of the frustration. Nevertheless React is a tool I honestly owe my whole career to. My time with React has in no way been a waste of time. It has been exceptionally educational, helped me contritube to open source and led my to amazing career opportunities. That said, I want to simplify the process of building productivity types of applications, balancing moving fast and ability to scale. Allow juniors and seniors in the same team feel productive and spend time on what matters, creating an amazing user experiences. Over time React has added more and more friction to reaching that goal.
+In this article I am going to share some strong opinions about React. I will do my best to explain the source of the frustration. Nevertheless React is a tool I honestly owe my whole career to. My time with React has in no way been a waste of time. It has been exceptionally educational, helped me contritube to open source and led my to amazing career opportunities. That said, I want to simplify the process of building productivity types of applications, balancing moving fast and ability to scale. Allow juniors and seniors in the same team feel productive and spend time on what matters, creating an amazing user experience. Over time React has added more and more friction to reaching that goal.
 
 ## User interfaces as a function of state
 
@@ -30,7 +30,7 @@ function Counter(props) {
 }
 ```
 
-I can just JavaScript to create the dynamic behaviour of this user interface. But not only that, I get complete TypeScript support out of the box. Not only to infer the types of the props, but type narrowing and any other feature from TypeScript that applies to expressing dynamic user interfaces. This is a really good thing when building large productivity apps.
+I can use JavaScript to express the dynamic behaviour of this user interface. But not only that, I get complete TypeScript support out of the box. Not only to infer the types of the props, but type narrowing and any other feature from TypeScript that applies to expressing dynamic user interfaces. This is a really good thing when building large productivity apps.
 
 But this core concept of `(state) => ui` has been faded over time in React. This fundamental concept that makes so much sense first started to diminish with the introduction of hooks:
 
@@ -42,7 +42,7 @@ function Counter() {
 }
 ```
 
-Embracing the component as a function makes sense, but the introduction of hooks disrupted React developers intuition about how code is executed in the component. Hooks is based on a concept of [Algebraic Effects](https://overreacted.io/algebraic-effects-for-the-rest-of-us/) which is a way to manage side effects in a functional paradigm. Here is a summary of languages that natively support it and what those languages are typically used for:
+Embracing the component as a function makes sense, but the introduction of hooks disrupted React developers intuition on how code is executed in the component. Hooks is based on a concept of [Algebraic Effects](https://overreacted.io/algebraic-effects-for-the-rest-of-us/) which is a way to manage side effects in a functional paradigm. Here is a summary of languages that natively support it and what those languages are typically used for:
 
 - **Eff, Koka**: Research, experimentation with algebraic effects, primarily academic.
 - **OCaml**: Systems programming, compilers, financial sector; exploring concurrency with algebraic effects.
@@ -169,7 +169,7 @@ We will never know, but maybe there is a solution out there that did take a diff
 - Reactive primitives defined in a separate scope, but exposed to the component where we reconcile the user interface
 - Lifecycle hooks
 
-Even though we are trying to break up with React due to the technical decisions, we would also break up with its community. That really sucks, so we also have to consider moving to a community and an ecosystem which can continue inspire us.
+Even though we are trying to break up with React due to the technical decisions, we would also break up with its community. That really sucks, so we also have to consider moving to a community and an ecosystem which can continue to inspire us.
 
 With that in mind our choices are [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off **Svelte** and **Angular** as templates and limited type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces or have native typing support. That leaves us with **Vue**.
 
