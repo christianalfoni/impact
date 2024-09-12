@@ -262,6 +262,8 @@ export function App() {
 }
 ```
 
+By default the props
+
 Talking about state, let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
 
 When dealing with state Vue exports a `defineComponent` function:
