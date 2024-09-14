@@ -6,7 +6,7 @@ After the summer of 2014 I quit my job as a consultant. Up to that point I had w
 
 I must have been a magnet to productivity tools, cause that is all I have been working on since. Managing a lot of client state due to complex user interfaces that has a high degree of interactivity. To manage all this complexity I built tools like [Cerebral](https://cerebraljs.com/), later [Overmind](https://overmindjs.org/) and written a myriad of articles like [Value comparison VS mutation tracking](https://medium.com/itnext/updating-uis-value-comparison-vs-mutation-tracking-9f6fe912dd9a), [Reducing the pain of developing apps](https://medium.com/@christianalfoni/reducing-the-pain-of-developing-apps-cd10b2e6a83c), [UI as an implementation detail](https://medium.com/swlh/ui-as-an-implementation-detail-7fb9f952fb43) etc. My most recent work has been at [CodeSandbox](https://codesandbox.io).
 
-In this article I am going to share some strong opinions about React. I will do my best to explain the source of the frustration. Nevertheless React is a tool I honestly owe my whole career to. My time with React has in no way been a waste of time. It has been exceptionally educational, helped me contritube to open source and led my to amazing career opportunities. That said, I want to simplify the process of building productivity types of applications, balancing moving fast and ability to scale. Allow juniors and seniors in the same team feel productive and spend time on what matters, creating an amazing user experience. Over time React has added more and more friction to reaching that goal.
+In this article I am going to share some strong opinions about React. I will do my best to explain the source of the frustration. Nevertheless React is a tool I honestly owe my whole career to. My time with React has in no way been a waste of time. It has been exceptionally educational, helped me contritube to open source and led my to amazing career opportunities. That said, I want to simplify the process of building productivity types of applications, balancing moving fast and ability to scale. Allow juniors and seniors in the same team feel productive and spend time on what matters; creating an amazing user experience. Over time React has added more and more friction to reaching that goal.
 
 ## User interfaces as a function of state
 
@@ -65,7 +65,7 @@ function Counter(props) {
 }
 ```
 
-When you read this code your intuition tells you that we are calling a function and there is nothing "stuck" that will affect the next call of the function. But with hooks this can happen:
+When you read this code your intuition tells you that we are calling a function and there is nothing "stuck" that will affect the next call of the function. It is pure. But with hooks this can happen:
 
 ```ts
 function Counter(props) {
@@ -122,7 +122,7 @@ function ParentComponent({ count }) {
 
 When the `count` updates in `ParentComponent` it will by default reconcile the `MyComponent` as well, even though it takes no props. Why reconcile `(state) => ui` if there is no `state`? And then there is a question why `memo` is not internally wrapped around all components taking props? There is of course an argument that the comparing of the props is overhead when they often change. The extreme case would just add work as it would compare the props _and_ reconcile every time. But calling a component, evaluate all the hooks and reconcile the returned user interface description... my intuition just tells me that this default comparing of props would end up net positive. But who am I to challenge this. The reason I talk about it though, is what follows.
 
-As React had performance issues it introduced concurrent mode. Concurrent mode allowed React to split up its reconciliation work. Previously the reconciliation was blocking, meaning that there was risk of jank in the user interface when the component trees are big and `memo` is not efficiently used. And with concurrent mode we got `StrictMode`. `StrictMode` was thought of as a way to help developers detect side effects in their components due to wrong hooks usage. In development, React will call components, hooks and lifecycle hooks in class components twice to ensure that there are no side effects. This is important as concurrent mode needs a guarantee that any pending reconciled component tree can be thrown away. But with this addition the intuition of how a React component works was disrupted again. Previously you could safely:
+As React had performance issues it introduced concurrent mode. Concurrent mode allowed React to split up its reconciliation work. Previously the reconciliation was blocking, meaning that there was risk of jank in the user interface when the component trees are big and `memo` is not efficiently used. And with concurrent mode we had to prepare with `StrictMode`. `StrictMode` was thought of as a way to help developers detect side effects in their components due to wrong hooks usage. In development, React will call components, hooks and lifecycle hooks in class components twice to ensure that there are no side effects. This is an important gurantee for concurrent mode. But with this addition the intuition of how a React component works was disrupted again. Previously you could safely:
 
 ```ts
 function MyComponent() {
@@ -169,15 +169,15 @@ We will never know, but maybe there is a solution out there that did take a diff
 - Reactive primitives defined in a separate scope, but exposed to the component where we reconcile the user interface
 - Lifecycle hooks
 
-Even though we are trying to break up with React due to the technical decisions, we would also break up with its community. That really sucks, so we also have to consider moving to a community and an ecosystem which can continue to inspire us.
+Even though we are trying to break up with React due to the technical direction, we would also break up with its community. That really sucks, so we also have to consider moving to a community and an ecosystem which can continue to inspire us.
 
-With that in mind our choices are [Vue](), [Svelte](), [Angular]() and [Solid JS](). We can immediately drop off **Svelte** and **Angular** as templates and limited type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces or have native typing support. That leaves us with **Vue**.
+With that in mind our choices are [Vue](https://vuejs.org/), [Svelte](https://svelte.dev/), [Angular](https://angular.dev/) and [Solid JS](https://www.solidjs.com/). We can immediately drop off **Svelte** and **Angular** as templates and limited type checking is not where we want to go. **Solid JS** does get us quite close, but there is no reconciliation in Solid JS, meaning we can not rely on the language for expressing dynamic user interfaces or have native typing support. That leaves us with **Vue**.
 
-We are going to continue now by first evaluating the API available to us in Vue. We'll see how far we get and what tradeoffs we have to make. Then we are going to see if we can do something about these tradeoffs.
+We are going to continue now by evaluating Vue. We are going to look at where it fits our mental model and where it falls short.
 
 ## Evaluating Vue
 
-All Vue projects uses [Vite](), also developed by the Vue team. In the default configuration we change to `@vitejs/plugin-vue-jsx`. We are ready to embrace reconciling user interfaces and observing state.
+All Vue projects uses [Vite](https://vitejs.dev/), also developed by the Vue team. In the default configuration change to `@vitejs/plugin-vue-jsx` and we are ready to observe state to reconcile user interfaces.
 
 ```ts
 import { defineConfig } from "vite";
@@ -227,11 +227,17 @@ export function App() {
 }
 ```
 
-Vue as of recent now also supports the common `children` prop:
+What is amazing about Vue is that when the `App` component reconciles, the `HelloWorld` component will not, cause there is no reason for it. Its dependencies does not change.
+
+We are off to a good start, but with `children` things starts to diverge:
 
 ```tsx
-function HelloWorld(props: { children: string }) {
-  return <h1>Hello World: {props.children}</h1>;
+import { useSlots } from "vue";
+
+function HelloWorld() {
+  const slots = useSlots();
+
+  return <h1>Hello World: {slots.default?.()}</h1>;
 }
 
 export function App() {
@@ -239,164 +245,141 @@ export function App() {
 }
 ```
 
-Vue has a feature called [Fallthrough Attributes](https://vuejs.org/guide/components/attrs.html#fallthrough-attributes). In Vue applications this reduces greatly the need to pass props.
+Components in Vue does not support the common `children` prop and there is no way to type it for the consumer of the component. **This is the first thing we need to address**.
 
-```tsx
-import { NativeElements } from "vue";
+But let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
 
-function Header(props: { children: string } & NativeElements["h1"]) {
-  return <h1>{props.children}</h1>;
-}
-
-export function App() {
-  return (
-    <Header
-      class="my-class"
-      onClick={() => {
-        console.log("Clicked the header");
-      }}
-    >
-      Hello World
-    </Header>
-  );
-}
-```
-
-By default the props
-
-Talking about state, let us define some state. React defines its state management in the same function as the reconciling user interface. When our state management is reactive we need to define it in its own function scope.
-
-When dealing with state Vue exports a `defineComponent` function:
+To manage state Vue exports a `defineComponent` function:
 
 ```tsx
 import { ref, defineComponent } from "vue";
 
-export default defineComponent(function Setup() {
+export default defineComponent(function Counter() {
   const count = ref(0);
 
-  function increase() {
-    count.value++;
-  }
-
-  return function Counter() {
+  return () => {
     return (
       <div>
         <h4>Count is {count.value}</h4>
-        <button onClick={increase}>Increase count</button>
+        <button onClick={() => count.value++}>Increase count</button>
       </div>
     );
   };
 });
 ```
 
-The `defineComponent` function introduces two function scopes. The passed function is your state management scope, called `Setup`, and the returned function is the user interface scope, which will reconcile on observed changes.
+The `defineComponent` function introduces two function scopes. The passed function is your state management scope, referred to as _setup_, and the returned function is the user interface scope, which will reconcile on observed changes. It litraly is `(state) => ui`, only the state is accessed from its outer scope. This is a simple and powerful signature that allows you to think about your component as "one thing", but separated by a reactive scope of state management and a reconciling scope of the user interface.
 
-This signature forces us to define the user interface function inside `defineComponent`, as it needs access to the state. This prevents us from splitting the state definition from the user interface definition, which is important to scale the code and keep a strong mental model. Also you can not just define a component as a standalone function like we do in React. **This is the second thing to address.**
-
-Vue also has a behaviour called [Fallthrough attributes](https://vuejs.org/guide/components/attrs). This allows you to add certain native attributes to components when consuming them, like `style`, `class` or `onClick`. These attributes will automatically be added to the root element returned inside the component. In React we want the behaviour of the component to be controlled completely from the component and any outside influence should happen through props. **This is the third thing to address**.
-
-## Addressing the issues
-
-To be able to address all these issues we have to create an NPM package. Let us call it `vue-productivity`.
-
-Our first issue to address is related to `children`. We do not want to move away from Vue's terminology, so let us call it `slots`. The challenge with Vue is that these `slots` are not provided on the `props` passed to the component, which means they are not typed.
-
-To fix the typing we need to provide our own `jsxImportSource` which adds the `slots` as a `ElementChildrenAttribute` for TypeScript to resolve and we use updated precise typing from `dom-expressions`, which is from [Solid JS](). That means when you configure Vue, you will do:
-
-```json
-{
-  "compilerOptions": {
-    "jsx": "preserve",
-    "jsxImportSource": "vue-productivity"
-  }
-}
-```
-
-To be able to consume the actual `slots` though the `props` ad runtime, and deal with the other issues mentioned, we need to create an abstraction to create components. As a nod back to early versions of React, let us implement a `createComponent` function.
-
-```ts
-import { createComponent } from 'vue-productivity'
-
-type Props = {
-  slots: string
-}
-
-function Title(props: Props) {
-  return <h1>{props.slots}</h1>
-}
-
-export default createComponent(Title)
-```
-
-This addition of having to call `createComponent` handles the `slots`, prevents the _Fallthrough Attributes_ and it gives us the abstraction we need to separate the state definition from the user interface definition. Which brings us to resolving the last issue:
+As things grow we can easily separate out the state management and also control how the user interface interacts with it:
 
 ```tsx
-import { ref } from "vue";
-import { createComponent } from "vue-productivity";
+import { ref, defineComponent } from "vue";
 
-type State = { count: Ref<number> };
-
-function Setup() {
+function createState() {
   const count = ref(0);
 
   return {
-    count,
+    get count() {
+      return count.value;
+    },
+    increase() {
+      count.value++;
+    },
   };
 }
 
-function Counter(state: State) {
-  return <h1>Count: {state.count.value}</h1>;
-}
+export default defineComponent(function Counter() {
+  const state = createState();
 
-export default createComponent(State, Counter);
+  return () => {
+    return (
+      <div>
+        <h4>Count is {state.count}</h4>
+        <button onClick={state.increase}>Increase count</button>
+      </div>
+    );
+  };
+});
 ```
 
-Now the `Setup` and the `Counter` are separated scopes, where the `Setup` runs when the component is created and the `Counter` will reconcile based on its observed state. What is especially great about this is that we can easily take a small step further and expose this state to any nested component:
+And if we want to share this state with other nested components we can:
 
 ```tsx
-import { ref } from "vue";
-import { createComponent, createProvider } from "vue-productivity";
+import { ref, defineComponent, provide, inject } from "vue";
 
-type State = { count: Ref<number> };
+type State = {
+  count: number;
+  increase(): void;
+};
 
-const [provide, inject] = createProvider<State>();
+const counter = Symbol("counter");
 
-export const useCounter = inject;
+export const useCounter = () => inject(counter) as State;
 
-function Setup() {
+function createState() {
   const count = ref(0);
 
-  return provide({
-    count,
-  });
+  return {
+    get count() {
+      return count.value;
+    },
+    increase() {
+      count.value++;
+    },
+  };
 }
 
-function Counter(state: State) {
-  return <h1>Count: {state.count.value}</h1>;
-}
+export default defineComponent(function Counter() {
+  const state = createState();
 
-export default createComponent(State, Counter);
+  provide(counter, state);
+
+  return () => {
+    return (
+      <div>
+        <h4>Count is {state.count}</h4>
+        <button onClick={state.increase}>Increase count</button>
+      </div>
+    );
+  };
+});
 ```
 
-Just like that and any nested component can consume the counter. This creates a natural progressive handling of state.
+And this is it. This is how you scale up your state management without worrying about any performance issues as Vue will conservatively reconcile your components and depend on its reactive mechanism to keep them up to date.
 
-And this is all you need. You can create stateless user interface components, statful user interface components or simply a component that provides state to any nested component. The `Setup` can be as big as you want, since only acessed state causes the consuming components to reconcile. They can also receive props from other components as they operate as a natural part of your existing component tree.
+But we have one more issue to deal with. Let us add an `initialCount` to a stateful component and see what happens:
 
-The following features are now also available to you:
+```tsx
+type Props = {
+  initialCount: number;
+};
 
-- [Watchers](https://vuejs.org/guide/essentials/watchers.html)
-- [Lifecycle Hooks](https://vuejs.org/guide/essentials/lifecycle.html)
-- Use the `class` prop to add class names, also using object syntax to enable/disable classes
-- Transitions
-- Devtools
-- Nuxt
-- Vitepress
-- And much much more...
+export default defineComponent(function Counter(props: Props) {
+  const count = ref(props.initialCount);
 
-## Beyond state and ui
+  return () => {
+    return (
+      <div>
+        <h4>Count is {count.value}</h4>
+        <button onClick={() => count.value++}>Increase count</button>
+      </div>
+    );
+  };
+});
+```
 
-- True open source UI framework
-- Created by UI developers
-- Debugger
-- Vite
-- Complete toolchain
+When you run this code the `initialCount` will be undefined. The reason is that unlike functional components, stateful components does not receive props by default. This difference sadly breaks the natural progression of a stateless component to a stateful component.
+
+The reason for this behaviour is a feature in Vue called [Fallthrough Attributes](https://vuejs.org/guide/components/attrs.html#fallthrough-attributes). It is the ability to pass props to a component that is automatically inherited by the root element of the component. By default a function component will only "fall through" `class`, `style` and the `on` event listeners. But a stateful component will "fall through" _any_ attribute and you need to explicitly pick what is considered a prop. **This is the second issue to address**.
+
+## Addressing the issues
+
+So over a week I [streamed my iterations](https://www.youtube.com/playlist?list=PLvEC9UhRenekK0yaw0b2zRceY00rUEwkE) on how to best approach fixing these issues to make Vue adoptable for someone coming from React. I moved between creating my own NPM package abstracting Vue, but ultimately decided to see if I can make the core of Vue more approachable.
+
+[This PR]() was the result of that work and it tries to fix these issues by:
+
+1. **Update the JSX typing**. We add the latest JSX typing for HTML elements, including proper typing of event listeners, fallthrough attributes and things like the `class` (Yeah, class!) with its correct typing
+2. **Add children prop**. We add the `children` prop to the JSX typing and allow you to resolve those children to correctly typed slots
+3. **Lazy fallthrough attributes**. We add a mechanism to functional and stateful components where accessing props automatically flags them as a prop, preventing the fall through mechanism for the specific props
+
+These suggested changes represents my personal blockers from adopting Vue, and I believe to be the reason why Vue is not seeing more adoption from React developers. It was a fun journey and I hope my next article can be about state management with Vue and how to build productivity types of applications just using Vue primitives.
