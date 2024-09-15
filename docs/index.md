@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Impact"
   tagline: "/** \n
-  * Reactive contexts for React \n
+  * Reactive React \n
 */
 \n\n
 By CodeSandbox team
@@ -29,8 +29,8 @@ features:
     details: Use your favourite reactive primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
     details: Reactive primitives are more performant and enables an accessible developer experience for state management.
-  - title: Nested state management
-    details: Provide your reactive state management for specific pages, features or complex components. Receive reactive props and use any parent reactive context.
+  - title: Progressive state management
+    details: Define stateless components, enhance them with reactive state management and easily share that state with nested components
 ---
 
 <HomeContent>

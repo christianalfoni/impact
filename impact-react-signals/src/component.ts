@@ -1,7 +1,8 @@
-import { configureReactiveContext } from "@impact-react/reactive-context";
+import { configureComponent } from "@impact-react/component";
 import { signal } from "./signal";
+import { observer } from "./observers";
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const createComponent = configureComponent((propValue) => {
   const [value, setValue] = signal(propValue);
 
   return {
@@ -12,4 +13,4 @@ export const createReactiveContext = configureReactiveContext((propValue) => {
       setValue(newPropValue);
     },
   };
-});
+}, observer);

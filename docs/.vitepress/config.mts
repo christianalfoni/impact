@@ -4,7 +4,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Impact",
   head: [["link", { rel: "icon", href: "/favicon.ico" }]],
-  description: "Complex single page applications with React",
+  description: "Reactive React",
   cleanUrls: true,
   themeConfig: {
     footer: {

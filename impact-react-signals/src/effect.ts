@@ -1,7 +1,7 @@
 import {
   cleanup,
   getResolvingReactiveContextContainer,
-} from "@impact-react/reactive-context";
+} from "@impact-react/component";
 import { ObserverContext } from "./ObserverContext";
 import { debugHooks } from "./debugHooks";
 

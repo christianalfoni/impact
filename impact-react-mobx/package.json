@@ -37,10 +37,11 @@
     "dist"
   ],
   "peerDependencies": {
-    "react": "*",
-    "mobx": "*"
+    "mobx": "*",
+    "react": "*"
   },
   "dependencies": {
-    "@impact-react/reactive-context": "^1.0.0"
+    "@impact-react/component": "^1.0.0",
+    "mobx-react-lite": "^4.0.7"
   }
 }

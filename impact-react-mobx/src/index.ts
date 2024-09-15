@@ -1,13 +1,14 @@
 import {
   cleanup,
-  context,
-  configureReactiveContext,
-} from "@impact-react/reactive-context";
+  configureComponent,
+  createProvider,
+} from "@impact-react/component";
 import { observable, runInAction } from "mobx";
+import { observer } from "mobx-react-lite";
 
-export { cleanup, context };
+export { cleanup, createProvider };
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const createComponent = configureComponent((propValue) => {
   const value = observable.box(propValue);
 
   return {
@@ -20,4 +21,4 @@ export const createReactiveContext = configureReactiveContext((propValue) => {
       });
     },
   };
-});
+}, observer);

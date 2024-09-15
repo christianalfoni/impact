@@ -40,6 +40,6 @@
     "react": "*"
   },
   "dependencies": {
-    "@impact-react/reactive-context": "^1.0.0"
+    "@impact-react/component": "^1.0.0"
   }
 }

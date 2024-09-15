@@ -2,7 +2,7 @@
   "name": "impact-react-monorepo",
   "private": true,
   "workspaces": [
-    "impact-react-reactive-context",
+    "impact-react-component",
     "impact-react-signals",
     "impact-react-mobx",
     "impact-react-preact",
