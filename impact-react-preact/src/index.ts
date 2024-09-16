@@ -1,13 +1,14 @@
 import {
-  cleanup,
-  context,
-  configureReactiveContext,
-} from "@impact-react/reactive-context";
-import { signal } from "@preact/signals-core";
+  onDidMount,
+  onWillUnmount,
+  createProvider,
+  configureComponent,
+} from "@impact-react/component";
+import { signal, effect } from "@preact/signals-core";
 
-export { cleanup, context };
+export { onDidMount, onWillUnmount, createProvider };
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const createComponent = configureComponent((propValue) => {
   const value = signal(propValue);
 
   return {
@@ -18,4 +19,4 @@ export const createReactiveContext = configureReactiveContext((propValue) => {
       value.value = newPropValue;
     },
   };
-});
+}, effect);

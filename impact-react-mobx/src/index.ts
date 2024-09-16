@@ -1,12 +1,12 @@
 import {
-  cleanup,
+  onWillUnmount,
+  onDidMount,
   configureComponent,
   createProvider,
 } from "@impact-react/component";
-import { observable, runInAction } from "mobx";
-import { observer } from "mobx-react-lite";
+import { observable, runInAction, autorun } from "mobx";
 
-export { cleanup, createProvider };
+export { onWillUnmount, onDidMount, createProvider };
 
 export const createComponent = configureComponent((propValue) => {
   const value = observable.box(propValue);
@@ -21,4 +21,4 @@ export const createComponent = configureComponent((propValue) => {
       });
     },
   };
-}, observer);
+}, autorun);

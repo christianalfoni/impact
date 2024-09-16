@@ -1,6 +1,6 @@
 import { configureComponent } from "@impact-react/component";
 import { signal } from "./signal";
-import { observer } from "./observers";
+import { effect } from "./effect";
 
 export const createComponent = configureComponent((propValue) => {
   const [value, setValue] = signal(propValue);
@@ -13,4 +13,4 @@ export const createComponent = configureComponent((propValue) => {
       setValue(newPropValue);
     },
   };
-}, observer);
+}, effect);

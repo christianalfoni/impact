@@ -1,6 +1,5 @@
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
 import { debugHooks } from "./debugHooks";
-import { isResolvingStoreFromComponent } from "./utils";
 
 type PendingPromise<T> = Promise<T> & {
   status: "pending";
@@ -133,13 +132,7 @@ export function signal<T>(initialValue: T) {
 
   return [
     () => {
-      // Consuming a store might resolve it synchronously. During that resolvement we
-      // do not want to track access to any signals, only the signals actually consumed
-      // in the component function body
-      if (
-        ObserverContext.current &&
-        !isResolvingStoreFromComponent(ObserverContext.current)
-      ) {
+      if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signalNotifier);
         if (debugHooks.onGetValue) {
           debugHooks.onGetValue(ObserverContext.current, signalNotifier);

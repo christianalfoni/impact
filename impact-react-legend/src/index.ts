@@ -1,13 +1,14 @@
 import {
-  cleanup,
-  context,
-  configureReactiveContext,
-} from "@impact-react/reactive-context";
-import { observable } from "@legendapp/state";
+  onDidMount,
+  onWillUnmount,
+  createProvider,
+  configureComponent,
+} from "@impact-react/component";
+import { observable, observe } from "@legendapp/state";
 
-export { cleanup, context };
+export { onDidMount, onWillUnmount, createProvider };
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const createComponent = configureComponent((propValue) => {
   const value = observable(propValue);
 
   return {
@@ -18,4 +19,4 @@ export const createReactiveContext = configureReactiveContext((propValue) => {
       value.set(newPropValue);
     },
   };
-});
+}, observe);

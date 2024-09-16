@@ -1,7 +1,11 @@
-import { cleanup, createProvider } from "@impact-react/component";
+import {
+  onDidMount,
+  onWillUnmount,
+  createProvider,
+} from "@impact-react/component";
 import { ObservablePromise } from "./signal";
 
-export { cleanup, createProvider };
+export { onDidMount, onWillUnmount, createProvider };
 export { Observer, observer, useObserver } from "./observers";
 export { debugHooks } from "./debugHooks";
 export { createComponent } from "./component";

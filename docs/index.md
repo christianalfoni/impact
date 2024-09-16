@@ -14,11 +14,11 @@ By CodeSandbox team
     dark: /Icon-dark.png
   actions:
     - theme: brand
+      text: What if React was Reactive?
+      link: /what-if-react-was-reactive
+    - theme: alt
       text: Learn
       link: /learn/
-    - theme: alt
-      text: Guides
-      link: /guides/queries-and-mutations
     - theme: alt
       text: Impact API
       link: /createReactiveContext
@@ -45,7 +45,7 @@ features:
 
 ## Presenting Impact
 
-> **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love, and bridge the world of React with your reactive state management at any point in the component tree.
+> **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love and replace the reconciling state management in React with intuitive and performant primitives.
 
 [🍿 Impact Presentation 🍿](https://www.youtube.com/watch?v=x5a-9k498q0) - [🍿 Impact Technical Deep Dive 🍿](https://www.youtube.com/watch?v=yOAZo1SUYrM)
 
