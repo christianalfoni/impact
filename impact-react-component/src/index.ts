@@ -2,9 +2,13 @@ import React, {
   Component,
   createContext,
   createElement,
+  memo,
   ReactNode,
   Suspense,
   useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from "react";
 
 // Polyfill this symbol as Safari currently does not have it
@@ -17,6 +21,64 @@ const isProduction =
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
 // can resolve other contexts we keep track of the currently resolving reactive context
 const resolvingReactiveContextContainers: Array<ReactiveContextContainer> = [];
+
+// In development mode we want to throw an error if you use React hooks inside the reactive context. We do that by
+// creating a globally controlled React dispatcher blocker
+let blockableDispatcher: any;
+let isBlockingDispatcher = false;
+const dispatchUnblocker = () => {
+  isBlockingDispatcher = false;
+};
+
+// This is only used in development
+function blockDispatcher() {
+  isBlockingDispatcher = true;
+
+  if (blockableDispatcher) {
+    return dispatchUnblocker;
+  }
+
+  // React allows access to its internals during development
+  const internals =
+    // @ts-ignore
+    React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
+    // @ts-ignore
+    React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+
+  // TODO: Verify the dispatcher of React 19, is it consistently on H?
+  const dispatcher = internals.ReactCurrentDispatcher?.current ?? internals.H;
+
+  // If for some reason React changes its internals
+  if (!dispatcher) {
+    console.warn(
+      "Unable to warn about invalid hooks usage in reactive contexts, please create an issue",
+    );
+
+    return () => {};
+  }
+
+  // There are different dispatchers in React, but when this function is called
+  // the active dispatcher is the one that allows hooks to be called. We only
+  // need to override it once
+  if (!blockableDispatcher) {
+    for (const key in dispatcher) {
+      const originHook = dispatcher[key];
+      dispatcher[key] = (...args: any[]) => {
+        if (isBlockingDispatcher) {
+          throw new Error(
+            "You can not use React hooks inside reactive contexts",
+          );
+        }
+
+        return originHook.apply(dispatcher, args);
+      };
+    }
+
+    blockableDispatcher = dispatcher;
+  }
+
+  return dispatchUnblocker;
+}
 
 // Identify if we have a resolving reactive context. This allows the global "cleanup" function register cleanups to
 // the currently resolving reactive context
@@ -112,6 +174,16 @@ type Converter<T> = (prop: T) => {
   set(newProp: T): void;
 };
 
+const canUseDOM = !!(
+  typeof window !== "undefined" &&
+  window.document &&
+  window.document.createElement
+);
+
+// TODO: This needs to know specifically if it is rehydration, cause
+// only then mounting is guaranteed
+let isRehydrating = true;
+
 export function configureComponent(
   toObservableProp: Converter<any>,
   observer: (cb: () => void) => () => void,
@@ -122,160 +194,142 @@ export function configureComponent(
   return function createComponent<P extends Record<string, unknown>>(
     setup: ReactiveComponent<P>,
   ) {
-    // The reactive contextProvider provides the reactive context container which resolves the reactive context. We use a class because
-    // we need the "componentWillUnmount" lifecycle hook
-    return class ReactiveContextProvider extends Component {
-      static displayName = setup.name;
-      static contextType = reactiveContextContainerContext;
-      // We need to track the mounted state, as StrictMode will call componentDidMount
-      // and componentWillUnmount twice, meaning we'll cleanup too early. These are safeguards
-      // for some common misuse of Reacts primitives. But here we know what we are doing. We
-      // want to instantiate the reactive contextContainer immediately so it is part of the rendering
-      // of the children and clean it up when this component unmounts
-      mounted = false;
-      // We convert props into signals
-      observableProps: any = {
-        get children() {
+    const ReactiveComponent = memo((props: P) => {
+      const [_, forceRender] = useState(0);
+      const parentReactiveComponent = useContext(
+        reactiveContextContainerContext,
+      );
+      const childrenRef = useRef<any>();
+      const observablePropsRef = useRef<any>();
+      const uiDisposerRef = useRef<any>();
+      const containerRef = useRef<any>();
+      const uiRef = useRef<any>(null);
+
+      // @ts-ignore
+      childrenRef.current = props.children;
+
+      function configureComponent() {
+        containerRef.current = new ReactiveContextContainer(
+          setup,
           // eslint-disable-next-line
-          return this.props.children;
-        },
-      };
-      uiDisposer?: () => void;
-      ui: () => ReactNode;
-      constructor(props: any, context: any) {
-        super(props, context);
+          // @ts-ignore
+          parentReactiveComponent,
+        );
+
+        const observableProps = (observablePropsRef.current = {
+          get children() {
+            return childrenRef.current;
+          },
+        }) as any;
+
         for (const key in props) {
           if (key === "children") {
             continue;
           }
-          this.observableProps[key] = toObservableProp(props[key]);
+          observableProps[key] = toObservableProp(props[key]);
         }
-        const observableProps: any = {};
-        for (const key in this.observableProps) {
+
+        for (const key in observableProps) {
           Object.defineProperty(observableProps, key, {
             get: () => {
-              return this.observableProps[key].get();
+              return observableProps[key].get();
             },
           });
         }
 
-        resolvingReactiveContextContainers.push(this.container);
-        this.ui = setup(observableProps, {
+        resolvingReactiveContextContainers.push(containerRef.current);
+        uiRef.current = setup(observableProps, {
           onDidMount,
           onWillUnmount,
         });
         resolvingReactiveContextContainers.pop();
+
+        if (isRehydrating) {
+          return;
+        }
+
+        forceRender((current) => current + 1);
       }
-      container = new ReactiveContextContainer(
-        setup,
-        // eslint-disable-next-line
-        // @ts-ignore
-        this.context,
-      );
-      renderUI() {
-        this.uiDisposer?.();
+
+      function renderUi(render: any) {
+        uiDisposerRef.current?.();
         let result: ReactNode;
 
-        this.uiDisposer = observer(() => {
+        uiDisposerRef.current = observer(() => {
           if (result !== undefined) {
-            this.forceUpdate();
+            forceRender((current) => current + 1);
             return;
           }
           // @ts-ignore
           // eslint-disable-next-line
-          result = this.ui();
+          result = render();
         });
 
-        return result;
-      }
-      shouldComponentUpdate(nextProps: any): boolean {
-        for (const key in this.props) {
-          // @ts-ignore
-          if (nextProps[key] !== this.props[key]) {
-            return true;
-          }
-        }
-
-        for (const key in nextProps) {
-          if (!(key in this.props)) {
-            return true;
-          }
-        }
-
-        return false;
-      }
-      componentDidMount(): void {
-        this.mounted = true;
-      }
-      componentDidUpdate() {
-        for (const key in this.observableProps) {
-          // @ts-ignore
-          this.observableProps[key].set(this.props[key]);
-        }
-      }
-      // When an error is thrown we dispose of the reactive context. Then we throw the error up the component tree.
-      // This ensures that an error thrown during render phase does not keep any subscriptions etc. going.
-      // Recovering from the error in a parent error boundary will cause a new reactive context to be created. Developers
-      // can still add nested error boundaries to control recoverable state
-      componentDidCatch(error: Error): void {
-        this.container.unMount();
-        this.container = new ReactiveContextContainer(
-          setup,
-          // eslint-disable-next-line
-          // @ts-ignore
-          this.context,
-        );
-        throw error;
-      }
-      componentWillUnmount(): void {
-        this.mounted = false;
-        Promise.resolve().then(() => {
-          if (!this.mounted) {
-            this.container.unMount();
-            this.uiDisposer?.();
-          }
-        });
-      }
-      render(): ReactNode {
-        let children: any;
-
-        if (isProduction) {
-          // @ts-ignore
-          // eslint-disable-next-line
-          children = this.renderUI();
-        } else {
-          children = createElement(
-            Suspense,
-            {
-              fallback: createElement(() => {
-                throw new Error(
-                  "The ReactiveComponent does not support suspense. Please add a Suspense boundary between the ReactiveComponent and the components using suspense",
-                );
-              }),
-            },
-            // @ts-ignore
-            // eslint-disable-next-line
-            this.renderUI(),
-          );
-        }
-
-        if (this.container.hasProvidedValue()) {
+        if (containerRef.current.hasProvidedValue()) {
           return createElement(
             reactiveContextContainerContext.Provider,
             {
-              value: this.container,
+              value: containerRef.current,
             },
-            // We create a Suspense boundary for the reactive context to throw an error of misuse. reactive contextProviders does not support
-            // suspense because they will be-reinstantiated or can risk not cleaning up as the parent Suspense boundary
-            // is unmounted and the "componentWillUnmount" will never be called. In practice it does not make sense
-            // to have these parent suspense boundaries, but just to help out
-            children,
+            result,
           );
         }
 
-        return children;
+        return result;
       }
-    };
+
+      // Update props
+      useLayoutEffect(() => {
+        if (!observablePropsRef.current) {
+          return;
+        }
+
+        for (const key in observablePropsRef.current) {
+          if (key === "children") {
+            continue;
+          }
+          // @ts-ignore
+          observablePropsRef.current[key].set(props[key]);
+        }
+      }, [props]);
+
+      useLayoutEffect(() => {
+        isRehydrating = false;
+
+        if (observablePropsRef.current) {
+          return;
+        }
+
+        configureComponent();
+
+        return () => {
+          containerRef.current.unMount();
+          uiDisposerRef.current?.();
+        };
+      }, []);
+
+      // First render on client
+      if (canUseDOM && isRehydrating) {
+        configureComponent();
+
+        return renderUi(uiRef.current);
+      }
+
+      // Any other render on client in risk of concurrent issues
+      if (canUseDOM) {
+        return uiRef.current && renderUi(uiRef.current);
+      }
+
+      // SSR
+      return setup(props, {
+        onDidMount() {},
+        onWillUnmount() {},
+      })();
+    });
+
+    ReactiveComponent.displayName = setup.name;
+
+    return ReactiveComponent;
   };
 }
 
