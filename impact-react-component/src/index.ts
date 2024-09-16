@@ -3,9 +3,12 @@ import React, {
   createContext,
   createElement,
   memo,
+  MutableRefObject,
   ReactNode,
+  Ref,
   Suspense,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -180,22 +183,28 @@ const canUseDOM = !!(
   window.document.createElement
 );
 
-// TODO: This needs to know specifically if it is rehydration, cause
-// only then mounting is guaranteed
-let isRehydrating = true;
+const SSRContext = createContext<MutableRefObject<boolean> | null>(null);
+
+export function SSR({ children }: { children: ReactNode }) {
+  const hydrationRef = useRef(true);
+
+  useEffect(() => {
+    hydrationRef.current = false;
+  });
+
+  return createElement(SSRContext.Provider, { value: hydrationRef }, children);
+}
 
 export function configureComponent(
   toObservableProp: Converter<any>,
   observer: (cb: () => void) => () => void,
 ) {
-  // This function creates the actual hook and related reactive contextProvider component, which is responsible for converting
-  // props into signals and keep them up to date. Also isolate the children in this component, as
-  // those are not needed in the reactive context
   return function createComponent<P extends Record<string, unknown>>(
     setup: ReactiveComponent<P>,
   ) {
     const ReactiveComponent = memo((props: P) => {
       const [_, forceRender] = useState(0);
+      const isHydratingRef = useContext(SSRContext);
       const parentReactiveComponent = useContext(
         reactiveContextContainerContext,
       );
@@ -206,6 +215,7 @@ export function configureComponent(
       const uiRef = useRef<any>(null);
 
       // @ts-ignore
+      // eslint-disable-next-line
       childrenRef.current = props.children;
 
       function configureComponent() {
@@ -244,7 +254,7 @@ export function configureComponent(
         });
         resolvingReactiveContextContainers.pop();
 
-        if (isRehydrating) {
+        if (isHydratingRef && isHydratingRef.current) {
           return;
         }
 
@@ -257,7 +267,7 @@ export function configureComponent(
 
         uiDisposerRef.current = observer(() => {
           if (result !== undefined) {
-            forceRender((current) => current + 1);
+            forceRender(render());
             return;
           }
           // @ts-ignore
@@ -294,8 +304,6 @@ export function configureComponent(
       }, [props]);
 
       useLayoutEffect(() => {
-        isRehydrating = false;
-
         if (observablePropsRef.current) {
           return;
         }
@@ -308,8 +316,8 @@ export function configureComponent(
         };
       }, []);
 
-      // First render on client
-      if (canUseDOM && isRehydrating) {
+      // First render on client we can safely assume it will be mounted
+      if (canUseDOM && isHydratingRef && isHydratingRef.current) {
         configureComponent();
 
         return renderUi(uiRef.current);

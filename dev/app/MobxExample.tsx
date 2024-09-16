@@ -1,6 +1,6 @@
 "use client";
 
-import { createComponent } from "@impact-react/mobx";
+import { createComponent, SSR } from "@impact-react/mobx";
 import { observable } from "mobx";
 
 type State = { groceries: string[]; grocery: string };
@@ -36,5 +36,9 @@ const App = createComponent(function App() {
 });
 
 export function MobxExample() {
-  return <App />;
+  return (
+    <SSR>
+      <App />
+    </SSR>
+  );
 }
