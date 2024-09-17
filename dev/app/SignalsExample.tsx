@@ -8,6 +8,7 @@ import {
   derived,
   useObserver,
   createProvider,
+  onDidMount,
 } from "@impact-react/signals";
 
 const _groceries: string[] = [];
@@ -50,8 +51,6 @@ function createState() {
     setGrocery,
   };
 
-  provideGroceries(state);
-
   return state;
 }
 
@@ -76,10 +75,21 @@ function GroceriesList() {
 
 const App = createComponent(function App() {
   const state = createState();
+  const [div, setDiv] = signal<HTMLDivElement | null>(null);
+
+  onDidMount(() => {
+    console.log("I mounted", div());
+  });
+
+  provideGroceries(state);
 
   return () => {
     return (
-      <div>
+      <div
+        ref={(node) => {
+          setDiv(node);
+        }}
+      >
         <input
           value={state.grocery()}
           style={{

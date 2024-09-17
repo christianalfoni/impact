@@ -25,7 +25,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Guides", link: "/guides/queries-and-mutations" },
-      { text: "Impact API", link: "/createReactiveContext" },
+      { text: "Impact API", link: "/create-component" },
       { text: "Signals API", link: "/signal" },
     ],
 
@@ -42,10 +42,6 @@ export default defineConfig({
           { text: "Reactive Props", link: "/learn/reactive-props" },
           { text: "Lifecycle", link: "/learn/lifecycle" },
           { text: "Scaling Up", link: "/learn/scaling-up" },
-          {
-            text: "In Summary",
-            link: "/learn/in-summary",
-          },
         ],
       },
       {
@@ -61,16 +57,20 @@ export default defineConfig({
         text: "Impact API",
         items: [
           {
-            text: "createReactiveContext",
-            link: "/createReactiveContext",
+            text: "createComponent",
+            link: "/create-component",
           },
           {
-            text: "cleanup",
-            link: "/cleanup",
+            text: "createProvider",
+            link: "/create-provider",
           },
           {
-            text: "context",
-            link: "/context",
+            text: "onWillUnmount",
+            link: "/on-will-unmount",
+          },
+          {
+            text: "onDidMount",
+            link: "/on-did-mount",
           },
         ],
       },

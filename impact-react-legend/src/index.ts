@@ -4,7 +4,8 @@ import {
   createProvider,
   configureComponent,
 } from "@impact-react/component";
-import { observable, observe } from "@legendapp/state";
+import { observable } from "@legendapp/state";
+import { observer } from "@legendapp/state/react";
 
 export { onDidMount, onWillUnmount, createProvider };
 
@@ -19,4 +20,4 @@ export const createComponent = configureComponent((propValue) => {
       value.set(newPropValue);
     },
   };
-}, observe);
+}, observer);

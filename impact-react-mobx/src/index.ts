@@ -6,6 +6,7 @@ import {
   SSR,
 } from "@impact-react/component";
 import { observable, runInAction, autorun } from "mobx";
+import { observer } from "mobx-react-lite";
 
 export { SSR, onWillUnmount, onDidMount, createProvider };
 
@@ -22,4 +23,4 @@ export const createComponent = configureComponent((propValue) => {
       });
     },
   };
-}, autorun);
+}, observer);

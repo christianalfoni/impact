@@ -26,7 +26,7 @@ function Counter() {
 }
 ```
 
-Even though this code **looks the same**, it executes very different. In React the `Counter` is called every time the component potentially needs to reconcile. In reactive code the `Counter` is only called once, when the component initialises. That means you avoid the overhead of how `useState` and `setCount` behaves in this special runtime of reconciliation.
+Even though this code **looks the same**, it does not **execute the same**. In React the `Counter` is called every time the component potentially needs to reconcile. In reactive code the `Counter` is only called once, when the component initialises. That means you avoid the overhead of how `useState` and `setCount` behaves in this special runtime of reconciliation.
 
 The complexity increases as you start managing side effects, here showing the reactive code:
 
@@ -57,9 +57,9 @@ function Counter() {
 }
 ```
 
-What we wanted to express is an interval that updates the count every second when the component mounts. When the component unmounts we want to clear that interval. With reactive code we can express exactly that, but in React there is no such thing as _mount_ and _unmount_. The reason is its concurrent rendering. You just have a generic `useEffect` you have to try to squeeze your mental model into, also changing how to use `setCount` as the `count` in this context is stale.
+What we wanted to express is an interval that is created when the component mounts. The interval updates the count every second and is cleared when the component unmounts. With reactive code we can express exactly that, but in React there is no such thing as _mount_ and _unmount_. The reason is its concurrent rendering. You just have a generic `useEffect` you try to squeeze your mental model into. WE also have to consider how to access the current `count` in this context, as it is stale.
 
-Let us continue by creating an instance as the component mounts and then dispose of it when the component unmounts:
+Let us continue by creating an instance of `Something` when the component mounts, and then dispose of it when the component unmounts:
 
 ```tsx
 function Counter() {
@@ -79,6 +79,6 @@ function Counter() {
 }
 ```
 
-But this does not actually work in React. The reason is concurrent mode. This component might initialise and be disposed by React without running the effects. That means you have a leak.
+But this does not actually work in React. The reason is concurrent mode. This component might initialise and be disposed by React without running the effects. Also during `StrictMode` the `useState` is called twice. That means you have a leak. This makes perfect sense to enable concurrent mode for optimising updates to the UI, but it completely melts your brain doing state management.
 
-The value proposition of **Impact** is that you can keep the reconciling model to express user interfaces `(state) => ui`, but use a reactive model to express the state management of the application.
+The value proposition of **Impact** is that you will keep the reconciling model to express user interfaces `(state) => ui`. What makes React so great in the first place. For state management you will rather use a reactive model which gives you peformance out of the box and keeps you sane expressing complex state management.

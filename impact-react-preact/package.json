@@ -38,7 +38,7 @@
   ],
   "peerDependencies": {
     "react": "*",
-    "@preact/signals-core": "*"
+    "@preact/signals-react": "*"
   },
   "dependencies": {
     "@impact-react/reactive-context": "^1.0.0"

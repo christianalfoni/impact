@@ -14,14 +14,14 @@ By CodeSandbox team
     dark: /Icon-dark.png
   actions:
     - theme: brand
-      text: What if React was Reactive?
-      link: /what-if-react-was-reactive
-    - theme: alt
       text: Learn
       link: /learn/
     - theme: alt
+      text: Guides
+      link: /guides/
+    - theme: alt
       text: Impact API
-      link: /createReactiveContext
+      link: /create-component
 
 
 features:

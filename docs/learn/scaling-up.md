@@ -439,3 +439,9 @@ export default createComponent(function Counter() {
 :::
 
 The `useCounter` can be used in the reactive state management scope of a component or in any other traditional component.
+
+::: info
+
+React components that uses the `useCounter` will need to add observation from the related reactive React package.
+
+:::

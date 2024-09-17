@@ -1,4 +1,9 @@
-import React, { FunctionComponent, useRef, useSyncExternalStore } from "react";
+import React, {
+  FunctionComponent,
+  memo,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { ObserverContext } from "./ObserverContext";
 
 // When on server we drop out of using "useSyncExternalStore" as there is really no
@@ -7,12 +12,10 @@ const isServer = typeof window === "undefined";
 
 // The hook that syncs React with the ObserverContext.
 export function observer(): ObserverContext;
-export function observer<T>(
-  component: FunctionComponent<T>,
-): FunctionComponent<T>;
+export function observer<T extends FunctionComponent<any>>(component: T): T;
 export function observer<T>(component?: FunctionComponent<T>) {
   if (component) {
-    return (props: T) => {
+    return memo((props: T) => {
       const observer = useObserver();
 
       try {
@@ -20,7 +23,7 @@ export function observer<T>(component?: FunctionComponent<T>) {
       } finally {
         observer[Symbol.dispose]();
       }
-    };
+    });
   }
 
   return useObserver();

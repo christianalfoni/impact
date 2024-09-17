@@ -17,7 +17,9 @@ export default function Counter() {
 }
 ```
 
-The great thing about hooks is the fact that we can still embrace the components as a function. But that gain can bring with it so much pain as your state management becomes more than just syncing values with the user interface. Instead of hooks we are going to bring back an old React API with a new signature, `createComponent`.
+The great thing about hooks is the fact that we can still embrace the components as a function. But that gain can bring with it so much pain as your state management becomes more than just syncing values with the user interface inside the same component.
+
+Instead of hooks we are going to take inspiration from [Vue]() and enable us to combine reactive state management with a reconciling user interface:
 
 ::: code-group
 
@@ -115,4 +117,12 @@ export default createComponent(function Counter() {
 
 :::
 
-Now the function has a reactive scope where we do state management and it returns a reconciling scope where we describe the user interface. The reactive scope runs once, when the component initialises. The returned function for the user interface will run every time the observed state and/or props change.
+Now the component has a reactive scope where we do state management and a reconciling scope where we describe the user interface. The reactive scope runs once, when the component initialises. The returned function for the user interface will run every time the observed state and/or props change.
+
+::: info
+
+In a reactive component you can not use hooks. This is because the component initialises in Reacts _commit_ phase, as opposed to the _render_ phase where hooks are evaluated. But this mechanism guarantees that the component will _mount_ and _unmount_ with the related lifecycle hooks. Think of it as brain melting prevention.
+
+:::
+
+Reactive components are used very much like controllers in older UI frameworks. They represent a bigger piece of UI, like the whole application or a page, but could be as small as a form or a highly interactive list. The common requirement here is that the state and management needs to be accessible by nested components.

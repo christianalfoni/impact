@@ -1,7 +1,7 @@
 import React, {
   createContext,
   createElement,
-  memo,
+  FunctionComponent,
   MutableRefObject,
   ReactNode,
   useContext,
@@ -105,8 +105,8 @@ class ReactiveContextContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
   _resolvementError?: Error;
-  _onUnMounts = new Set<() => void>();
-  _onMounts = new Set<() => void>();
+  _onWillUnmounts = new Set<() => void>();
+  _onDidMounts = new Set<() => void>();
   _providedValue: any;
 
   // When constructing the provider for the reactive context we only keep a reference to the
@@ -127,13 +127,13 @@ class ReactiveContextContainer {
     return this._providedValue !== undefined;
   }
   registerOnUnmount(unMounter: () => void) {
-    this._onUnMounts.add(unMounter);
+    this._onWillUnmounts.add(unMounter);
   }
   registerOnMount(mounter: () => void) {
-    this._onMounts.add(mounter);
+    this._onDidMounts.add(mounter);
   }
   hasCleanup() {
-    return Boolean(this._onUnMounts.size);
+    return Boolean(this._onWillUnmounts.size);
   }
   resolve<T>(reactiveContext: ReactiveComponent<any>): T {
     // If there is an error resolving the reactive context we throw it
@@ -155,9 +155,14 @@ class ReactiveContextContainer {
 
     throw new Error(`No provider could be found for ${reactiveContext?.name}`);
   }
-  unMount() {
-    this._onUnMounts.forEach((cleaner) => {
-      cleaner();
+  willUnmount() {
+    this._onWillUnmounts.forEach((cb) => {
+      cb();
+    });
+  }
+  didMount() {
+    this._onDidMounts.forEach((cb) => {
+      cb();
     });
   }
 }
@@ -194,22 +199,20 @@ export function SSR({ children }: { children: ReactNode }) {
 
 export function configureComponent(
   toObservableProp: Converter<any>,
-  observer: (cb: () => void) => () => void,
+  observer: <T extends {}>(cb: FunctionComponent<T>) => FunctionComponent<T>,
 ) {
-  return function createComponent<P extends Record<string, unknown>>(
-    setup: ReactiveComponent<P>,
-  ) {
-    const ReactiveComponent = memo((props: P) => {
-      const [_, forceRender] = useState(0);
+  return function createComponent<P extends {}>(setup: ReactiveComponent<P>) {
+    const ReactiveComponent = observer((props: P) => {
+      const [lazyLoaded, setLazyLoaded] = useState(false);
       const isHydratingRef = useContext(SSRContext);
       const parentReactiveComponent = useContext(
         reactiveContextContainerContext,
       );
       const childrenRef = useRef<any>();
       const observablePropsRef = useRef<any>();
-      const uiDisposerRef = useRef<any>();
       const containerRef = useRef<any>();
       const uiRef = useRef<any>(null);
+      const isHydrating = Boolean(isHydratingRef && isHydratingRef.current);
 
       // @ts-ignore
       // eslint-disable-next-line
@@ -254,23 +257,17 @@ export function configureComponent(
         if (isHydratingRef && isHydratingRef.current) {
           return;
         }
-
-        forceRender((current) => current + 1);
       }
 
       function renderUi(render: any) {
-        uiDisposerRef.current?.();
-        let result: ReactNode;
-
-        uiDisposerRef.current = observer(() => {
-          if (result !== undefined) {
-            forceRender(render());
-            return;
-          }
-          // @ts-ignore
-          // eslint-disable-next-line
+        let result: any;
+        if (isProduction) {
           result = render();
-        });
+        } else {
+          const unblock = blockDispatcher();
+          result = render();
+          unblock();
+        }
 
         if (containerRef.current.hasProvidedValue()) {
           return createElement(
@@ -284,6 +281,12 @@ export function configureComponent(
 
         return result;
       }
+
+      useEffect(() => {
+        if (lazyLoaded || isHydrating) {
+          containerRef.current.didMount();
+        }
+      }, [lazyLoaded, isHydrating]);
 
       // Update props
       useLayoutEffect(() => {
@@ -307,14 +310,15 @@ export function configureComponent(
 
         configureComponent();
 
+        setLazyLoaded(true);
+
         return () => {
-          containerRef.current.unMount();
-          uiDisposerRef.current?.();
+          containerRef.current.willUnmount();
         };
       }, []);
 
       // First render on client we can safely assume it will be mounted
-      if (canUseDOM && isHydratingRef && isHydratingRef.current) {
+      if (canUseDOM && isHydrating) {
         configureComponent();
 
         return renderUi(uiRef.current);
@@ -326,12 +330,19 @@ export function configureComponent(
       }
 
       // SSR
-      return setup(props, {
+      resolvingReactiveContextContainers.push(containerRef.current);
+
+      const ui = setup(props, {
         onDidMount() {},
         onWillUnmount() {},
-      })();
+      });
+
+      resolvingReactiveContextContainers.pop();
+
+      return ui;
     });
 
+    // @ts-ignore
     ReactiveComponent.displayName = setup.name;
 
     return ReactiveComponent;
