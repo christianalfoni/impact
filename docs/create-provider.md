@@ -34,28 +34,23 @@ function NestedComponent() {
 Hopefully this behaviour is an intuitive developer experience, but to scratch your technical itch, let us take on a concrete example by looking at a simplified component tree:
 
 ```
-  App
+  ReactiveApp
     AdminRoute
-        AdminPage
+        ReactiveAdminPage
             Feature
 ```
 
-Each reactive component in this tree has its own **ReactiveContextContainer** instance that is provided down the component tree using React context, **given** that it provides state. This **ReactiveContextContainer** instance is also passed the parent **ReactiveContextContainer** from up the component tree using the React context. That means **ReactiveContextContainer**'s represents the same hierarchy of contexts as the React context itself.
+Each reactive component in this tree has its own **ReactiveContextContainer** instance. If the component provides a value, the **ReactiveContextContainer** is exposed on the React context. This **ReactiveContextContainer** instance is also passed the parent **ReactiveContextContainer** from up the component tree using the React context. That means **ReactiveContextContainer**'s represents the same hierarchy of contexts as the React context itself.
 
-So when a provide state hook is used inside **Feature** it will `useContext` to find the closest **ReactiveContextContainer**, which comes from **FeatureStoreProvider**. This **ReactiveContextContainer** instance has a parent property referencing the **ReactiveContextContainer** on **AdminPage**, which has a parent property referencing the **ReactiveContextContainer** on **App**.
+So when for example `useApp` is used inside **Feature** it will `useContext` to find the closest **ReactiveContextContainer**, which comes from **ReactiveAdminPage** as its exposes some state. This **ReactiveContextContainer** instance has a parent property referencing the **ReactiveContextContainer** on **ReactiveApp** which also provides some state, including our user.
 
-With this in mind we can now explain step by step what happens when the **Feature** component uses `useAppStore` to gain access to a user.
+With this in mind we can now explain step by step what happens when the **Feature** component uses `useApp` to gain access to a user.
 
-1. We first get the **ReactiveContextContainer** from **Features** using `useContext`
-2. We call `.resolve(AppStore)` on that **ReactiveContextContainer**
-3. Since **AppStore** is not handled by that **ReactiveContextContainer** it will use its parent, the **ReactiveContextContainer** of **AdminStoreProvider**, to resolve the context. But it is not there either and again it uses the parent which leads it to the **ReactiveContextContainer** of **AppStoreProvider**
-4. The context is instantiated if necessary and returned
+1. We first get the **ReactiveContextContainer** from **ReactiveAdminPage** using `useContext`
+2. We call `.resolve(appRef)` on that **ReactiveContextContainer**
+3. Since the _appRef_ is not handled by the **ReactiveContextContainer** of **ReactiveAdminPage** it will use its parent, the **ReactiveContextContainer** of **AppPage**, to resolve the context. It will get a match on the ref and return the state provided
 
-But what if the **Feature** component uses `useFeatureStore` and the **FeatureStore** itself uses `useAppStore`?
+But what if the **ReactiveAdminPage** component uses `useApp` in its state management scope?
 
-1. We first get the **ReactiveContextContainer** from **FeatureStoreProvider** using `useContext`
-2. We call `.resolve(FeatureStore)` on that **ReactiveContextContainer**
-3. Since **FeatureStore** is handled by this **ReactiveContextContainer** and it has not been instantiated yet, it will be instantiated
-4. During instantiation the **ReactiveContextContainer** is set as the currently active container. When `useAppStore` is called in **FeatureStore** it will use the active **ReactiveContextContainer** to resolve the **AppStore**, which basically brings us to point **3.** on the previous example
-
-The following [deep dive video](https://www.youtube.com/watch?v=yOAZo1SUYrM) goes into even more detail on how this is implemented, but hopefully this helped scratch your technical itch and gave a deeper understanding of how stores are resolved through the component tree both from components and other stores.
+1. When we have an executing reactive state management scope the `useApp` will rather look directly at its own **ReactiveContextContainer**
+2. We call `.resolve(appRef)` on that **ReactiveContextContainer** and we are back at point 3. above

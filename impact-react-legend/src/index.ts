@@ -3,11 +3,12 @@ import {
   onWillUnmount,
   createProvider,
   configureComponent,
+  SSR,
 } from "@impact-react/component";
 import { observable } from "@legendapp/state";
 import { observer } from "@legendapp/state/react";
 
-export { onDidMount, onWillUnmount, createProvider };
+export { onDidMount, onWillUnmount, createProvider, SSR };
 
 export const createComponent = configureComponent((propValue) => {
   const value = observable(propValue);

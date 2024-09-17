@@ -3,11 +3,12 @@ import {
   onWillUnmount,
   createProvider,
   configureComponent,
+  SSR,
 } from "@impact-react/component";
 import { signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 
-export { onDidMount, onWillUnmount, createProvider };
+export { SSR, onDidMount, onWillUnmount, createProvider };
 
 export const createComponent = configureComponent(
   (propValue) => {

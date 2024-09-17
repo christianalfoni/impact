@@ -4,6 +4,10 @@ Create a reactive component. A reactive component will initialise in the _commit
 
 The returned UI is automatically observed.
 
+::: info
+If you **server render** reactive components you will need to wrap your app with the exported `SSR` component. The reason for this is that we need the reactive components to render in the _render_ phase instead, which is safe as server rendered components are guaranteed to mount.
+:::
+
 ```tsx
 import { createComponent } from "@impact-react/[*]";
 
