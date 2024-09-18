@@ -1,13 +1,10 @@
-import {
-  onWillUnmount,
-  onDidMount,
-  configureComponent,
-  useStore,
-} from "@impact-react/component";
-import { observable, runInAction } from "mobx";
+import { configureComponent, useStore } from "@impact-react/component";
+import { observable, runInAction, configure } from "mobx";
 import { observer } from "mobx-react-lite";
 
-export { useStore, onWillUnmount, onDidMount };
+export { useStore };
+
+export type { Cleanup } from "@impact-react/component";
 
 export const createComponent = configureComponent((propValue) => {
   const value = observable.box(propValue);

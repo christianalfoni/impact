@@ -30,6 +30,8 @@ export type Render<P extends Record<string, unknown> | void> = (
   props: P,
 ) => ReactNode;
 
+export type Cleanup = (cb: () => void) => void;
+
 // A reactive context container is created by the ReactiveContextProvider in React. When using the "useReactiveContext" hook it first finds the
 // context providing the reactive context container and then resolves the context
 class StoreContainer {
@@ -131,7 +133,7 @@ export function configureComponent(
   return function createComponent<
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
-  >(store: Store<SP, any>, render: Render<CP>) {
+  >(store: Store<SP, any>, render: Render<CP>): FunctionComponent<SP & CP> {
     function useConfigStore(props: any) {
       const parentStoreContainer = useContext(storeContainerContext);
       const childrenRef = useRef<any>();
@@ -205,14 +207,41 @@ export function configureComponent(
 
     const concurrentCompatible = store.length <= 1;
 
-    let ReactiveComponent: any;
+    let ReactiveComponent: FunctionComponent<SP & CP>;
 
     if (concurrentCompatible) {
+      ReactiveComponent = observer((props: SP & CP) => {
+        const { storeContainerRef, configureStore } = useConfigStore(props);
+
+        if (!storeContainerRef.current) {
+          configureStore();
+        }
+
+        resolvingStoreContainers.push(storeContainerRef.current);
+
+        const result = createElement(
+          storeContainerContext.Provider,
+          {
+            value: storeContainerRef.current,
+          },
+          render(props),
+        );
+        resolvingStoreContainers.pop();
+
+        return result;
+      });
     } else {
       const component = observer(render);
+      // eslint-disable-next-line
       ReactiveComponent = (props: SP & CP) => {
         const [hasResolvedStore, setResolvedStore] = useState(false);
         const { storeContainerRef, configureStore } = useConfigStore(props);
+
+        if (!canUseDOM) {
+          throw new Error(
+            `The component "${render.name}" has side effects (cleanup). Do not render it on the server`,
+          );
+        }
 
         useEffect(() => {
           if (hasResolvedStore) {
@@ -245,20 +274,6 @@ export function configureComponent(
         );
       };
     }
-
-    /*
-
-          resolvingStoreContainers.push(storeContainerRef.current);
-
-// SSR
-      resolvingStoreContainers.push(storeContainerRef.current);
-
-      const ui = store(props, cleanup);
-
-      resolvingStoreContainers.pop();
-
-      return ui;
-    */
 
     // @ts-ignore
     ReactiveComponent.displayName = store.name;
