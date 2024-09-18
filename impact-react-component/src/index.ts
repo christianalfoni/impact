@@ -20,15 +20,10 @@ export function getResolvingStoreContainer() {
   return resolvingStoreContainers[resolvingStoreContainers.length - 1];
 }
 
-export type StoreContext = {
-  onDidMount(cb: () => void): void;
-  onWillUnmount(cb: () => void): void;
-};
-
 // The type for a reactive context, which is just a function with optional props returning whatever
 export type Store<P extends Record<string, unknown> | void, T> = (
   props: P,
-  storeContext: StoreContext,
+  cleanup: (cb: () => void) => void,
 ) => T;
 
 export type Render<P extends Record<string, unknown> | void> = (
@@ -41,8 +36,7 @@ class StoreContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
   _resolvementError?: Error;
-  _onWillUnmounts = new Set<() => void>();
-  _onDidMounts = new Set<() => void>();
+  _cleanups = new Set<() => void>();
   _storeValue: any;
 
   // When constructing the provider for the reactive context we only keep a reference to the
@@ -62,14 +56,11 @@ class StoreContainer {
   hasValue() {
     return this._storeValue !== undefined;
   }
-  registerOnUnmount(unMounter: () => void) {
-    this._onWillUnmounts.add(unMounter);
-  }
-  registerOnMount(mounter: () => void) {
-    this._onDidMounts.add(mounter);
+  registerCleanup(cleanup: () => void) {
+    this._cleanups.add(cleanup);
   }
   hasCleanup() {
-    return Boolean(this._onWillUnmounts.size);
+    return Boolean(this._cleanups.size);
   }
   resolve<T>(store: Store<any, any>): T {
     // If there is an error resolving the reactive context we throw it
@@ -91,13 +82,8 @@ class StoreContainer {
 
     throw new Error(`No provider could be found for ${store?.name}`);
   }
-  willUnmount() {
-    this._onWillUnmounts.forEach((cb) => {
-      cb();
-    });
-  }
-  didMount() {
-    this._onDidMounts.forEach((cb) => {
+  cleanup() {
+    this._cleanups.forEach((cb) => {
       cb();
     });
   }
@@ -136,11 +122,6 @@ export function useStore<S>(store: Store<any, S>): S {
   return storeContainer.resolve(store);
 }
 
-export type ComponentOptions = {
-  concurrent?: boolean;
-  provideStore?: boolean;
-};
-
 export function configureComponent(
   toObservableProp: Converter<any>,
   observer: <T extends NonNullable<unknown>>(
@@ -150,13 +131,8 @@ export function configureComponent(
   return function createComponent<
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
-  >(
-    store: Store<SP, any>,
-    render: Render<CP>,
-    { concurrent = true, provideStore = true }: ComponentOptions = {},
-  ) {
-    const ReactiveComponent = observer((props: SP & CP) => {
-      const [isBlocking, setBlocking] = useState(false);
+  >(store: Store<SP, any>, render: Render<CP>) {
+    function useConfigStore(props: any) {
       const parentStoreContainer = useContext(storeContainerContext);
       const childrenRef = useRef<any>();
       const observablePropsRef = useRef<any>();
@@ -166,6 +142,21 @@ export function configureComponent(
       // @ts-ignore
       // eslint-disable-next-line
       childrenRef.current = props.children;
+
+      // Update props
+      useLayoutEffect(() => {
+        if (!observablePropsRef.current) {
+          return;
+        }
+
+        for (const key in observablePropsRef.current) {
+          if (key === "children") {
+            continue;
+          }
+          // @ts-ignore
+          observablePropsRef.current[key].set(props[key]);
+        }
+      }, [props]);
 
       function configureStore() {
         const container = (storeContainerRef.current = new StoreContainer(
@@ -198,91 +189,76 @@ export function configureComponent(
         }
 
         resolvingStoreContainers.push(storeContainerRef.current);
-        storeRef.current = store(observableProps, {
-          onDidMount,
-          onWillUnmount,
-        });
+        storeRef.current = store(observableProps, cleanup);
         resolvingStoreContainers.pop();
 
         container.setValue(storeRef.current);
       }
 
-      function renderUi() {
-        resolvingStoreContainers.push(storeContainerRef.current);
+      return {
+        configureStore,
+        observablePropsRef,
+        storeContainerRef,
+        storeRef,
+      };
+    }
 
-        const result = render(observablePropsRef.current);
+    const concurrentCompatible = store.length <= 1;
 
-        resolvingStoreContainers.pop();
+    let ReactiveComponent: any;
 
-        if (provideStore) {
-          return createElement(
-            storeContainerContext.Provider,
-            {
-              value: storeContainerRef.current,
-            },
-            result,
-          );
-        }
+    if (concurrentCompatible) {
+    } else {
+      const component = observer(render);
+      ReactiveComponent = (props: SP & CP) => {
+        const [hasResolvedStore, setResolvedStore] = useState(false);
+        const { storeContainerRef, configureStore } = useConfigStore(props);
 
-        return result;
-      }
-
-      useEffect(() => {
-        if (isBlocking) {
-          storeContainerRef.current.didMount();
-
-          return () => {
-            storeContainerRef.current.willUnmount();
-          };
-        }
-      }, [isBlocking]);
-
-      // Update props
-      useLayoutEffect(() => {
-        if (!observablePropsRef.current) {
-          return;
-        }
-
-        for (const key in observablePropsRef.current) {
-          if (key === "children") {
-            continue;
+        useEffect(() => {
+          if (hasResolvedStore) {
+            return () => {
+              storeContainerRef.current.cleanup();
+            };
           }
-          // @ts-ignore
-          observablePropsRef.current[key].set(props[key]);
+        }, [hasResolvedStore]);
+
+        useLayoutEffect(() => {
+          if (hasResolvedStore) {
+            return;
+          }
+
+          configureStore();
+
+          setResolvedStore(true);
+        }, [hasResolvedStore]);
+
+        if (!hasResolvedStore) {
+          return null;
         }
-      }, [props]);
 
-      useLayoutEffect(() => {
-        if (observablePropsRef.current) {
-          return;
-        }
+        return createElement(
+          storeContainerContext.Provider,
+          {
+            value: storeContainerRef.current,
+          },
+          createElement(component, props),
+        );
+      };
+    }
 
-        configureStore();
+    /*
 
-        setBlocking(true);
-      }, []);
+          resolvingStoreContainers.push(storeContainerRef.current);
 
-      if (canUseDOM && concurrent && !storeRef.current) {
-        configureStore();
-      }
-
-      // Any other render on client in risk of concurrent issues
-      if (canUseDOM) {
-        return renderUi();
-      }
-
-      // SSR
+// SSR
       resolvingStoreContainers.push(storeContainerRef.current);
 
-      const ui = store(props, {
-        onDidMount() {},
-        onWillUnmount() {},
-      });
+      const ui = store(props, cleanup);
 
       resolvingStoreContainers.pop();
 
       return ui;
-    });
+    */
 
     // @ts-ignore
     ReactiveComponent.displayName = store.name;
@@ -291,7 +267,7 @@ export function configureComponent(
   };
 }
 
-export function onDidMount(cb: () => void) {
+function cleanup(cb: () => void) {
   const resolvingStoreContainer = getResolvingStoreContainer();
 
   if (!resolvingStoreContainer) {
@@ -300,17 +276,5 @@ export function onDidMount(cb: () => void) {
     );
   }
 
-  resolvingStoreContainer.registerOnMount(cb);
-}
-
-export function onWillUnmount(cb: () => void) {
-  const resolvingStoreContainer = getResolvingStoreContainer();
-
-  if (!resolvingStoreContainer) {
-    throw new Error(
-      '"onDidMount" can only be used when creating a reactive component',
-    );
-  }
-
-  resolvingStoreContainer.registerOnUnmount(cb);
+  resolvingStoreContainer.registerCleanup(cb);
 }
