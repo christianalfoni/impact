@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Impact"
   tagline: "/** \n
-  * Reactive React \n
+  * Reactive Components \n
 */
 \n\n
 By CodeSandbox team

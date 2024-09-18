@@ -1,17 +1,29 @@
 "use client";
 
-import { createComponent, SSR } from "@impact-react/mobx";
-import { observable } from "mobx";
+import { createComponent, useStore } from "@impact-react/mobx";
+import { observable, configure } from "mobx";
+
+configure({
+  enforceActions: "never",
+});
 
 type State = { groceries: string[]; grocery: string };
 
-const App = createComponent(function App() {
+function Store() {
   const state = observable<State>({
     groceries: [],
     grocery: "",
   });
 
-  return () => (
+  return state;
+}
+
+export const useApp = () => useStore(Store);
+
+function App() {
+  const state = useApp();
+
+  return (
     <div>
       <input
         value={state.grocery}
@@ -33,12 +45,10 @@ const App = createComponent(function App() {
       </ul>
     </div>
   );
-});
+}
+
+const ReactiveApp = createComponent(Store, App);
 
 export function MobxExample() {
-  return (
-    <SSR>
-      <App />
-    </SSR>
-  );
+  return <ReactiveApp />;
 }

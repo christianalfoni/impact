@@ -1,8 +1,7 @@
-import React, {
+import {
   createContext,
   createElement,
   FunctionComponent,
-  MutableRefObject,
   ReactNode,
   useContext,
   useEffect,
@@ -11,120 +10,57 @@ import React, {
   useState,
 } from "react";
 
-// Polyfill this symbol as Safari currently does not have it
-// @ts-ignore
-Symbol.dispose ??= Symbol("Symbol.dispose");
-
-const isProduction =
-  typeof process !== "undefined" && process.env.NODE_ENV === "production";
-
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
 // can resolve other contexts we keep track of the currently resolving reactive context
-const resolvingReactiveContextContainers: Array<ReactiveContextContainer> = [];
-
-// In development mode we want to throw an error if you use React hooks inside the reactive context. We do that by
-// creating a globally controlled React dispatcher blocker
-let blockableDispatcher: any;
-let isBlockingDispatcher = false;
-const dispatchUnblocker = () => {
-  isBlockingDispatcher = false;
-};
-
-// This is only used in development
-function blockDispatcher() {
-  isBlockingDispatcher = true;
-
-  if (blockableDispatcher) {
-    return dispatchUnblocker;
-  }
-
-  // React allows access to its internals during development
-  const internals =
-    // @ts-ignore
-    React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED ||
-    // @ts-ignore
-    React.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
-
-  // TODO: Verify the dispatcher of React 19, is it consistently on H?
-  const dispatcher = internals.ReactCurrentDispatcher?.current ?? internals.H;
-
-  // If for some reason React changes its internals
-  if (!dispatcher) {
-    console.warn(
-      "Unable to warn about invalid hooks usage in reactive contexts, please create an issue",
-    );
-
-    return () => {};
-  }
-
-  // There are different dispatchers in React, but when this function is called
-  // the active dispatcher is the one that allows hooks to be called. We only
-  // need to override it once
-  if (!blockableDispatcher) {
-    for (const key in dispatcher) {
-      const originHook = dispatcher[key];
-      dispatcher[key] = (...args: any[]) => {
-        if (isBlockingDispatcher) {
-          throw new Error(
-            "You can not use React hooks inside reactive contexts",
-          );
-        }
-
-        return originHook.apply(dispatcher, args);
-      };
-    }
-
-    blockableDispatcher = dispatcher;
-  }
-
-  return dispatchUnblocker;
-}
+const resolvingStoreContainers: Array<StoreContainer> = [];
 
 // Identify if we have a resolving reactive context. This allows the global "cleanup" function register cleanups to
 // the currently resolving reactive context
-export function getResolvingReactiveContextContainer() {
-  return resolvingReactiveContextContainers[
-    resolvingReactiveContextContainers.length - 1
-  ];
+export function getResolvingStoreContainer() {
+  return resolvingStoreContainers[resolvingStoreContainers.length - 1];
 }
 
-export type SetupContext = {
+export type StoreContext = {
   onDidMount(cb: () => void): void;
   onWillUnmount(cb: () => void): void;
 };
 
 // The type for a reactive context, which is just a function with optional props returning whatever
-export type ReactiveComponent<P extends Record<string, unknown> | void> = (
+export type Store<P extends Record<string, unknown> | void, T> = (
   props: P,
-  setupContext: SetupContext,
-) => () => ReactNode;
+  storeContext: StoreContext,
+) => T;
+
+export type Render<P extends Record<string, unknown> | void> = (
+  props: P,
+) => ReactNode;
 
 // A reactive context container is created by the ReactiveContextProvider in React. When using the "useReactiveContext" hook it first finds the
 // context providing the reactive context container and then resolves the context
-class ReactiveContextContainer {
+class StoreContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
   _resolvementError?: Error;
   _onWillUnmounts = new Set<() => void>();
   _onDidMounts = new Set<() => void>();
-  _providedValue: any;
+  _storeValue: any;
 
   // When constructing the provider for the reactive context we only keep a reference to the
   // context and any parent reactive context container
   constructor(
-    public reactiveContextRef: ReactiveComponent<any>,
+    public storeRef: Store<any, any>,
     // When the ReactiveContextProvider mounts it uses the React context to find the parent
     // reactive context container
-    public parent: ReactiveContextContainer | null,
+    public parent: StoreContainer | null,
   ) {}
-  provideValue(value: any) {
-    this._providedValue = value;
+  setValue(value: any) {
+    this._storeValue = value;
   }
-  getProvidedValue() {
-    return this._providedValue;
+  getValue() {
+    return this._storeValue;
   }
-  hasProvidedValue() {
-    return this._providedValue !== undefined;
+  hasValue() {
+    return this._storeValue !== undefined;
   }
   registerOnUnmount(unMounter: () => void) {
     this._onWillUnmounts.add(unMounter);
@@ -135,7 +71,7 @@ class ReactiveContextContainer {
   hasCleanup() {
     return Boolean(this._onWillUnmounts.size);
   }
-  resolve<T>(reactiveContext: ReactiveComponent<any>): T {
+  resolve<T>(store: Store<any, any>): T {
     // If there is an error resolving the reactive context we throw it
     if (this._resolvementError) {
       throw this._resolvementError;
@@ -143,17 +79,17 @@ class ReactiveContextContainer {
 
     // If we are trying to resolve the reactive context this container is responsbile for and
     // it has already been resolved, we return it
-    if (reactiveContext === this.reactiveContextRef) {
-      return this._providedValue;
+    if (store === this.storeRef) {
+      return this._storeValue;
     }
 
     // If the reactive context is not matching this reactive context container and we have a parent, we start resolving the
     // reactive context at the parent instead
     if (this.parent) {
-      return this.parent.resolve(reactiveContext);
+      return this.parent.resolve(store);
     }
 
-    throw new Error(`No provider could be found for ${reactiveContext?.name}`);
+    throw new Error(`No provider could be found for ${store?.name}`);
   }
   willUnmount() {
     this._onWillUnmounts.forEach((cb) => {
@@ -168,11 +104,10 @@ class ReactiveContextContainer {
 }
 
 // The context for the reactive contextContainer
-const reactiveContextContainerContext =
-  createContext<ReactiveContextContainer | null>(null);
+const storeContainerContext = createContext<StoreContainer | null>(null);
 
 // @ts-ignore
-reactiveContextContainerContext.Provider.displayName = "StateProvider";
+storeContainerContext.Provider.displayName = "StateProvider";
 
 type Converter<T> = (prop: T) => {
   get(): any;
@@ -185,46 +120,60 @@ const canUseDOM = !!(
   window.document.createElement
 );
 
-const SSRContext = createContext<MutableRefObject<boolean> | null>(null);
+export function useStore<S>(store: Store<any, S>): S {
+  const resolvingStoreContainer = getResolvingStoreContainer();
 
-export function SSR({ children }: { children: ReactNode }) {
-  const hydrationRef = useRef(true);
+  if (resolvingStoreContainer) {
+    return resolvingStoreContainer.resolve(store);
+  }
 
-  useEffect(() => {
-    hydrationRef.current = false;
-  });
+  const storeContainer = useContext(storeContainerContext);
 
-  return createElement(SSRContext.Provider, { value: hydrationRef }, children);
+  if (!storeContainer) {
+    throw new Error("There are no parent reactive components");
+  }
+
+  return storeContainer.resolve(store);
 }
+
+export type ComponentOptions = {
+  concurrent?: boolean;
+  provideStore?: boolean;
+};
 
 export function configureComponent(
   toObservableProp: Converter<any>,
-  observer: <T extends {}>(cb: FunctionComponent<T>) => FunctionComponent<T>,
+  observer: <T extends NonNullable<unknown>>(
+    cb: FunctionComponent<T>,
+  ) => FunctionComponent<T>,
 ) {
-  return function createComponent<P extends {}>(setup: ReactiveComponent<P>) {
-    const ReactiveComponent = observer((props: P) => {
-      const [lazyLoaded, setLazyLoaded] = useState(false);
-      const isHydratingRef = useContext(SSRContext);
-      const parentReactiveComponent = useContext(
-        reactiveContextContainerContext,
-      );
+  return function createComponent<
+    SP extends NonNullable<unknown>,
+    CP extends NonNullable<unknown>,
+  >(
+    store: Store<SP, any>,
+    render: Render<CP>,
+    { concurrent = true, provideStore = true }: ComponentOptions = {},
+  ) {
+    const ReactiveComponent = observer((props: SP & CP) => {
+      const [isBlocking, setBlocking] = useState(false);
+      const parentStoreContainer = useContext(storeContainerContext);
       const childrenRef = useRef<any>();
       const observablePropsRef = useRef<any>();
-      const containerRef = useRef<any>();
-      const uiRef = useRef<any>(null);
-      const isHydrating = Boolean(isHydratingRef && isHydratingRef.current);
+      const storeContainerRef = useRef<any>();
+      const storeRef = useRef<any>(null);
 
       // @ts-ignore
       // eslint-disable-next-line
       childrenRef.current = props.children;
 
-      function configureComponent() {
-        containerRef.current = new ReactiveContextContainer(
-          setup,
+      function configureStore() {
+        const container = (storeContainerRef.current = new StoreContainer(
+          store,
           // eslint-disable-next-line
           // @ts-ignore
-          parentReactiveComponent,
-        );
+          parentStoreContainer,
+        ));
 
         const observableProps = (observablePropsRef.current = {
           get children() {
@@ -236,6 +185,7 @@ export function configureComponent(
           if (key === "children") {
             continue;
           }
+          // @ts-ignore
           observableProps[key] = toObservableProp(props[key]);
         }
 
@@ -247,33 +197,28 @@ export function configureComponent(
           });
         }
 
-        resolvingReactiveContextContainers.push(containerRef.current);
-        uiRef.current = setup(observableProps, {
+        resolvingStoreContainers.push(storeContainerRef.current);
+        storeRef.current = store(observableProps, {
           onDidMount,
           onWillUnmount,
         });
-        resolvingReactiveContextContainers.pop();
+        resolvingStoreContainers.pop();
 
-        if (isHydratingRef && isHydratingRef.current) {
-          return;
-        }
+        container.setValue(storeRef.current);
       }
 
-      function renderUi(render: any) {
-        let result: any;
-        if (isProduction) {
-          result = render();
-        } else {
-          const unblock = blockDispatcher();
-          result = render();
-          unblock();
-        }
+      function renderUi() {
+        resolvingStoreContainers.push(storeContainerRef.current);
 
-        if (containerRef.current.hasProvidedValue()) {
+        const result = render(observablePropsRef.current);
+
+        resolvingStoreContainers.pop();
+
+        if (provideStore) {
           return createElement(
-            reactiveContextContainerContext.Provider,
+            storeContainerContext.Provider,
             {
-              value: containerRef.current,
+              value: storeContainerRef.current,
             },
             result,
           );
@@ -283,10 +228,14 @@ export function configureComponent(
       }
 
       useEffect(() => {
-        if (lazyLoaded || isHydrating) {
-          containerRef.current.didMount();
+        if (isBlocking) {
+          storeContainerRef.current.didMount();
+
+          return () => {
+            storeContainerRef.current.willUnmount();
+          };
         }
-      }, [lazyLoaded, isHydrating]);
+      }, [isBlocking]);
 
       // Update props
       useLayoutEffect(() => {
@@ -308,111 +257,60 @@ export function configureComponent(
           return;
         }
 
-        configureComponent();
+        configureStore();
 
-        setLazyLoaded(true);
-
-        return () => {
-          containerRef.current.willUnmount();
-        };
+        setBlocking(true);
       }, []);
 
-      // First render on client we can safely assume it will be mounted
-      if (canUseDOM && isHydrating) {
-        configureComponent();
-
-        return renderUi(uiRef.current);
+      if (canUseDOM && concurrent && !storeRef.current) {
+        configureStore();
       }
 
       // Any other render on client in risk of concurrent issues
       if (canUseDOM) {
-        return uiRef.current && renderUi(uiRef.current);
+        return renderUi();
       }
 
       // SSR
-      resolvingReactiveContextContainers.push(containerRef.current);
+      resolvingStoreContainers.push(storeContainerRef.current);
 
-      const ui = setup(props, {
+      const ui = store(props, {
         onDidMount() {},
         onWillUnmount() {},
       });
 
-      resolvingReactiveContextContainers.pop();
+      resolvingStoreContainers.pop();
 
       return ui;
     });
 
     // @ts-ignore
-    ReactiveComponent.displayName = setup.name;
+    ReactiveComponent.displayName = store.name;
 
     return ReactiveComponent;
   };
 }
 
-export function createProvider<T>() {
-  let reactiveContext: ReactiveComponent<any>;
-
-  function provide(value: T) {
-    const reactiveContextContainer = getResolvingReactiveContextContainer();
-
-    if (!reactiveContextContainer) {
-      throw new Error('Can not call "provide" outside a reactive context');
-    }
-
-    reactiveContextContainer.provideValue(value);
-    reactiveContext = reactiveContextContainer.reactiveContextRef;
-  }
-
-  function inject(): T {
-    const resolvingReactiveContextContainer =
-      getResolvingReactiveContextContainer();
-
-    // If we are not currently resolving a reactive context, we assume that we are resolving from a component as
-    // you can really only initiate resolving reactive contexts from components
-    if (!resolvingReactiveContextContainer) {
-      // We try to find a reactive context container on the context first, to resolve a reactive context from it
-      const reactiveContextContainer = useContext(
-        reactiveContextContainerContext,
-      );
-
-      if (reactiveContextContainer) {
-        return reactiveContextContainer.resolve(reactiveContext);
-      }
-
-      throw new Error(
-        `No provider could be found for ${reactiveContext?.name}`,
-      );
-    }
-
-    // At this point we are not in a component and we resolve the reactive context as normal
-    return resolvingReactiveContextContainer.resolve(reactiveContext);
-  }
-
-  return [provide, inject] as const;
-}
-
 export function onDidMount(cb: () => void) {
-  const resolvingReactiveContextContainer =
-    getResolvingReactiveContextContainer();
+  const resolvingStoreContainer = getResolvingStoreContainer();
 
-  if (!resolvingReactiveContextContainer) {
+  if (!resolvingStoreContainer) {
     throw new Error(
       '"onDidMount" can only be used when creating a reactive component',
     );
   }
 
-  resolvingReactiveContextContainer.registerOnMount(cb);
+  resolvingStoreContainer.registerOnMount(cb);
 }
 
 export function onWillUnmount(cb: () => void) {
-  const resolvingReactiveContextContainer =
-    getResolvingReactiveContextContainer();
+  const resolvingStoreContainer = getResolvingStoreContainer();
 
-  if (!resolvingReactiveContextContainer) {
+  if (!resolvingStoreContainer) {
     throw new Error(
       '"onDidMount" can only be used when creating a reactive component',
     );
   }
 
-  resolvingReactiveContextContainer.registerOnUnmount(cb);
+  resolvingStoreContainer.registerOnUnmount(cb);
 }
