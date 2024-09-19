@@ -12,6 +12,9 @@
     ".": {
       "import": "./dist/esm/index.js",
       "types": "./dist/esm/index.d.ts"
+    },
+    "./transform": {
+      "require": "./dist/cjs/transform.cjs"
     }
   },
   "types": "./dist/esm/index.d.ts",
@@ -20,6 +23,7 @@
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
+    "transform": "yarn build:cjs && mv ./dist/cjs/transform.js ./dist/cjs/transform.cjs && node test",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
     "prepublish": "yarn build"
@@ -41,7 +45,7 @@
     "react": "*"
   },
   "dependencies": {
-    "@impact-react/component": "^1.0.0",
+    "@impact-react/store": "^1.0.0",
     "mobx-react-lite": "^4.0.7"
   }
 }

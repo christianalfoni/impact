@@ -1,12 +1,7 @@
-import { configureComponent, useStore } from "@impact-react/component";
-import { observable, runInAction, configure } from "mobx";
-import { observer } from "mobx-react-lite";
+import { configureStore } from "@impact-react/store";
+import { observable, runInAction } from "mobx";
 
-export { useStore };
-
-export type { Cleanup } from "@impact-react/component";
-
-export const createComponent = configureComponent((propValue) => {
+export const createStore = configureStore((propValue) => {
   const value = observable.box(propValue);
 
   return {
@@ -19,4 +14,4 @@ export const createComponent = configureComponent((propValue) => {
       });
     },
   };
-}, observer);
+});

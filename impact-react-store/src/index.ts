@@ -2,7 +2,6 @@ import {
   createContext,
   createElement,
   FunctionComponent,
-  ReactNode,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -23,12 +22,8 @@ export function getResolvingStoreContainer() {
 // The type for a reactive context, which is just a function with optional props returning whatever
 export type Store<P extends Record<string, unknown> | void, T> = (
   props: P,
-  cleanup: (cb: () => void) => void,
+  cleanup: Cleanup,
 ) => T;
-
-export type Render<P extends Record<string, unknown> | void> = (
-  props: P,
-) => ReactNode;
 
 export type Cleanup = (cb: () => void) => void;
 
@@ -108,32 +103,12 @@ const canUseDOM = !!(
   window.document.createElement
 );
 
-export function useStore<S>(store: Store<any, S>): S {
-  const resolvingStoreContainer = getResolvingStoreContainer();
-
-  if (resolvingStoreContainer) {
-    return resolvingStoreContainer.resolve(store);
-  }
-
-  const storeContainer = useContext(storeContainerContext);
-
-  if (!storeContainer) {
-    throw new Error("There are no parent reactive components");
-  }
-
-  return storeContainer.resolve(store);
-}
-
-export function configureComponent(
-  toObservableProp: Converter<any>,
-  observer: <T extends NonNullable<unknown>>(
-    cb: FunctionComponent<T>,
-  ) => FunctionComponent<T>,
-) {
-  return function createComponent<
+export function configureStore(toObservableProp: Converter<any>) {
+  return function createStore<
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
-  >(store: Store<SP, any>, render: Render<CP>): FunctionComponent<SP & CP> {
+    T,
+  >(store: Store<SP, T>) {
     function useConfigStore(props: any) {
       const parentStoreContainer = useContext(storeContainerContext);
       const childrenRef = useRef<any>();
@@ -207,39 +182,46 @@ export function configureComponent(
 
     const concurrentCompatible = store.length <= 1;
 
-    let ReactiveComponent: FunctionComponent<SP & CP>;
+    let storeProvider: (
+      component: FunctionComponent<CP>,
+    ) => FunctionComponent<SP & CP>;
 
     if (concurrentCompatible) {
-      ReactiveComponent = observer((props: SP & CP) => {
-        const { storeContainerRef, configureStore } = useConfigStore(props);
+      storeProvider = (component) => {
+        const wrappedComponent = (props: SP & CP) => {
+          const { storeContainerRef, configureStore } = useConfigStore(props);
 
-        if (!storeContainerRef.current) {
-          configureStore();
-        }
+          if (!storeContainerRef.current) {
+            configureStore();
+          }
 
-        resolvingStoreContainers.push(storeContainerRef.current);
+          resolvingStoreContainers.push(storeContainerRef.current);
 
-        const result = createElement(
-          storeContainerContext.Provider,
-          {
-            value: storeContainerRef.current,
-          },
-          render(props),
-        );
-        resolvingStoreContainers.pop();
+          const result = createElement(
+            storeContainerContext.Provider,
+            {
+              value: storeContainerRef.current,
+            },
+            createElement(component, props),
+          );
+          resolvingStoreContainers.pop();
 
-        return result;
-      });
+          return result;
+        };
+
+        wrappedComponent.displayName = component.name;
+
+        return wrappedComponent;
+      };
     } else {
-      const component = observer(render);
       // eslint-disable-next-line
-      ReactiveComponent = (props: SP & CP) => {
+      storeProvider = (component) => (props: SP & CP) => {
         const [hasResolvedStore, setResolvedStore] = useState(false);
         const { storeContainerRef, configureStore } = useConfigStore(props);
 
         if (!canUseDOM) {
           throw new Error(
-            `The component "${render.name}" has side effects (cleanup). Do not render it on the server`,
+            `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
           );
         }
 
@@ -275,10 +257,23 @@ export function configureComponent(
       };
     }
 
-    // @ts-ignore
-    ReactiveComponent.displayName = store.name;
+    function useStore(): T {
+      const resolvingStoreContainer = getResolvingStoreContainer();
 
-    return ReactiveComponent;
+      if (resolvingStoreContainer) {
+        return resolvingStoreContainer.resolve(store);
+      }
+
+      const storeContainer = useContext(storeContainerContext);
+
+      if (!storeContainer) {
+        throw new Error("There are no parent reactive components");
+      }
+
+      return storeContainer.resolve(store);
+    }
+
+    return [storeProvider, useStore] as const;
   };
 }
 

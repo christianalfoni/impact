@@ -14,7 +14,7 @@ const [storeProvider, useStore] = createStore(function Store() {
   return state;
 });
 
-const App = storeProvider(function App() {
+export default storeProvider(function App() {
   const state = useStore();
 
   return (
@@ -40,7 +40,3 @@ const App = storeProvider(function App() {
     </div>
   );
 });
-
-export function MobxExample() {
-  return <App />;
-}

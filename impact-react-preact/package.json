@@ -41,6 +41,6 @@
     "@preact/signals-react": "*"
   },
   "dependencies": {
-    "@impact-react/reactive-context": "^1.0.0"
+    "@impact-react/store": "^1.0.0"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "name": "@impact-react/component",
+  "name": "@impact-react/store",
   "version": "1.0.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
