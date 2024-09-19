@@ -35,7 +35,7 @@ function Counter() {
   const state = reactive({ count: 0 });
   const interval = setInterval(() => state.count++, 1000);
 
-  onWillUnmount(() => clearInterval(interval));
+  cleanup(() => clearInterval(interval));
 }
 ```
 
@@ -57,7 +57,7 @@ function Counter() {
 }
 ```
 
-What we wanted to express is an interval that is created when the component mounts. The interval updates the count every second and is cleared when the component unmounts. With reactive code we can express exactly that, but in React there is no such thing as _mount_ and _unmount_. The reason is its concurrent rendering. You just have a generic `useEffect` you try to squeeze your mental model into. WE also have to consider how to access the current `count` in this context, as it is stale.
+What we wanted to express is an interval that is created when the component mounts. The interval updates the count every second and is cleared when the component unmounts. With reactive code we can express exactly that, but in React there is no such thing as _initialise_ and _cleanup_, not even _mount_ and _unmount_. The reason is its concurrent rendering. You just have a generic `useEffect` you try to squeeze your mental model into. We also have to consider closures preventing access to the current `count` in this context.
 
 Let us continue by creating an instance of `Something` when the component mounts, and then dispose of it when the component unmounts:
 
@@ -65,7 +65,7 @@ Let us continue by creating an instance of `Something` when the component mounts
 function Counter() {
   const something = new Something();
 
-  onWillUnmount(() => something.dispose());
+  cleanup(() => something.dispose());
 }
 ```
 
@@ -80,5 +80,3 @@ function Counter() {
 ```
 
 But this does not actually work in React. The reason is concurrent mode. This component might initialise and be disposed by React without running the effects. Also during `StrictMode` the `useState` is called twice. That means you have a leak. This makes perfect sense to enable concurrent mode for optimising updates to the UI, but it completely melts your brain doing state management.
-
-The value proposition of **Impact** is that you will keep the reconciling model to express user interfaces `(state) => ui`. What makes React so great in the first place. For state management you will rather use a reactive model which gives you peformance out of the box and keeps you sane expressing complex state management.

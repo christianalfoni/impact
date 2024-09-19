@@ -1,12 +1,10 @@
-import { configureComponent, useStore } from "@impact-react/component";
+import { configureStore } from "@impact-react/store";
 import { signal } from "./signal";
 import { observer } from "./observers";
 
-export type { Cleanup } from "@impact-react/component";
+export const __observer = observer;
 
-export { useStore };
-
-export const createComponent = configureComponent((propValue) => {
+export const createStore = configureStore((propValue) => {
   const [value, setValue] = signal(propValue);
 
   return {
@@ -17,4 +15,4 @@ export const createComponent = configureComponent((propValue) => {
       setValue(newPropValue);
     },
   };
-}, observer);
+});

@@ -30,7 +30,7 @@ features:
   - title: Performant and accessible
     details: Reactive primitives are more performant and enables an accessible developer experience for state management.
   - title: Progressive state management
-    details: Define stateless components, enhance them with reactive state management and easily share that state with nested components
+    details: Enhance components with reactive state management and easily share that state with nested components
 ---
 
 <HomeContent>

@@ -17,31 +17,72 @@ export default function Counter() {
 }
 ```
 
-The great thing about hooks is the fact that we can still embrace the components as a function. But that gain can bring with it so much pain as your state management becomes more than just syncing values with the user interface inside the same component.
+To make our state management reactive we first need to move it into its own scope, actually just like creating a hook:
 
-Instead of hooks we are going to take inspiration from [Vue]() and enable us to combine reactive state management with a reconciling user interface:
+```tsx
+import { useState } from "react";
+
+function useCounter() {
+  const [count, setCount] = useState(0);
+
+  return {
+    count,
+    increase() {
+      setCount((current) => current + 1);
+    },
+  };
+}
+
+export default function Counter() {
+  const state = useCounter();
+
+  return (
+    <div>
+      <h1>Count: {state.count}</h1>
+      <button onClick={state.increase}>Increase</button>
+    </div>
+  );
+}
+```
+
+But we are still left with state management that reconciles. Also if we want to share this state management with nested components we need to separate it into a context and provide it as a parent of the `Counter`.
+
+Let us rather make this reactive and accessible:
 
 ::: code-group
 
 ```tsx [Impact Signals]
-import { createComponent, signal } from "@impact-react/signals";
+import { createComponent, useStore } from "@impact-react/signals";
 
-export default createComponent(function Counter() {
+function Store() {
   const [count, setCount] = signal(0);
 
-  return () => (
+  return {
+    count,
+    increase() {
+      setCount((current) => current + 1);
+    },
+  };
+}
+
+export const useCounter = () => useStore(Store);
+
+function Counter() {
+  const counter = useCounter();
+
+  return (
     <div>
-      <h1>Count: {count()}</h1>
-      <button onClick={() => setCount((current) => current + 1)}>
-        Increase
-      </button>
+      <h1>Count: {counter.count()}</h1>
+      <button onClick={counter.increase}>Increase</button>
     </div>
   );
-});
+}
+
+export default createComponent(Store, Counter);
 ```
 
 ```tsx [Mobx (OO)]
-import { createComponent } from "@impact-react/mobx";
+import { createComponent, useStore } from "@impact-react/mobx";
 import { makeAutoObservable } from "mobx";
 
 class CounterState {
@@ -51,68 +92,125 @@ class CounterState {
   }
 }
 
-export default createComponent(function Counter() {
-  const state = makeAutoObservable(new CounterState());
+function Store() {
+  return makeAutoObservable(new CounterState());
+}
 
-  return () => (
+export const useCounter = () => useStore(Store);
+
+function Counter() {
+  const counter = useCounter();
+
+  return (
     <div>
-      <h1>Count: {state.count}</h1>
-      <button onClick={() => state.increase()}>Increase</button>
+      <h1>Count: {counter.count}</h1>
+      <button onClick={() => counter.increase()}>Increase</button>
     </div>
   );
-});
+}
+
+export default createComponent(Store, Counter);
 ```
 
 ```tsx [Mobx]
-import { createComponent } from "@impact-react/mobx";
+import { createComponent, useStore } from "@impact-react/mobx";
 import { observable } from "mobx";
 
-export default createComponent(function Counter() {
+function Store() {
   const state = observable({
     count: 0,
   });
 
-  return () => (
+  return {
+    get count() {
+      return state.count;
+    },
+    increase() {
+      state.count++;
+    },
+  };
+}
+
+export const useCounter = useStore(Store);
+
+function Counter() {
+  const counter = useCounter();
+
+  return (
     <div>
-      <h1>Count: {state.count}</h1>
-      <button onClick={() => state.count++}>Increase</button>
+      <h1>Count: {counter.count}</h1>
+      <button onClick={counter.increase}>Increase</button>
     </div>
   );
-});
+}
+
+export default createComponent(Store, Counter);
 ```
 
 ```tsx [Preact Signals]
-import { createComponent } from "@impact-react/preact";
+import { createComponent, useStore } from "@impact-react/preact";
 import { signal } from "@preact/signals-react";
 
-export default createComponent(function Counter() {
+function Store() {
   const count = signal(0);
 
-  return () => (
+  return {
+    get count() {
+      return count.value;
+    },
+    increase() {
+      count.value++;
+    },
+  };
+}
+
+export const useCounter = () => useStore(Store);
+
+function Counter() {
+  const counter = useCounter();
+
+  return (
     <div>
-      <h1>Count: {count.value}</h1>
-      <button onClick={() => count.value++}>Increase</button>
+      <h1>Count: {counter.count}</h1>
+      <button onClick={counter.increase}>Increase</button>
     </div>
   );
-});
+}
+
+export default createComponent(Store, Counter);
 ```
 
 ```tsx [Legend State]
-import { createComponent } from "@impact-react/legend";
+import { createComponent, useStore } from "@impact-react/legend";
 import { observable } from "@legendapp/state";
 
-export default createComponent(function Counter() {
+function Store() {
   const count = observable(0);
 
-  return () => (
+  return {
+    get count() {
+      return count.get();
+    },
+    increase() {
+      count.set((current) => current + 1);
+    },
+  };
+}
+
+export const useCounter = () => useStore(Store);
+
+function Counter() {
+  const counter = useCounter();
+
+  return (
     <div>
-      <h1>Count: {count.get()}</h1>
-      <button onClick={() => count.set((current) => current + 1)}>
-        Increase
-      </button>
+      <h1>Count: {counter.count}</h1>
+      <button onClick={counter.increase}>Increase</button>
     </div>
   );
-});
+}
+
+export default createComponent(Store, Counter);
 ```
 
 :::

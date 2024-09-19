@@ -1,27 +1,22 @@
-import { configureComponent, useStore } from "@impact-react/component";
+import { configureStore } from "@impact-react/store";
 import { signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 
-export { useStore };
+export const __observer = (comp) => (props) => {
+  useSignals();
 
-export type { Cleanup } from "@impact-react/component";
+  return comp(props);
+};
 
-export const createComponent = configureComponent(
-  (propValue) => {
-    const value = signal(propValue);
+export const createStore = configureStore((propValue) => {
+  const value = signal(propValue);
 
-    return {
-      get() {
-        return value.value;
-      },
-      set(newPropValue) {
-        value.value = newPropValue;
-      },
-    };
-  },
-  (comp) => (props) => {
-    useSignals();
-
-    return comp(props);
-  },
-);
+  return {
+    get() {
+      return value.value;
+    },
+    set(newPropValue) {
+      value.value = newPropValue;
+    },
+  };
+});

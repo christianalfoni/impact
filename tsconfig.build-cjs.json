@@ -1,9 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "lib": ["dom", "esnext.disposable", "ESNext"],
     "paths": {},
-    "declaration": true
+    "declaration": true,
+    "moduleResolution": "Node"
   }
 }

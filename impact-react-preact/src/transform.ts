@@ -1,3 +1,3 @@
 import { createTransformer } from "@impact-react/store";
 
-export default createTransformer("@impact-react/mobx");
+export default createTransformer("@impact-react/preact");

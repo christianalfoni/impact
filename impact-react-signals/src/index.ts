@@ -1,15 +1,8 @@
-import {
-  onDidMount,
-  onWillUnmount,
-  createProvider,
-  SSR,
-} from "@impact-react/component";
 import { ObservablePromise } from "./signal";
 
-export { SSR, onDidMount, onWillUnmount, createProvider };
 export { Observer, observer, useObserver } from "./observers";
 export { debugHooks } from "./debugHooks";
-export { createComponent } from "./component";
+export { __observer } from "./component";
 export { effect } from "./effect";
 export { signal } from "./signal";
 export type { Signal } from "./signal";

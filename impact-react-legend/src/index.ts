@@ -1,12 +1,10 @@
-import { configureComponent, useStore } from "@impact-react/component";
+import { configureStore } from "@impact-react/store";
 import { observable } from "@legendapp/state";
 import { observer } from "@legendapp/state/react";
 
-export { useStore };
+export const __observer = observer;
 
-export type { Cleanup } from "@impact-react/component";
-
-export const createComponent = configureComponent((propValue) => {
+export const createStore = configureStore((propValue) => {
   const value = observable(propValue);
 
   return {
@@ -17,4 +15,4 @@ export const createComponent = configureComponent((propValue) => {
       value.set(newPropValue);
     },
   };
-}, observer);
+});

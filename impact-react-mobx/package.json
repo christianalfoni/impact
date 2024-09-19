@@ -21,9 +21,8 @@
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
+    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../convert-cjs",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
-    "transform": "yarn build:cjs && mv ./dist/cjs/transform.js ./dist/cjs/transform.cjs && node test",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
     "prepublish": "yarn build"
@@ -42,10 +41,10 @@
   ],
   "peerDependencies": {
     "mobx": "*",
+    "mobx-react-lite": "*",
     "react": "*"
   },
   "dependencies": {
-    "@impact-react/store": "^1.0.0",
-    "mobx-react-lite": "^4.0.7"
+    "@impact-react/store": "^1.0.0"
   }
 }
