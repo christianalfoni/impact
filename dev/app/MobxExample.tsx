@@ -5,7 +5,7 @@ import { observable } from "mobx";
 
 type State = { groceries: string[]; grocery: string };
 
-const [storeProvider, useStore] = createStore(function Store() {
+const useStore = createStore(function Store() {
   const state = observable<State>({
     groceries: [],
     grocery: "",
@@ -14,7 +14,7 @@ const [storeProvider, useStore] = createStore(function Store() {
   return state;
 });
 
-const App = storeProvider(function App() {
+const App = useStore.provider(function App() {
   const state = useStore();
 
   return (

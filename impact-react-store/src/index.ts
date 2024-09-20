@@ -110,17 +110,16 @@ export function configureStore(toObservableProp: Converter<any>) {
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
     T,
-  >(store: Store<SP, T>) {
+  >(
+    store: Store<SP, T>,
+  ): (() => T) & {
+    provider: (component: FunctionComponent<CP>) => FunctionComponent<SP & CP>;
+  } {
     function useConfigStore(props: any) {
       const parentStoreContainer = useContext(storeContainerContext);
-      const childrenRef = useRef<any>();
       const observablePropsRef = useRef<any>();
       const storeContainerRef = useRef<any>();
       const storeRef = useRef<any>(null);
-
-      // @ts-ignore
-      // eslint-disable-next-line
-      childrenRef.current = props.children;
 
       // Update props
       useLayoutEffect(() => {
@@ -145,11 +144,8 @@ export function configureStore(toObservableProp: Converter<any>) {
           parentStoreContainer,
         ));
 
-        const observableProps = (observablePropsRef.current = {
-          get children() {
-            return childrenRef.current;
-          },
-        }) as any;
+        const observableProps = (observablePropsRef.current = {}) as any;
+        const storeProps = {} as any;
 
         for (const key in props) {
           if (key === "children") {
@@ -160,7 +156,7 @@ export function configureStore(toObservableProp: Converter<any>) {
         }
 
         for (const key in observableProps) {
-          Object.defineProperty(observableProps, key, {
+          Object.defineProperty(storeProps, key, {
             get: () => {
               return observableProps[key].get();
             },
@@ -168,10 +164,12 @@ export function configureStore(toObservableProp: Converter<any>) {
         }
 
         resolvingStoreContainers.push(storeContainerRef.current);
-        storeRef.current = store(observableProps, cleanup);
+        storeRef.current = store(storeProps, cleanup);
         resolvingStoreContainers.pop();
 
         container.setValue(storeRef.current);
+
+        return container;
       }
 
       return {
@@ -218,7 +216,7 @@ export function configureStore(toObservableProp: Converter<any>) {
     } else {
       // eslint-disable-next-line
       storeProvider = (component) => (props: SP & CP) => {
-        const [hasResolvedStore, setResolvedStore] = useState(false);
+        const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
         const { storeContainerRef, configureStore } = useConfigStore(props);
 
         if (!canUseDOM) {
@@ -227,25 +225,17 @@ export function configureStore(toObservableProp: Converter<any>) {
           );
         }
 
-        useEffect(() => {
-          if (hasResolvedStore) {
-            return () => {
-              storeContainerRef.current.cleanup();
-            };
-          }
-        }, [hasResolvedStore]);
-
         useLayoutEffect(() => {
-          if (hasResolvedStore) {
-            return;
-          }
+          const container = configureStore();
 
-          configureStore();
+          setResolvedStoreCount((current) => current + 1);
 
-          setResolvedStore(true);
-        }, [hasResolvedStore]);
+          return () => {
+            container.cleanup();
+          };
+        }, []);
 
-        if (!hasResolvedStore) {
+        if (resolvedStoreCount === 0) {
           return null;
         }
 
@@ -275,7 +265,9 @@ export function configureStore(toObservableProp: Converter<any>) {
       return storeContainer.resolve(store);
     }
 
-    return [storeProvider, useStore] as const;
+    useStore.provider = storeProvider;
+
+    return useStore;
   };
 }
 

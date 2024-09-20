@@ -1,15 +1,15 @@
 # Lifecycle
 
-React has two mounting phases. The _render_ phase and the _commit_ phase. The reactive contexts are instantiated during the _render_ phase as they expose state consumed by the components. When the _commit_ phase has been performed and the components has been mounted, the provider for the reactive context can unmount.
+React has two mounting phases. The _render_ phase and the _commit_ phase. The stores are by default instantiated during the _render_ phase. Because of Reacts concurrent mode components might not reach the next phase, the _commit_ phase. That means if you create a side effect during the _render_ phase and it does not reach the _commit_ phase, there is no hook execution to clean it up. With **Impact** we allow you to write code as you are used to in any other domain. That means side effects can be created during the instantiation of the store and be cleaned up reliably. **Impact** stores are concurrent safe.
 
-**Impact** allows you to intercept when its related Provider component unmounts. This is called `cleanup`.
+When you have a side effect you can clean that up using the `cleanup` function. When this cleanup is used by your store Impact will instantiate the store in the _commit_ phase. This guarantees that the component will be mounted and later unmounted, running the `cleanup`.
 
 ::: code-group
 
 ```ts [Impact Signals]
-import { createReactiveContext, cleanup, signal } from "@impact-react/signals";
+import { createStore, signal } from "@impact-react/signals";
 
-function AppStore() {
+function AppStore(props, cleanup) {
   const [count, setCount] = signal(0);
 
   const interval = setInterval(() => {
@@ -23,11 +23,11 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createStore(AppStore);
 ```
 
 ```ts [Mobx (OO)]
-import { createReactiveContext, cleanup } from "@impact-react/mobx";
+import { createStore, cleanup } from "@impact-react/mobx";
 import { makeAutoObservable } from "mobx";
 
 class AppStore {
@@ -40,7 +40,7 @@ class AppStore {
   }
 }
 
-export function useAppStore = createReactiveContext(() => {
+export function useAppStore = createStore(() => {
   const appStore = makeAutoObservable(new AppStore())
 
   cleanup(() => appStore.dispose())
@@ -50,10 +50,10 @@ export function useAppStore = createReactiveContext(() => {
 ```
 
 ```ts [Mobx]
-import { createReactiveContext, cleanup } from "@impact-react/mobx";
+import { createStore } from "@impact-react/mobx";
 import { observable } from "mobx";
 
-function AppStore() {
+function AppStore(props, cleanup) {
   const state = observable({
     count: 0,
   });
@@ -71,14 +71,14 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createStore(AppStore);
 ```
 
 ```ts [Preact Signals]
-import { createReactiveContext, cleanup } from "@impact-react/preact";
+import { createStore } from "@impact-react/preact";
 import { signal } from "@preact/signals-react";
 
-function AppStore() {
+function AppStore(props, cleanup) {
   const count = signal(0);
 
   const interval = setInterval(() => {
@@ -94,14 +94,14 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createStore(AppStore);
 ```
 
 ```ts [Legend State]
-import { createReactiveContext, cleanup } from "@impact-react/legend";
+import { createStore } from "@impact-react/legend";
 import { observable } from "@legendapp/state";
 
-function AppStore() {
+function AppStore(props, cleanup) {
   const count = observable(0);
 
   const interval = setInterval(() => {
@@ -117,23 +117,15 @@ function AppStore() {
   };
 }
 
-export const useAppStore = createReactiveContext(AppStore);
+export const useAppStore = createStore(AppStore);
 ```
 
 :::
 
-Since our reactive context is just a function scope, we are free to do state management beyond just the state we expose to components. In this case we run an interval for as long as the `AppStore` is mounted. But this could have been a subscription or some instance you need to dispose of when the store unmounts.
+Since our store is just a function scope, we are free to do state management beyond just the state we expose to components. In this case we run an interval for as long as the `AppStore` is mounted. But this could have been a subscription or some instance you need to dispose of when the store unmounts.
 
-You can force a reactive context to remount by using the `key` property on the provider. For example you can use the `id` of a user to ensure that all state management related to the current user will be disposed.
-
-Consider including a `Suspense` and `Error` boundary as children of the reactive context provider. This ensures that the context stays instantiated when using the `use` hook or an error occurs during the _render_ phase.
+You can force a store to remount by using the `key` property on the component providing it. For example you can use the `id` of a user to ensure that all state management related to the current user will be disposed.
 
 ::: info
-
-There are two scenarios where React starts the _render_ phase, initialising the reactive context, but might dispose the component tree before going to the _commit_ phase.
-
-1. **If a nested component during its render phase throws an error**. In this scenario the reactive context provider catches the error, cleans up and throws the error up the component tree. This allows any parent error boundary to re-render the component tree and the reactive context is initialised again. It is recommended that you add an error boundary as a nested component of the reactive context provider.
-
-2. **If a nested component during its render phase throws a promise**. The reactive context provider includes a Suspense boundary that catches the thrown promise and throws an error warning that you need to add your own suspense boundary. The reason for this is that React does not provide any mechanism to know when a component tree is disposed before the _commit_ phase. In other words, there would be a risk while suspending where the user changes the state of the application and the reactive context provider would not run its cleanup.
-
+With `StrictMode` your store will still initialise twice, also when initialising in the _commit_ phase. This helps verify that your `cleanup` indeed does what it is supposed to do.
 :::

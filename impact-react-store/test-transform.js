@@ -1,18 +1,26 @@
 import { transformSync } from "@babel/core";
 
-const result = transformSync(
-  `
-    import React from 'react'    
+async function main() {
+  const result = transformSync(
+    `
+const Counter = useCounterStore.provider(function Counter() {
+  const state = useCounterStore();
 
-    export default provideStore(function App()  {
-        const test = useStore()
+  
+  })
 
-        
-})
+
 `,
-  {
-    plugins: ["./dist/cjs/transform.cjs"],
-  },
-);
+    {
+      plugins: [
+        (await import("./dist/cjs/transform.cjs")).createTransformer(
+          "@impact-react/signals",
+        ),
+      ],
+    },
+  );
 
-console.log(result.code);
+  console.log(result.code);
+}
+
+main();

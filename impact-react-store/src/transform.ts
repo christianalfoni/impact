@@ -52,11 +52,24 @@ export function createTransformer(PACKAGE_NAME: string) {
                     }
                   }
 
+                  if (!functionParent) {
+                    return;
+                  }
+
+                  let hasJsx = false;
+
+                  functionParent.traverse({
+                    JSX(path) {
+                      hasJsx = true;
+                    },
+                  });
+
+                  if (!hasJsx) {
+                    return;
+                  }
+
                   // @ts-ignore
-                  if (
-                    functionParent &&
-                    !functionParent.node._isObserverWrapped
-                  ) {
+                  if (!functionParent.node._isObserverWrapped) {
                     wrapFunctionWithObserver(functionParent);
                     // @ts-ignore
                     functionParent.node._isObserverWrapped = true;

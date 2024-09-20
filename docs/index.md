@@ -29,7 +29,7 @@ features:
     details: Use your favourite reactive primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
     details: Reactive primitives are more performant and enables an accessible developer experience with automatic observation in components.
-  - title: Next state stores
+  - title: Nested state stores
     details: Instead of leaving context and going global, take advantage of nested stores and handle state dependencies like a champ.
 ---
 

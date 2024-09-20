@@ -1,42 +1,51 @@
 "use client";
 
-import { createStore } from "@impact-react/mobx";
-import { observable } from "mobx";
+import { createStore, effect, signal, use } from "@impact-react/signals";
+import { Suspense, useState } from "react";
 
-type State = { groceries: string[]; grocery: string };
+const useCounterStore = createStore((_, cleanup) => {
+  const [count, setCount] = signal(0);
 
-const [storeProvider, useStore] = createStore(function Store() {
-  const state = observable<State>({
-    groceries: [],
-    grocery: "",
+  const interval = setInterval(() => {
+    console.log("Tick");
+    setCount((current) => current + 1);
+  }, 1000);
+
+  cleanup(() => {
+    console.log("Cleanup up");
+    clearInterval(interval);
   });
 
-  return state;
+  return {
+    count,
+  };
 });
 
-export default storeProvider(function App() {
-  const state = useStore();
+const Counter = useCounterStore.provider(function Counter() {
+  const app = useAppStore();
+  const state = useCounterStore();
 
+  use(app.promise());
+
+  return <h1>Count {state.count()}</h1>;
+});
+
+const useAppStore = createStore(() => {
+  const [promise] = signal(new Promise((resolve) => setTimeout(resolve, 5000)));
+
+  return { promise };
+});
+
+export default useAppStore.provider(function App() {
+  const [show, setShow] = useState(true);
   return (
     <div>
-      <input
-        value={state.grocery}
-        style={{
-          color: "black",
-        }}
-        onChange={(event) => (state.grocery = event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            state.groceries.push(state.grocery);
-            state.grocery = "";
-          }
-        }}
-      />
-      <ul>
-        {state.groceries.map((grocery, index) => (
-          <li key={index}>{grocery}</li>
-        ))}
-      </ul>
+      {show ? (
+        <Suspense fallback={<h4>Loading it up...</h4>}>
+          <Counter />
+        </Suspense>
+      ) : null}
+      <button onClick={() => setShow(false)}>Hide</button>
     </div>
   );
 });

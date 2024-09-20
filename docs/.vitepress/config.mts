@@ -43,10 +43,6 @@ export default defineConfig({
             link: "/learn/nested-state-management",
           },
           { text: "Lifecycle", link: "/learn/lifecycle" },
-          {
-            text: "Stores",
-            link: "/learn/stores",
-          },
         ],
       },
       {
@@ -62,20 +58,8 @@ export default defineConfig({
         text: "Impact API",
         items: [
           {
-            text: "createComponent",
-            link: "/create-component",
-          },
-          {
-            text: "createProvider",
-            link: "/create-provider",
-          },
-          {
-            text: "onWillUnmount",
-            link: "/on-will-unmount",
-          },
-          {
-            text: "onDidMount",
-            link: "/on-did-mount",
+            text: "createStore",
+            link: "/create-store",
           },
         ],
       },
