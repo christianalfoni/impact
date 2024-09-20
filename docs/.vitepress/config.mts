@@ -37,11 +37,16 @@ export default defineConfig({
           { text: "Closures", link: "/learn/closures" },
           { text: "Props", link: "/learn/props" },
           { text: "Context", link: "/learn/context" },
-          { text: "Going Reactive", link: "/learn/going-reactive" },
-          { text: "Reactive Components", link: "/learn/reactive-components" },
-          { text: "Reactive Props", link: "/learn/reactive-props" },
+          { text: "Reactive Context", link: "/learn/reactive-context" },
+          {
+            text: "Nested State Management",
+            link: "/learn/nested-state-management",
+          },
           { text: "Lifecycle", link: "/learn/lifecycle" },
-          { text: "Scaling Up", link: "/learn/scaling-up" },
+          {
+            text: "Stores",
+            link: "/learn/stores",
+          },
         ],
       },
       {

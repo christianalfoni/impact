@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Impact"
   tagline: "/** \n
-  * Reactive Components \n
+  * Delightful State Management \n
 */
 \n\n
 By CodeSandbox team
@@ -28,9 +28,9 @@ features:
   - title: The best of both worlds
     details: Use your favourite reactive primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
-    details: Reactive primitives are more performant and enables an accessible developer experience for state management.
-  - title: Progressive state management
-    details: Enhance components with reactive state management and easily share that state with nested components
+    details: Reactive primitives are more performant and enables an accessible developer experience with automatic observation in components.
+  - title: Next state stores
+    details: Instead of leaving context and going global, take advantage of nested stores and handle state dependencies like a champ.
 ---
 
 <HomeContent>
@@ -76,5 +76,22 @@ npm install @impact-react/preact
 ```sh
 npm install @impact-react/legend
 ```
+
+## Automatic observation
+
+**Babel Config**
+
+```json
+{
+  // "plugins": ["@impact-react/signals/transform"]
+  "plugins": ["@impact-react/*/transform"]
+}
+```
+
+::: info
+
+All functions that has a nested call to a hook that ends with the name `Store` will be wrapped in the related `observer`. That means all your store hooks needs to end with `Store`, for example `useAppStore` or `useGlobalStore`.
+
+:::
 
 </HomeContent>
