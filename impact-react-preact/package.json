@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/preact",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",

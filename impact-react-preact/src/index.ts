@@ -5,7 +5,7 @@ import { memo } from "react";
 
 export type { Cleanup } from "@impact-react/store";
 
-export const __observer = (comp) => {
+export const __observer = (comp: any) => {
   const component = memo((props) => {
     useSignals();
 
