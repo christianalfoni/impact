@@ -43,6 +43,7 @@ export default defineConfig({
             link: "/learn/nested-state-management",
           },
           { text: "Lifecycle", link: "/learn/lifecycle" },
+          { text: "Consuming Stores", link: "/learn/consuming-stores" },
         ],
       },
       {
