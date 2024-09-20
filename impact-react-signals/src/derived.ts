@@ -1,18 +1,10 @@
-import {
-  cleanup,
-  getResolvingReactiveContextContainer,
-} from "@impact-react/reactive-context";
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
-import { isResolvingStoreFromComponent } from "./utils";
+
 import { debugHooks } from "./debugHooks";
 
 export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
-  if (getResolvingReactiveContextContainer() === undefined) {
-    throw new Error('You can only run "derived" when creating a store');
-  }
-
   let value: T;
 
   // We keep track of it being dirty, because we only compute the result
@@ -22,16 +14,11 @@ export function derived<T>(cb: () => T) {
   const signalNotifier = new SignalNotifier();
   const context = new ObserverContext("derived");
 
-  // We clean up the subscription on the derived when disposing the store
-  cleanup(() => disposer?.());
+  // TODO: How can we take advantage of WeakSet to dispose of the derived subscription?
+  // onWillUnmount(() => disposer?.());
 
   return () => {
-    // Again, we do not want to track access to this derived if we are resolving a store
-    // from a component and consuming the derived as part of resolving the store
-    if (
-      ObserverContext.current &&
-      !isResolvingStoreFromComponent(ObserverContext.current)
-    ) {
+    if (ObserverContext.current) {
       ObserverContext.current.registerGetter(signalNotifier);
       if (debugHooks.onGetValue) {
         debugHooks.onGetValue(ObserverContext.current, signalNotifier);

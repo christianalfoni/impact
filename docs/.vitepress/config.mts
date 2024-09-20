@@ -4,7 +4,7 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   title: "Impact",
   head: [["link", { rel: "icon", href: "/favicon.ico" }]],
-  description: "Complex single page applications with React",
+  description: "Reactive React",
   cleanUrls: true,
   themeConfig: {
     footer: {
@@ -25,7 +25,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Guides", link: "/guides/queries-and-mutations" },
-      { text: "Impact API", link: "/createReactiveContext" },
+      { text: "Impact API", link: "/create-component" },
       { text: "Signals API", link: "/signal" },
     ],
 
@@ -43,11 +43,7 @@ export default defineConfig({
             link: "/learn/nested-state-management",
           },
           { text: "Lifecycle", link: "/learn/lifecycle" },
-          { text: "Shared Context", link: "/learn/shared-context" },
-          {
-            text: "Stores",
-            link: "/learn/stores",
-          },
+          { text: "Consuming Stores", link: "/learn/consuming-stores" },
         ],
       },
       {
@@ -63,16 +59,8 @@ export default defineConfig({
         text: "Impact API",
         items: [
           {
-            text: "createReactiveContext",
-            link: "/createReactiveContext",
-          },
-          {
-            text: "cleanup",
-            link: "/cleanup",
-          },
-          {
-            text: "context",
-            link: "/context",
+            text: "createStore",
+            link: "/create-store",
           },
         ],
       },

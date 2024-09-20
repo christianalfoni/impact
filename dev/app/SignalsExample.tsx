@@ -1,19 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
 import {
-  createReactiveContext,
-  observer,
+  createComponent,
   query,
   mutation,
-  use,
+  signal,
+  derived,
+  useObserver,
+  createProvider,
+  onDidMount,
 } from "@impact-react/signals";
-// import { observable } from "mobx";
-// import { observer } from "mobx-react-lite";
-
-type AppStoreContext = {
-  addGrocery(grocery: string): void;
-};
 
 const _groceries: string[] = [];
 const getGroceries = () =>
@@ -29,86 +25,92 @@ const postGrocery = (grocery: string) =>
     }, 1000),
   );
 
-function AppStore() {
-  const [groceries, invalidateGroceries] = query(() => getGroceries());
+type State = ReturnType<typeof createState>;
+
+const [provideGroceries, useGroceries] = createProvider<State>();
+
+function createState() {
+  const [groceriesQuery, invalidateGroceries] = query(() => getGroceries());
+  const groceries = derived(() => {
+    const currentGroceriesQuery = groceriesQuery();
+
+    return currentGroceriesQuery.promise.status === "fulfilled"
+      ? currentGroceriesQuery.promise.value
+      : [];
+  });
   const [addingGrocery, addGrocery] = mutation((grocery: string) =>
     postGrocery(grocery).then(invalidateGroceries),
   );
+  const [grocery, setGrocery] = signal("");
 
-  return {
+  const state = {
     groceries,
     addingGrocery,
     addGrocery,
+    grocery,
+    setGrocery,
   };
+
+  return state;
 }
 
-const useAppStore = createReactiveContext(AppStore);
+function GroceriesList() {
+  using _ = useObserver();
 
-function GroceriesStore(props: { groceries: string[] }) {
-  const { addGrocery } = useAppStore();
+  const state = useGroceries();
 
-  return {
-    groceries() {
-      return props.groceries;
-    },
-    addGrocery,
-  };
+  const currentGroceries = state.groceries();
+
+  return (
+    <ul>
+      {currentGroceries.map((grocery, index) => (
+        <li key={index}>{grocery}</li>
+      ))}
+      {state.addingGrocery()?.data ? (
+        <li>Optimistic: {state.addingGrocery()?.data}</li>
+      ) : null}
+    </ul>
+  );
 }
 
-const useGrocieresStore = createReactiveContext(GroceriesStore);
+const App = createComponent(function App() {
+  const state = createState();
+  const [div, setDiv] = signal<HTMLDivElement | null>(null);
 
-const App = observer(function App() {
-  const appStore = useAppStore();
+  onDidMount(() => {
+    console.log("I mounted", div());
+  });
 
-  const groceries = use(appStore.groceries().promise);
+  provideGroceries(state);
 
-  return (
-    <useGrocieresStore.Provider groceries={groceries}>
-      <h5>Groceries state: {appStore.groceries().state}</h5>
-      <Groceries />
-    </useGrocieresStore.Provider>
-  );
-});
-
-const Groceries = observer(function Groceries() {
-  const [grocery, setGrocery] = useState("");
-  const { addingGrocery } = useAppStore();
-  const { groceries, addGrocery } = useGrocieresStore();
-
-  return (
-    <div>
-      <input
-        value={grocery}
-        style={{
-          color: "black",
-          opacity: addingGrocery()?.promise.status === "pending" ? 0.5 : 1,
+  return () => {
+    return (
+      <div
+        ref={(node) => {
+          setDiv(node);
         }}
-        onChange={(event) => setGrocery(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            addGrocery(grocery);
-            setGrocery("");
-          }
-        }}
-      />
-      <ul>
-        {groceries().map((grocery, index) => (
-          <li key={index}>{grocery}</li>
-        ))}
-        {addingGrocery()?.data ? (
-          <li>Optimistic: {addingGrocery()?.data}</li>
-        ) : null}
-      </ul>
-    </div>
-  );
+      >
+        <input
+          value={state.grocery()}
+          style={{
+            color: "black",
+            opacity:
+              state.addingGrocery()?.promise.status === "pending" ? 0.5 : 1,
+          }}
+          onChange={(event) => state.setGrocery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              state.addGrocery(state.grocery());
+              state.setGrocery("");
+            }
+          }}
+        />
+        <GroceriesList />
+      </div>
+    );
+  };
 });
 
 export function SignalsExample() {
-  return (
-    <useAppStore.Provider>
-      <Suspense fallback={<h4>Loading groceries...</h4>}>
-        <App />
-      </Suspense>
-    </useAppStore.Provider>
-  );
+  return <App />;
 }

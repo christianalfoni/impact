@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Impact"
   tagline: "/** \n
-  * Reactive contexts for React \n
+  * Delightful State Management \n
 */
 \n\n
 By CodeSandbox team
@@ -18,19 +18,19 @@ By CodeSandbox team
       link: /learn/
     - theme: alt
       text: Guides
-      link: /guides/queries-and-mutations
+      link: /guides/
     - theme: alt
       text: Impact API
-      link: /createReactiveContext
+      link: /create-component
 
 
 features:
   - title: The best of both worlds
     details: Use your favourite reactive primitives to manage state. Use Reacts reconciliation model to manage UI.
   - title: Performant and accessible
-    details: Reactive primitives are more performant and enables an accessible developer experience for state management.
-  - title: Nested state management
-    details: Provide your reactive state management for specific pages, features or complex components. Receive reactive props and use any parent reactive context.
+    details: Reactive primitives are more performant and enables an accessible developer experience with automatic observation in components.
+  - title: Nested state stores
+    details: Instead of leaving context and going global, take advantage of nested stores and handle state dependencies like a champ.
 ---
 
 <HomeContent>
@@ -45,7 +45,7 @@ features:
 
 ## Presenting Impact
 
-> **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love, and bridge the world of React with your reactive state management at any point in the component tree.
+> **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love and replace the reconciling state management in React with intuitive and performant primitives.
 
 [🍿 Impact Presentation 🍿](https://www.youtube.com/watch?v=x5a-9k498q0) - [🍿 Impact Technical Deep Dive 🍿](https://www.youtube.com/watch?v=yOAZo1SUYrM)
 
@@ -76,5 +76,22 @@ npm install @impact-react/preact
 ```sh
 npm install @impact-react/legend
 ```
+
+## Automatic observation
+
+**Babel Config**
+
+```json
+{
+  // "plugins": ["@impact-react/signals/transform"]
+  "plugins": ["@impact-react/*/transform"]
+}
+```
+
+::: info
+
+All functions that has a nested call to a hook that ends with the name `Store` will be wrapped in the related `observer`. That means all your store hooks needs to end with `Store`, for example `useAppStore` or `useGlobalStore`.
+
+:::
 
 </HomeContent>

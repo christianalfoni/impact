@@ -1,13 +1,23 @@
-import {
-  cleanup,
-  context,
-  configureReactiveContext,
-} from "@impact-react/reactive-context";
-import { signal } from "@preact/signals-core";
+import { configureStore } from "@impact-react/store";
+import { signal } from "@preact/signals-react";
+import { useSignals } from "@preact/signals-react/runtime";
+import { memo } from "react";
 
-export { cleanup, context };
+export type { Cleanup } from "@impact-react/store";
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const __observer = (comp: any) => {
+  const component = memo((props) => {
+    useSignals();
+
+    return comp(props);
+  });
+
+  component.displayName = comp.name;
+
+  return component;
+};
+
+export const createStore = configureStore((propValue) => {
   const value = signal(propValue);
 
   return {

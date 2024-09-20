@@ -2,13 +2,14 @@
   "name": "impact-react-monorepo",
   "private": true,
   "workspaces": [
-    "impact-react-reactive-context",
+    "impact-react-store",
     "impact-react-signals",
     "impact-react-mobx",
     "impact-react-preact",
     "impact-react-legend",
     "impact-react-debugger",
-    "dev"
+    "dev",
+    "dev-vite"
   ],
   "scripts": {
     "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",

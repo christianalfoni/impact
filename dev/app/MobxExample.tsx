@@ -1,71 +1,39 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { createReactiveContext } from "@impact-react/mobx";
-import { action, observable } from "mobx";
-import { observer } from "mobx-react-lite";
+import { createStore } from "@impact-react/mobx";
+import { observable } from "mobx";
 
-function AppStore() {
-  const state = observable<{ groceries: string[] }>({
+type State = { groceries: string[]; grocery: string };
+
+const useStore = createStore(function Store() {
+  const state = observable<State>({
     groceries: [],
+    grocery: "",
   });
 
-  return {
-    get groceries() {
-      return state.groceries;
-    },
-    addGrocery: action((item: string) => {
-      state.groceries.push(item);
-    }),
-  };
-}
-
-const useAppStore = createReactiveContext(AppStore);
-
-function GroceriesStore(props: { groceries: string[] }) {
-  const { addGrocery } = useAppStore();
-
-  return {
-    groceries() {
-      return props.groceries;
-    },
-    addGrocery,
-  };
-}
-
-const useGrocieresStore = createReactiveContext(GroceriesStore);
-
-const App = observer(function App() {
-  const appStore = useAppStore();
-
-  return (
-    <useGrocieresStore.Provider groceries={appStore.groceries}>
-      <Groceries />
-    </useGrocieresStore.Provider>
-  );
+  return state;
 });
 
-const Groceries = observer(function Groceries() {
-  const [grocery, setGrocery] = useState("");
-  const { groceries, addGrocery } = useGrocieresStore();
+const App = useStore.provider(function App() {
+  const state = useStore();
 
   return (
     <div>
       <input
-        value={grocery}
+        value={state.grocery}
         style={{
           color: "black",
         }}
-        onChange={(event) => setGrocery(event.target.value)}
+        onChange={(event) => (state.grocery = event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
-            addGrocery(grocery);
-            setGrocery("");
+            state.groceries.push(state.grocery);
+            state.grocery = "";
           }
         }}
       />
       <ul>
-        {groceries().map((grocery, index) => (
+        {state.groceries.map((grocery, index) => (
           <li key={index}>{grocery}</li>
         ))}
       </ul>
@@ -74,11 +42,5 @@ const Groceries = observer(function Groceries() {
 });
 
 export function MobxExample() {
-  return (
-    <useAppStore.Provider>
-      <Suspense fallback={<h4>Loading groceries...</h4>}>
-        <App />
-      </Suspense>
-    </useAppStore.Provider>
-  );
+  return <App />;
 }

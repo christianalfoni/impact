@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { SignalsExample } from "./SignalsExample";
+// import { SignalsExample } from "./SignalsExample";
 import { MobxExample } from "./MobxExample";
-import { PreactExample } from "./PreactExample";
-import { LegendExample } from "./LegendExample";
+// import { PreactExample } from "./PreactExample";
+// import { LegendExample } from "./LegendExample";
 
 export default function Home() {
   return (
@@ -45,16 +45,16 @@ export default function Home() {
 
       <hr />
       <h4>Signals</h4>
-      <SignalsExample />
+      {/*<SignalsExample />*/}
       <hr />
       <h4>Mobx</h4>
       <MobxExample />
       <hr />
       <h4>Preact</h4>
-      <PreactExample />
+      {/*<PreactExample />*/}
       <hr />
       <h4>Legend</h4>
-      <LegendExample />
+      {/*<LegendExample />*/}
       <hr />
 
       <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">

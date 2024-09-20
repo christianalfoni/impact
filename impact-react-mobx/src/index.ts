@@ -1,13 +1,12 @@
-import {
-  cleanup,
-  context,
-  configureReactiveContext,
-} from "@impact-react/reactive-context";
+import { configureStore } from "@impact-react/store";
 import { observable, runInAction } from "mobx";
+import { observer } from "mobx-react-lite";
 
-export { cleanup, context };
+export type { Cleanup } from "@impact-react/store";
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const __observer = observer;
+
+export const createStore = configureStore((propValue) => {
   const value = observable.box(propValue);
 
   return {

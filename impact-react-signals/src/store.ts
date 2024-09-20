@@ -1,7 +1,10 @@
-import { configureReactiveContext } from "@impact-react/reactive-context";
+import { configureStore } from "@impact-react/store";
 import { signal } from "./signal";
+import { observer } from "./observers";
 
-export const createReactiveContext = configureReactiveContext((propValue) => {
+export const __observer = observer;
+
+export const createStore = configureStore((propValue) => {
   const [value, setValue] = signal(propValue);
 
   return {

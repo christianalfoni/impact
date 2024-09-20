@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/legend",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -12,12 +12,15 @@
     ".": {
       "import": "./dist/esm/index.js",
       "types": "./dist/esm/index.d.ts"
+    },
+    "./transform": {
+      "require": "./dist/cjs/transform.cjs"
     }
   },
   "types": "./dist/esm/index.d.ts",
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
-    "build": "yarn clean && yarn build:cjs && yarn build:esm",
+    "build": "yarn clean && yarn build:cjs && yarn build:esm && mv ./dist/cjs/transform.js ./dist/cjs/transform.cjs",
     "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
     "clean": "rimraf ./dist",
@@ -41,6 +44,6 @@
     "@legendapp/state": "*"
   },
   "dependencies": {
-    "@impact-react/reactive-context": "^1.0.0"
+    "@impact-react/store": "^1.0.0"
   }
 }
