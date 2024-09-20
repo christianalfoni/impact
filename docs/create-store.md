@@ -1,22 +1,91 @@
-# createComponent
+# createStore
 
-Create a reactive component. A reactive component will initialise in the _commit_ phase of React to guarantee being mounted and unmounted. Thing of the component more as a state management component than a UI component, meaning you will use these components more as "controllers" in your application to efficiently share state with its immediate UI and any nested components.
+Encapsulates your reactive primitives in a store you can provide to your component tree.
 
-The returned UI is automatically observed.
+```ts
+import { createStore } from "@impact-react/[*]";
 
-::: info
-If you **server render** reactive components you will need to wrap your app with the exported `SSR` component. The reason for this is that we need the reactive components to render in the _render_ phase instead, which is safe as server rendered components are guaranteed to mount.
-:::
+function AppStore() {
+  return {};
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+## Provide
+
+The store should be provided through a component. The store now becomes accessible by the component and any nested component.
 
 ```tsx
-import { createComponent } from "@impact-react/[*]";
+import { createStore } from "@impact-react/[*]";
 
-export default createComponent(function Counter() {
-  // My reactive state management goes here
-  return () => <div />;
+function AppStore() {
+  return {};
+}
+
+export const useAppStore = createStore(AppStore);
+
+function NestedComponent() {
+  const appStore = useAppStore();
+
+  return <div />;
+}
+
+export default useAppStore.provider(function App() {
+  const appStore = useAppStore();
+
+  return (
+    <div>
+      <h1>Hello App</h1>
+      <NestedComponent />
+    </div>
+  );
 });
 ```
 
-::: warning
-You can not use hooks in reactive components
-:::
+## Props
+
+The store can define props that it will receive from the component providing the store:
+
+```tsx
+import { createStore } from "@impact-react/[*]";
+
+type Props = { initialCount: number };
+
+function CounterStore(props: Props) {
+  props.initialCount;
+  return {};
+}
+
+export const useCounterStore = createStore(CounterStore);
+
+const Counter = useCounterStore.provider(function Counter() {
+  const counterStore = useCounterStore();
+
+  return <div />;
+});
+
+function App() {
+  return <Counter initialCount={10} />;
+}
+```
+
+The props will become observable _getters_. When React reconciles with updated props the store can observe those changes.
+
+## Cleanup
+
+If your store instantiates with a side effect the `cleanup` function lets you clean that up. The `cleanup` function is guaranteed to run as the store will initialise during the _commit_ phase of React when used.
+
+```ts
+import { createStore, Cleanup } from "@impact-react/[*]";
+
+function AppStore(props: unknown, cleanup: Cleanup) {
+  const interval = setInterval(() => {}, 1000);
+
+  cleanup(() => clearInterval(interval));
+
+  return {};
+}
+
+export const useAppStore = createStore(AppStore);
+```

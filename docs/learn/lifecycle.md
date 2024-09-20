@@ -27,7 +27,7 @@ export const useAppStore = createStore(AppStore);
 ```
 
 ```ts [Mobx (OO)]
-import { createStore, cleanup } from "@impact-react/mobx";
+import { createStore } from "@impact-react/mobx";
 import { makeAutoObservable } from "mobx";
 
 class AppStore {
@@ -40,13 +40,13 @@ class AppStore {
   }
 }
 
-export function useAppStore = createStore(() => {
-  const appStore = makeAutoObservable(new AppStore())
+export const useAppStore = createStore(() => {
+  const appStore = makeAutoObservable(new AppStore());
 
-  cleanup(() => appStore.dispose())
+  cleanup(() => appStore.dispose());
 
-  return appStore
-})
+  return appStore;
+});
 ```
 
 ```ts [Mobx]
@@ -122,10 +122,131 @@ export const useAppStore = createStore(AppStore);
 
 :::
 
-Since our store is just a function scope, we are free to do state management beyond just the state we expose to components. In this case we run an interval for as long as the `AppStore` is mounted. But this could have been a subscription or some instance you need to dispose of when the store unmounts.
-
-You can force a store to remount by using the `key` property on the component providing it. For example you can use the `id` of a user to ensure that all state management related to the current user will be disposed.
-
 ::: info
 With `StrictMode` your store will still initialise twice, also when initialising in the _commit_ phase. This helps verify that your `cleanup` indeed does what it is supposed to do.
+:::
+
+You can safely use any observer contexts within the store without having to explicitly clean them up.
+
+::: code-group
+
+```ts [Impact Signals]
+import { createStore, signal, effect, derived } from "@impact-react/signals";
+
+function AppStore(props) {
+  const [count, setCount] = signal(0);
+  const multipliedCount = derived(() => count() * props.multiplier);
+
+  effect(() => {
+    console.log("Mulitplied Count", multipliedCount());
+  });
+
+  return {
+    count,
+    multipliedCount,
+  };
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+```ts [Mobx (OO)]
+import { createStore } from "@impact-react/mobx";
+import { makeAutoObservable, autorun } from "mobx";
+
+class AppStore {
+  count = 0;
+  get multipliedCount() {
+    return this.count * this.props.multiplier;
+  }
+  constructor(props) {
+    autorun(() => {
+      console.log("Mulitplied Count", this.multipliedCount);
+    });
+  }
+}
+
+export const useAppStore = createStore((props) =>
+  makeAutoObservable(new AppStore(props)),
+);
+```
+
+```ts [Mobx]
+import { createStore } from "@impact-react/mobx";
+import { observable, autorun } from "mobx";
+
+function AppStore(props) {
+  const state = observable({
+    count: 0,
+    get multipliedCount() {
+      return this.count * props.multiplier;
+    },
+  });
+
+  autorun(() => {
+    console.log("Mulitplied Count", state.multipliedCount);
+  });
+
+  return state;
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+```ts [Preact Signals]
+import { createStore } from "@impact-react/preact";
+import { signal, effect, computed } from "@preact/signals-react";
+
+function AppStore(props) {
+  const count = signal(0);
+  const multipliedCount = computed(() => count.value * props.multiplier);
+
+  effect(() => {
+    console.log("Mulitplied Count", multipliedCount.value);
+  });
+
+  return {
+    get count() {
+      return count.value;
+    },
+    get multiplier() {
+      return multipliedCount.value;
+    },
+  };
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+```ts [Legend State]
+import { createStore } from "@impact-react/legend";
+import { observable, observe } from "@legendapp/state";
+
+function AppStore(props) {
+  const count = observable(0);
+  const multipliedCount = observable(() => count.get() * props.multiplier);
+
+  observe(() => {
+    console.log("Mulitplied Count", multipliedCount.get());
+  });
+
+  return {
+    get count() {
+      return count.get();
+    },
+    get multipliedCount() {
+      return multipliedCount.get();
+    },
+  };
+}
+
+export const useAppStore = createStore(AppStore);
+```
+
+:::
+
+::: warning
+
+Observing within the store and props is perfectly safe. All references will be cleaned up by the unmounting of the store, not risking any memory leaks. If you use a parent store and observe from that you will risk memory leaks if you do not explicitly use `cleanup`.
+
 :::

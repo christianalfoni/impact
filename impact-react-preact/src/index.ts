@@ -2,6 +2,8 @@ import { configureStore } from "@impact-react/store";
 import { signal } from "@preact/signals-react";
 import { useSignals } from "@preact/signals-react/runtime";
 
+export type { Cleanup } from "@impact-react/store";
+
 export const __observer = (comp) => (props) => {
   useSignals();
 

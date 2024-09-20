@@ -3,7 +3,6 @@ import {
   createElement,
   FunctionComponent,
   useContext,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,

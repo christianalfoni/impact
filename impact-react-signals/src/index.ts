@@ -13,6 +13,7 @@ export { query } from "./query";
 export type { Query } from "./query";
 export { mutation } from "./mutation";
 export type { Mutation } from "./mutation";
+export type { Cleanup } from "@impact-react/store";
 
 // This is the polyfill for the use hook. With React 19 you will use this from React instead
 export function use<T>(promise: ObservablePromise<T>): T {

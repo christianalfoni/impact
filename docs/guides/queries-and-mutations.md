@@ -28,8 +28,6 @@ This `data` is now an observable promise that can be declaratively consumed in c
 
 ```ts
 function MyComponent() {
-  using _ = useObserver();
-
   const { data } = useAppStore();
 
   const currentData = use(data());
@@ -38,10 +36,8 @@ function MyComponent() {
 
 Or consuming the promise status:
 
-```ts
+```tsx
 function MyComponent() {
-  using _ = useObserver();
-
   const { data } = useAppStore();
 
   const currentData = data();
@@ -56,7 +52,7 @@ function MyComponent() {
 
   const value = currentData.value;
 
-  return <div>{value}</div>
+  return <div>{value}</div>;
 }
 ```
 
@@ -104,8 +100,6 @@ Now components and stores will still consume an observable promise, but they can
 
 ```tsx
 function MyComponent() {
-  using _ = useObserver();
-
   const { dataQuery, invalidateDataQuery } = useAppStore();
 
   return (
@@ -169,8 +163,6 @@ In a component or other stores you can consume this mutation signal as an observ
 
 ```tsx
 function MyComponent() {
-  using _ = useObserver();
-
   const { mutation, mutate } = useAppStore();
 
   return (
@@ -224,8 +216,6 @@ We can now manage all of this complexity declaratively in a component:
 
 ```tsx
 function Item() {
-  using _ = useObserver();
-
   const itemStore = useItemStore();
   const currentItemQuery = itemStore.itemQuery();
   const item = use(currentItemQuery.promise);
