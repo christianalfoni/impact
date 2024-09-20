@@ -1,6 +1,6 @@
 # Consuming Stores
 
-Since **Impact** introduces such a strong concept of encapsulation of stores and how they are consumed, it is able to enable automatic observation in components. If you use the [Babel Plugin](../index.md#automatic-observation) any component consuming a store will automatically become an observer. This is not required, but it is nice to not have to put `observer` is quite disrupting to the simple component definition.
+Since **Impact** introduces such a strong concept of encapsulation of stores it is able to enable automatic observation in components. If you use the [Babel Plugin](../index.md#automatic-observation) any component consuming a store will automatically become an observer. This is not required, but the HOC `observer` is quite tedious and disrupting to the simple component definition.
 
 When using the babel plugin you only have to follow a very simple convention. The name of your hook has to end with `Store`. So `useAppStore`, `useDashboardStore` etc.
 

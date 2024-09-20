@@ -90,7 +90,7 @@ npm install @impact-react/legend
 
 ::: info
 
-All functions that has a nested call to a hook that ends with the name `Store` will be wrapped in the related `observer`. That means all your store hooks needs to end with `Store`, for example `useAppStore` or `useGlobalStore`.
+All component functions which calls a hook ending with the name `Store` will be wrapped in the related `observer`. That means all your store hooks needs to end with `Store`, for example `useAppStore` or `useGlobalStore`.
 
 :::
 
