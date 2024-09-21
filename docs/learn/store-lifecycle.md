@@ -1,4 +1,4 @@
-# Lifecycle
+# Store Lifecycle
 
 React has two mounting phases. The _render_ phase and the _commit_ phase. The stores are by default instantiated during the _render_ phase. Because of Reacts concurrent mode components might not reach the next phase, the _commit_ phase. That means if you create a side effect during the _render_ phase and it does not reach the _commit_ phase, there is no hook execution to clean it up. With **Impact** we allow you to write code as you are used to in any other domain. That means side effects can be created during the instantiation of the store and be cleaned up reliably. **Impact** stores are concurrent safe.
 

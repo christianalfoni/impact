@@ -1,4 +1,4 @@
-# Reactive Context
+# Stores
 
 When the React context does not work for us we have a tendency to replace it with global state management. Doing so definitely solves friction, but we also leave something behind. With **Impact** we rather make the React contexts compatible with the performant and accessible reactive primitives we use for global state management.
 

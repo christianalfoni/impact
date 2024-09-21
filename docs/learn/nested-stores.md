@@ -1,4 +1,4 @@
-# Nested State Management
+# Nested Stores
 
 As **Impact** builds on the existing React context you will be able to instantiate reactive state management related to specific pages, features or even for each item in a list.
 
