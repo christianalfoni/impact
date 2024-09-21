@@ -187,7 +187,7 @@ export const useAppStore = createStore(AppStore);
 
 In most applications you have state that depends on other state. For example the list of posts depends on the current user. Or the state for editing an item depends on the currently selected item. In global state stores you have to manually manage these dependencies, but with nested state stores this is handled by the very nature of putting state management where it is used.
 
-This is an examples of how the `AppStore` depends on the user. If the id of the user changes, the store is remounted by React.
+This is an example of how the `AppStore` depends on the user. If the id of the user changes, the store is remounted by React.
 
 ```tsx
 function AppStore(props) {
@@ -206,4 +206,4 @@ export default function Client() {
 }
 ```
 
-Another aspect of this is typing. In a global state store you would likely type your user as `User | null`, cause you do not initially have a user. But most components and state management logic only executes in the context of having a user. As a human developer you know there is a user, but TypeScript does not. This results in turning off [strict null checking](https://www.typescriptlang.org/tsconfig/#strictNullChecks), overriding the type or creating conditionals to make the type checker happy. You can stop doing this with **Impact**.
+Another aspect of this is typing. In a global state store you would likely type your user as `User | null`, cause you do not initially have a user. But most components and state management logic only executes in the context of having a user. As a human developer you know there is a user, but TypeScript does not. This results in turning off [strict null checking](https://www.typescriptlang.org/tsconfig/#strictNullChecks), overriding the type or creating conditionals to make the type checker happy. Nested stores resolves this problem.

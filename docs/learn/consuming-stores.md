@@ -6,19 +6,26 @@ When using the babel plugin you only have to follow a very simple convention. Th
 
 To provide the store to a component tree use the `.provider` prop. This is a design decision that allows you to both provide and consume the store from the same component.
 
-```ts
+```tsx
 import { useAppStore } from "./AppStore";
+
+function NestedComponent() {
+  const appStore = useAppStore();
+
+  return <div />;
+}
 
 export default useAppStore.provider(function App() {
   const appStore = useAppStore();
 
-  return <div />
+  return <NestedComponent />;
 });
 ```
 
 Passing state from one store to another can be done in two ways. Either you simply use the store directly in a nested store:
 
 ```ts
+import { createStore } from "@impact-react/[*]";
 import { useAppStore } from "./AppStore";
 
 function DashboardStore() {
@@ -26,6 +33,8 @@ function DashboardStore() {
 
   return {};
 }
+
+export const useDashboardStore = createStore(DashboardStore);
 ```
 
 Or often you will be resolving state from one store and pass it as a prop to a nested store:

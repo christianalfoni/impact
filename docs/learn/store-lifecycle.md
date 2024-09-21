@@ -1,8 +1,6 @@
 # Store Lifecycle
 
-React has two mounting phases. The _render_ phase and the _commit_ phase. The stores are by default instantiated during the _render_ phase. Because of Reacts concurrent mode components might not reach the next phase, the _commit_ phase. That means if you create a side effect during the _render_ phase and it does not reach the _commit_ phase, there is no hook execution to clean it up. With **Impact** we allow you to write code as you are used to in any other domain. That means side effects can be created during the instantiation of the store and be cleaned up reliably. **Impact** stores are concurrent safe.
-
-When you have a side effect you can clean that up using the `cleanup` function. When this cleanup is used by your store Impact will instantiate the store in the _commit_ phase. This guarantees that the component will be mounted and later unmounted, running the `cleanup`.
+React has two mounting phases. The _render_ phase and the _commit_ phase. The stores are by default instantiated during the _render_ phase. Because of Reacts concurrent mode components might not reach the next phase, the _commit_ phase. That means if you create a side effect during the _render_ phase and it does not reach the _commit_ phase, there is no hook execution to clean it up. **Impact** stores are concurrent safe. That means side effects can be created during the instantiation of the store and be cleaned up reliably. When this cleanup is used by your store **Impact** will instantiate the store in the _commit_ phase. This guarantees that the component will be mounted and later unmounted, running the `cleanup`.
 
 ::: code-group
 
@@ -126,7 +124,7 @@ export const useAppStore = createStore(AppStore);
 With `StrictMode` your store will still initialise twice, also when initialising in the _commit_ phase. This helps verify that your `cleanup` indeed does what it is supposed to do.
 :::
 
-You can safely use any observer contexts within the store without having to explicitly clean them up.
+You can safely use any observing contexts, like effects, computed etc., within the store without having to explicitly clean them up.
 
 ::: code-group
 
@@ -247,6 +245,6 @@ export const useAppStore = createStore(AppStore);
 
 ::: warning
 
-Observing within the store and props is perfectly safe. All references will be cleaned up by the unmounting of the store, not risking any memory leaks. If you use a parent store and observe from that you will risk memory leaks if you do not explicitly use `cleanup`.
+Observing within the store, which includes props, is perfectly safe. All references will be cleaned up by the unmounting of the store, not risking any memory leaks. If you use a parent store and observe from that you will risk memory leaks if you do not explicitly use `cleanup`.
 
 :::
