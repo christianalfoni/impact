@@ -1,7 +1,25 @@
-// @ts-nocheck
 import { PluginObj } from "@babel/core";
 import { NodePath } from "@babel/traverse";
-import * as t from "@babel/types";
+// Explicit imports to avoid tslib dependency
+import {
+  isIdentifier,
+  identifier,
+  isImportSpecifier,
+  importSpecifier,
+  isFunctionDeclaration,
+  isFunctionExpression,
+  isArrowFunctionExpression,
+  stringLiteral,
+  importDeclaration,
+  functionExpression,
+  callExpression,
+  Node,
+  isExportDefaultDeclaration,
+  variableDeclarator,
+  variableDeclaration,
+  isVariableDeclarator,
+  isCallExpression,
+} from "@babel/types";
 
 const OBSERVER_NAME = "__observer";
 
@@ -26,7 +44,7 @@ export function createTransformer(PACKAGE_NAME: string) {
               const callee = path.node.callee;
 
               // Check if callee is an Identifier (e.g., a simple function name)
-              if (t.isIdentifier(callee)) {
+              if (isIdentifier(callee)) {
                 const functionName = callee.name;
 
                 // Check if the function name matches the pattern and has no arguments
@@ -43,9 +61,9 @@ export function createTransformer(PACKAGE_NAME: string) {
                     currentPath = currentPath.parentPath;
 
                     if (
-                      t.isFunctionDeclaration(currentPath.node) ||
-                      t.isFunctionExpression(currentPath.node) ||
-                      t.isArrowFunctionExpression(currentPath.node)
+                      isFunctionDeclaration(currentPath.node) ||
+                      isFunctionExpression(currentPath.node) ||
+                      isArrowFunctionExpression(currentPath.node)
                     ) {
                       functionParent = currentPath;
                       break;
@@ -81,16 +99,16 @@ export function createTransformer(PACKAGE_NAME: string) {
               if (importPath.node.source.value === PACKAGE_NAME) {
                 const hasObserverSpecifier = importPath.node.specifiers.some(
                   (specifier) =>
-                    t.isImportSpecifier(specifier) &&
-                    t.isIdentifier(specifier.imported) &&
+                    isImportSpecifier(specifier) &&
+                    isIdentifier(specifier.imported) &&
                     specifier.imported.name === OBSERVER_NAME,
                 );
 
                 if (!hasObserverSpecifier) {
                   importPath.node.specifiers.push(
-                    t.importSpecifier(
-                      t.identifier(OBSERVER_NAME),
-                      t.identifier(OBSERVER_NAME),
+                    importSpecifier(
+                      identifier(OBSERVER_NAME),
+                      identifier(OBSERVER_NAME),
                     ),
                   );
                 }
@@ -101,16 +119,16 @@ export function createTransformer(PACKAGE_NAME: string) {
           });
 
           if (!hasObserverImport) {
-            const importDeclaration = t.importDeclaration(
+            const _importDeclaration = importDeclaration(
               [
-                t.importSpecifier(
-                  t.identifier(OBSERVER_NAME),
-                  t.identifier(OBSERVER_NAME),
+                importSpecifier(
+                  identifier(OBSERVER_NAME),
+                  identifier(OBSERVER_NAME),
                 ),
               ],
-              t.stringLiteral(PACKAGE_NAME),
+              stringLiteral(PACKAGE_NAME),
             );
-            path.unshiftContainer("body", importDeclaration);
+            path.unshiftContainer("body", _importDeclaration);
           }
         },
       },
@@ -122,13 +140,13 @@ export function createTransformer(PACKAGE_NAME: string) {
       return !isNodeModule && isProjectFile;
     }
 
-    function wrapFunctionWithObserver(functionPath: NodePath<t.Node>) {
+    function wrapFunctionWithObserver(functionPath: NodePath<Node>) {
       const funcNode = functionPath.node;
 
-      if (t.isFunctionDeclaration(funcNode)) {
+      if (isFunctionDeclaration(funcNode)) {
         // Convert FunctionDeclaration to VariableDeclaration wrapped with observer
         const id = funcNode.id;
-        const funcExpression = t.functionExpression(
+        const funcExpression = functionExpression(
           funcNode.id,
           funcNode.params,
           funcNode.body,
@@ -136,45 +154,45 @@ export function createTransformer(PACKAGE_NAME: string) {
           funcNode.async,
         );
 
-        const observerCall = t.callExpression(t.identifier(OBSERVER_NAME), [
+        const observerCall = callExpression(identifier(OBSERVER_NAME), [
           funcExpression,
         ]);
 
-        if (t.isExportDefaultDeclaration(functionPath.parent)) {
+        if (isExportDefaultDeclaration(functionPath.parent)) {
           functionPath.replaceWith(observerCall);
-        } else {
-          const variableDeclarator = t.variableDeclarator(id, observerCall);
-          const variableDeclaration = t.variableDeclaration("const", [
-            variableDeclarator,
+        } else if (id) {
+          const _variableDeclarator = variableDeclarator(id, observerCall);
+          const _variableDeclaration = variableDeclaration("const", [
+            _variableDeclarator,
           ]);
 
           // Replace the function declaration with variable declaration
-          functionPath.replaceWith(variableDeclaration);
+          functionPath.replaceWith(_variableDeclaration);
         }
       }
 
       // For VariableDeclarators (e.g., const Func = () => {})
       else if (
-        t.isVariableDeclarator(funcNode) &&
-        (t.isFunctionExpression(funcNode.init) ||
-          t.isArrowFunctionExpression(funcNode.init))
+        isVariableDeclarator(funcNode) &&
+        (isFunctionExpression(funcNode.init) ||
+          isArrowFunctionExpression(funcNode.init))
       ) {
         const init = funcNode.init;
 
-        if (!t.isCallExpression(init) || init.callee.name !== OBSERVER_NAME) {
-          const observerCall = t.callExpression(t.identifier(OBSERVER_NAME), [
-            init,
-          ]);
-          functionPath.get("init").replaceWith(observerCall);
-        }
+        const observerCall = callExpression(identifier(OBSERVER_NAME), [init]);
+
+        // @ts-ignore
+        functionPath.get("init").replaceWith(observerCall);
       }
 
       // For other cases
       else if (
-        !t.isCallExpression(functionPath.parent) ||
+        !isCallExpression(functionPath.parent) ||
+        // @ts-ignore
         functionPath.parent.callee.name !== OBSERVER_NAME
       ) {
-        const observerCall = t.callExpression(t.identifier(OBSERVER_NAME), [
+        const observerCall = callExpression(identifier(OBSERVER_NAME), [
+          // @ts-ignore
           funcNode,
         ]);
 

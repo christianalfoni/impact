@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/store",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -43,6 +43,7 @@
     "react": "*"
   },
   "devDependencies": {
+    "@babel/plugin-syntax-jsx": "^7.24.7",
     "rimraf": "^6.0.1",
     "typescript": "^5.6.2"
   }
