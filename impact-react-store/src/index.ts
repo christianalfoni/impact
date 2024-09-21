@@ -8,8 +8,6 @@ import {
   useState,
 } from "react";
 
-export { createTransformer } from "./transform";
-
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
 // can resolve other contexts we keep track of the currently resolving reactive context
 const resolvingStoreContainers: Array<StoreContainer> = [];

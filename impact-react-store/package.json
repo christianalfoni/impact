@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/store",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -19,7 +19,7 @@
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../convert-cjs",
+    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../create-dist",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
     "transform": "yarn build:cjs && node test-transform",
     "clean": "rimraf ./dist",

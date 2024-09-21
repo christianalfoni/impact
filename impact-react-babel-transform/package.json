@@ -1,6 +1,6 @@
 {
-  "name": "@impact-react/mobx",
-  "version": "1.1.1",
+  "name": "@impact-react/babel-transform",
+  "version": "1.0.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -11,20 +11,17 @@
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
-      "types": "./dist/esm/index.d.ts"
-    },
-    "./transform": {
-      "import": "./dist-transform/esm/index.js",
-      "types": "./dist-transform/esm/index.d.ts",
-      "default": "./dist-transform/cjs/index.cjs"
+      "types": "./dist/esm/index.d.ts",
+      "default": "./dist/cjs/index.cjs"
     }
   },
   "types": "./dist/esm/index.d.ts",
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../create-dist",
+    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../convert-cjs",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
+    "transform": "yarn build:cjs && node test-transform",
     "clean": "rimraf ./dist",
     "typecheck": "tsc --noEmit",
     "prepublish": "yarn build"
@@ -34,21 +31,17 @@
     "react",
     "context",
     "reactive",
-    "signals",
     "state",
-    "global"
+    "global",
+    "store",
+    "observable"
   ],
   "files": [
-    "dist",
-    "dist-transform"
+    "dist"
   ],
-  "peerDependencies": {
-    "mobx": "*",
-    "mobx-react-lite": "*",
-    "react": "*"
-  },
-  "dependencies": {
-    "@impact-react/store": "^1.0.2",
-    "@impact-react/babel-transform": "^1.0.0"
+  "devDependencies": {
+    "@babel/plugin-syntax-jsx": "^7.24.7",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.6.2"
   }
 }

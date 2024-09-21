@@ -2,6 +2,7 @@
   "name": "impact-react-monorepo",
   "private": true,
   "workspaces": [
+    "impact-react-babel-transform",
     "impact-react-store",
     "impact-react-signals",
     "impact-react-mobx",
