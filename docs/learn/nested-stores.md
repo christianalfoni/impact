@@ -2,7 +2,7 @@
 
 As **Impact** builds on the existing React context you will be able to instantiate reactive state management related to specific pages, features or even for each item in a list.
 
-The store can receive props from React, just like normal React context providers. The props are received as an object where each prop returns a reactive primitive representing the value of that prop. This is because React can update the props through reconciliation. You can use the props with observing primitives like computed, effect etc. and also expose them from the store itself to be used in nested components or stores.
+The store can receive props from React, just like normal React context providers. The props are received as an object where each prop returns a reactive primitive representing the value of that prop. This is because React can update the props through reconciliation. You can use the props with observing primitives like computed, effect etc. and also expose them from the store itself to be observed in nested components or stores.
 
 The hook returned from `createStore` can be used in both components and other stores.
 
