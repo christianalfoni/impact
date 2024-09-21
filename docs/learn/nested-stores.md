@@ -185,7 +185,7 @@ export const useAppStore = createStore(AppStore);
 
 :::
 
-In any application you have state that depends on other state. For example the list of posts depends on the current user. Or the state managing a form depends on the currently selected item. In global state stores you have to manually manage these dependencies, but with nested state stores this is handled by the very nature of putting state management where it is used.
+In most applications you have state that depends on other state. For example the list of posts depends on the current user. Or the state for editing an item depends on the currently selected item. In global state stores you have to manually manage these dependencies, but with nested state stores this is handled by the very nature of putting state management where it is used.
 
 This is an examples of how the `AppStore` depends on the user. If the id of the user changes, the store is remounted by React.
 
