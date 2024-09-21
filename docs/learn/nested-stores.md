@@ -189,20 +189,20 @@ In any application you have state that depends on other state. For example the l
 
 This is an examples of how the `AppStore` depends on the user. If the id of the user changes, the store is remounted by React.
 
-```ts
+```tsx
 function AppStore(props) {
-  return {
-    get user() {
-      return props.user
-    }
-  }
+  props.user;
+
+  return {};
 }
 
-const App = appStoreProvider(function App () {})
+const useAppStore = createStore(AppStore);
+
+const App = useAppStore.provider(function App() {});
 
 export default function Client() {
   // This part resolves a user
-  return <App key={user.id} user={user} />
+  return <App key={user.id} user={user} />;
 }
 ```
 
