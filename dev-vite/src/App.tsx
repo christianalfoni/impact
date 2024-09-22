@@ -1,7 +1,4 @@
-"use client";
-
-import { createStore, effect, signal, use } from "@impact-react/signals";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 
 const useCounterStore = createStore((_, cleanup) => {
   const [count, setCount] = signal(50);
@@ -20,3 +17,4 @@ export const Counter = useCounterStore.provider(function Counter() {
 
   return <h1>Count {state.count() + 5}</h1>;
 });
+
