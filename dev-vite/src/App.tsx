@@ -1,7 +1,20 @@
 import { useState } from "react";
 
-export const App = function Counter() {
-  const [count] = useState(50);
+const useCounterStore = createStore((_, cleanup) => {
+  const [count, setCount] = signal(50);
 
-  return <h1>Count {count}</h1>;
-};
+  const interval = setInterval(() => setCount(count() + 1), 1000);
+
+  cleanup(() => clearInterval(interval));
+
+  return {
+    count,
+  };
+});
+
+export const Counter = useCounterStore.provider(function Counter() {
+  const state = useCounterStore();
+
+  return <h1>Count {state.count() + 5}</h1>;
+});
+

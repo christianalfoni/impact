@@ -15,15 +15,20 @@ export function observer(): ObserverContext;
 export function observer<T extends FunctionComponent<any>>(component: T): T;
 export function observer<T>(component?: FunctionComponent<T>) {
   if (component) {
-    return memo((props: T) => {
+    function ObserverComponent(props: T) {
       const observer = useObserver();
 
       try {
+        // @ts-ignore
         return component(props);
       } finally {
         observer[Symbol.dispose]();
       }
-    });
+    }
+
+    ObserverComponent.displayName = component.name;
+
+    return ObserverComponent;
   }
 
   return useObserver();
