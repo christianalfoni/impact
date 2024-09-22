@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/signals",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "react": "*"
   },
   "dependencies": {
-    "@impact-react/store": "^1.0.2",
+    "@impact-react/store": "^1.0.3",
     "@impact-react/babel-transform": "^1.0.1"
   }
 }
