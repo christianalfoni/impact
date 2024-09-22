@@ -77,7 +77,7 @@ export function createTransformer(PACKAGE_NAME: string) {
                   let hasJsx = false;
 
                   functionParent.traverse({
-                    JSX(path) {
+                    JSX() {
                       hasJsx = true;
                     },
                   });
@@ -86,12 +86,8 @@ export function createTransformer(PACKAGE_NAME: string) {
                     return;
                   }
 
-                  // @ts-ignore
-                  if (!functionParent.node._isObserverWrapped) {
-                    wrapFunctionWithObserver(functionParent);
-                    // @ts-ignore
-                    functionParent.node._isObserverWrapped = true;
-                  }
+                  wrapFunctionWithObserver(functionParent);
+                  functionParent.skip();
                 }
               }
             },

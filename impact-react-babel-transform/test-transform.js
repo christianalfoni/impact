@@ -26,12 +26,19 @@ function Counter4() {
 
   return <h1>Hello</h1>
 }
+  
+function Counter5() {
+  const state = useCounterStore();
+  const state2 = useAppStore();
+
+  return <h1>Hello</h1>
+}
 
 `,
     {
       plugins: [
         "@babel/plugin-syntax-jsx",
-        (await import("./dist/cjs/transform.cjs")).createTransformer(
+        (await import("./dist/cjs/index.cjs")).createTransformer(
           "@impact-react/signals",
         ),
       ],
