@@ -1,5 +1,3 @@
-/// <reference types="vite/client" />
-
 import {
   createContext,
   createElement,
