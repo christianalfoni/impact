@@ -43,6 +43,19 @@ export function createTransformer(PACKAGE_NAME: string) {
             CallExpression(path) {
               const callee = path.node.callee;
 
+              if (isIdentifier(path.node.callee, { name: "observer" })) {
+                const firstArg = path.node.arguments[0];
+
+                if (
+                  isFunctionExpression(firstArg) ||
+                  isArrowFunctionExpression(firstArg) ||
+                  isIdentifier(firstArg)
+                ) {
+                  path.skip();
+                  return;
+                }
+              }
+
               // Check if callee is an Identifier (e.g., a simple function name)
               if (isIdentifier(callee)) {
                 const functionName = callee.name;

@@ -33,6 +33,12 @@ function Counter5() {
 
   return <h1>Hello</h1>
 }
+  
+const Counter6 = observer(function Counter6() {
+  const state = useCounterStore()
+  
+  return <h1>Hello</h1>
+})
 
 `,
     {
