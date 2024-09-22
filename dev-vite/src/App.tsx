@@ -3,8 +3,12 @@
 import { createStore, effect, signal, use } from "@impact-react/signals";
 import { Suspense, useState } from "react";
 
-const useCounterStore = createStore(() => {
-  const [count, setCount] = signal(15);
+const useCounterStore = createStore((_, cleanup) => {
+  const [count, setCount] = signal(50);
+
+  const interval = setInterval(() => setCount(count() + 1), 1000);
+
+  cleanup(() => clearInterval(interval));
 
   return {
     count,

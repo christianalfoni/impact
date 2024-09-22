@@ -189,25 +189,21 @@ export function configureStore(toObservableProp: Converter<any>) {
       storeProvider = (component) => {
         const wrappedComponent = function StoreProvider(props: SP & CP) {
           const { storeContainerRef, configureStore } = useConfigStore(props);
+          const hmrRef = useRef(store);
 
-          if (!storeContainerRef.current) {
+          if (!storeContainerRef.current || hmrRef.current !== store) {
             configureStore();
+            hmrRef.current = store;
           }
 
           resolvingStoreContainers.push(storeContainerRef.current);
-
-          console.log(component);
 
           const result = createElement(
             storeContainerContext.Provider,
             {
               value: storeContainerRef.current,
             },
-
-            typeof component === "function"
-              ? component(props)
-              : // @ts-ignore
-                component.type(props),
+            createElement(component, props),
           );
           resolvingStoreContainers.pop();
 
@@ -224,11 +220,18 @@ export function configureStore(toObservableProp: Converter<any>) {
         function StoreProvider(props: SP & CP) {
           const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
           const { storeContainerRef, configureStore } = useConfigStore(props);
+          const hmrRef = useRef(store);
 
           if (!canUseDOM) {
             throw new Error(
               `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
             );
+          }
+
+          if (hmrRef.current !== store) {
+            storeContainerRef.current.cleanup();
+            configureStore();
+            hmrRef.current = store;
           }
 
           useLayoutEffect(() => {
