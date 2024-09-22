@@ -1,3 +1,5 @@
+/// <reference types="vite/client" />
+
 import {
   createContext,
   createElement,
@@ -185,7 +187,7 @@ export function configureStore(toObservableProp: Converter<any>) {
 
     if (concurrentCompatible) {
       storeProvider = (component) => {
-        const wrappedComponent = (props: SP & CP) => {
+        const wrappedComponent = function StoreProvider(props: SP & CP) {
           const { storeContainerRef, configureStore } = useConfigStore(props);
 
           if (!storeContainerRef.current) {
@@ -194,12 +196,18 @@ export function configureStore(toObservableProp: Converter<any>) {
 
           resolvingStoreContainers.push(storeContainerRef.current);
 
+          console.log(component);
+
           const result = createElement(
             storeContainerContext.Provider,
             {
               value: storeContainerRef.current,
             },
-            createElement(component, props),
+
+            typeof component === "function"
+              ? component(props)
+              : // @ts-ignore
+                component.type(props),
           );
           resolvingStoreContainers.pop();
 
@@ -212,38 +220,39 @@ export function configureStore(toObservableProp: Converter<any>) {
       };
     } else {
       // eslint-disable-next-line
-      storeProvider = (component) => (props: SP & CP) => {
-        const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
-        const { storeContainerRef, configureStore } = useConfigStore(props);
+      storeProvider = (component) =>
+        function StoreProvider(props: SP & CP) {
+          const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
+          const { storeContainerRef, configureStore } = useConfigStore(props);
 
-        if (!canUseDOM) {
-          throw new Error(
-            `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
+          if (!canUseDOM) {
+            throw new Error(
+              `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
+            );
+          }
+
+          useLayoutEffect(() => {
+            const container = configureStore();
+
+            setResolvedStoreCount((current) => current + 1);
+
+            return () => {
+              container.cleanup();
+            };
+          }, []);
+
+          if (resolvedStoreCount === 0) {
+            return null;
+          }
+
+          return createElement(
+            storeContainerContext.Provider,
+            {
+              value: storeContainerRef.current,
+            },
+            createElement(component, props),
           );
-        }
-
-        useLayoutEffect(() => {
-          const container = configureStore();
-
-          setResolvedStoreCount((current) => current + 1);
-
-          return () => {
-            container.cleanup();
-          };
-        }, []);
-
-        if (resolvedStoreCount === 0) {
-          return null;
-        }
-
-        return createElement(
-          storeContainerContext.Provider,
-          {
-            value: storeContainerRef.current,
-          },
-          createElement(component, props),
-        );
-      };
+        };
     }
 
     function useStore(): T {
