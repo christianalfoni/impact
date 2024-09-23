@@ -1,14 +1,11 @@
 <p align="center">
   <img align="center" src="./Icon.png" />
 </p>
-<p align="center">
-  <b>Reactive contexts for React</b>
-</p>
 
 <br />
 
 <p align="center">
-⚠️ <b>Release candidate</b> ⚠️
+⚠️ <b>In BETA</b> ⚠️
 </p>
 
 <p align="center">

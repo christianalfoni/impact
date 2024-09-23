@@ -9,6 +9,11 @@
   );
 }
 
+.youtube-video {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
 .dark {
   --vp-home-hero-name-color: #fff;
 
