@@ -21,7 +21,7 @@ By CodeSandbox team
       link: /guides/
     - theme: alt
       text: Impact API
-      link: /create-component
+      link: /create-store
 
 
 features:
