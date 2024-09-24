@@ -18,7 +18,7 @@ By CodeSandbox team
       link: /learn/
     - theme: alt
       text: Guides
-      link: /guides/
+      link: /guides/queries-and-mutations
     - theme: alt
       text: Impact API
       link: /create-store
