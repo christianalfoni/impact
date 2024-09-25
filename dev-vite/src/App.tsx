@@ -1,20 +1,22 @@
-import { useState } from "react";
+import { createStore } from "@impact-react/mobx";
+import { observable } from "mobx";
 
-const useCounterStore = createStore((_, cleanup) => {
-  const [count, setCount] = signal(50);
-
-  const interval = setInterval(() => setCount(count() + 1), 1000);
-
-  cleanup(() => clearInterval(interval));
+const useCounterStore = createStore(() => {
+  const state = observable({ user: { name: "BlippetiBo" } });
 
   return {
-    count,
+    custom: {
+      state,
+    },
   };
 });
 
 export const Counter = useCounterStore.provider(function Counter() {
   const state = useCounterStore();
 
-  return <h1>Count {state.count() + 5}</h1>;
+  return (
+    <h1 onClick={() => (state.custom.state.user.name = "BlappatiBlapp")}>
+      Count {state.custom.state.user.name}
+    </h1>
+  );
 });
-

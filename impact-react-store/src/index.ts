@@ -8,6 +8,32 @@ import {
   useState,
 } from "react";
 
+type DebugEvent =
+  | {
+      type: "state";
+      storeContainer: StoreContainer;
+      state: Record<string, unknown>;
+    }
+  | {
+      type: "store_mounted";
+      storeContainer: StoreContainer;
+    }
+  | {
+      type: "store_unmounted";
+      storeContainer: StoreContainer;
+    };
+
+type DebugListener = (event: DebugEvent) => void;
+
+const debugListeners = new Set<DebugListener>();
+
+export function addDebugListener(listener: DebugListener) {
+  debugListeners.add(listener);
+  return () => {
+    debugListeners.delete(listener);
+  };
+}
+
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
 // can resolve other contexts we keep track of the currently resolving reactive context
 const resolvingStoreContainers: Array<StoreContainer> = [];
@@ -19,10 +45,10 @@ export function getResolvingStoreContainer() {
 }
 
 // The type for a reactive context, which is just a function with optional props returning whatever
-export type Store<P extends Record<string, unknown> | void, T> = (
-  props: P,
-  cleanup: Cleanup,
-) => T;
+export type Store<
+  P extends Record<string, unknown> | void,
+  T extends Record<string, unknown>,
+> = (props: P, cleanup: Cleanup) => T;
 
 export type Cleanup = (cb: () => void) => void;
 
@@ -96,17 +122,25 @@ type Converter<T> = (prop: T) => {
   set(newProp: T): void;
 };
 
+type StoreObserver = (
+  storeValue: Record<string, unknown>,
+  updateDebugger: (state: Record<string, unknown>) => void,
+) => () => void;
+
 const canUseDOM = !!(
   typeof window !== "undefined" &&
   window.document &&
   window.document.createElement
 );
 
-export function configureStore(toObservableProp: Converter<any>) {
+export function configureStore(
+  toObservableProp: Converter<any>,
+  observeStore: StoreObserver,
+) {
   return function createStore<
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
-    T,
+    T extends Record<string, unknown>,
   >(
     store: Store<SP, T>,
   ): (() => T) & {
@@ -162,6 +196,19 @@ export function configureStore(toObservableProp: Converter<any>) {
 
         resolvingStoreContainers.push(storeContainerRef.current);
         storeRef.current = store(storeProps, cleanup);
+
+        if (debugListeners.size) {
+          cleanup(
+            observeStore(storeRef.current, (state) => {
+              debugListeners.forEach((listener) => {
+                // Pass the fiber as well
+                // Add events for mounted/unmounted/state
+                listener(storeContainerRef.current, state);
+              });
+            }),
+          );
+        }
+
         resolvingStoreContainers.pop();
 
         container.setValue(storeRef.current);
@@ -283,7 +330,7 @@ function cleanup(cb: () => void) {
 
   if (!resolvingStoreContainer) {
     throw new Error(
-      '"onDidMount" can only be used when creating a reactive component',
+      '"cleanup" can only be used when creating a reactive component',
     );
   }
 
