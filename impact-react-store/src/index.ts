@@ -3,9 +3,12 @@ import {
   createElement,
   FunctionComponent,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
+  // @ts-ignore
+  __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
 } from "react";
 
 type DebugEvent =
@@ -15,8 +18,14 @@ type DebugEvent =
       state: Record<string, unknown>;
     }
   | {
+      type: "props";
+      storeContainer: StoreContainer;
+      props: Record<string, unknown>;
+    }
+  | {
       type: "store_mounted";
       storeContainer: StoreContainer;
+      componentRef: any;
     }
   | {
       type: "store_unmounted";
@@ -133,6 +142,11 @@ const canUseDOM = !!(
   window.document.createElement
 );
 
+const useCurrentComponent = () => {
+  return __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner
+    ?.current;
+};
+
 export function configureStore(
   toObservableProp: Converter<any>,
   observeStore: StoreObserver,
@@ -151,6 +165,27 @@ export function configureStore(
       const observablePropsRef = useRef<any>();
       const storeContainerRef = useRef<any>();
       const storeRef = useRef<any>(null);
+      const comp = useCurrentComponent();
+
+      if (debugListeners.size) {
+        useEffect(() => {
+          debugListeners.forEach((listener) => {
+            listener({
+              type: "store_mounted",
+              storeContainer: storeContainerRef.current,
+              componentRef: comp,
+            });
+          });
+          return () => {
+            debugListeners.forEach((listener) => {
+              listener({
+                type: "store_unmounted",
+                storeContainer: storeContainerRef.current,
+              });
+            });
+          };
+        }, []);
+      }
 
       // Update props
       useLayoutEffect(() => {
@@ -164,6 +199,16 @@ export function configureStore(
           }
           // @ts-ignore
           observablePropsRef.current[key].set(props[key]);
+        }
+
+        if (debugListeners.size) {
+          debugListeners.forEach((listener) => {
+            listener({
+              type: "props",
+              storeContainer: storeContainerRef.current,
+              props,
+            });
+          });
         }
       }, [props]);
 
@@ -202,8 +247,11 @@ export function configureStore(
             observeStore(storeRef.current, (state) => {
               debugListeners.forEach((listener) => {
                 // Pass the fiber as well
-                // Add events for mounted/unmounted/state
-                listener(storeContainerRef.current, state);
+                listener({
+                  type: "state",
+                  storeContainer: storeContainerRef.current,
+                  state,
+                });
               });
             }),
           );
