@@ -1,5 +1,4 @@
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
-import { debugHooks } from "./debugHooks";
 
 type PendingPromise<T> = Promise<T> & {
   status: "pending";
@@ -134,9 +133,6 @@ export function signal<T>(initialValue: T) {
     () => {
       if (ObserverContext.current) {
         ObserverContext.current.registerGetter(signalNotifier);
-        if (debugHooks.onGetValue) {
-          debugHooks.onGetValue(ObserverContext.current, signalNotifier);
-        }
       }
 
       return value;
@@ -159,10 +155,6 @@ export function signal<T>(initialValue: T) {
       value = newValue;
 
       ObserverContext.current?.registerSetter(signalNotifier);
-
-      if (debugHooks.onSetValue) {
-        debugHooks.onSetValue(signalNotifier, value);
-      }
 
       if (value instanceof Promise) {
         // A promise could be an already resolved promise, in which case we do not want to notify as it is

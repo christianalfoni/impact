@@ -1,7 +1,6 @@
 import { ObservablePromise } from "./signal";
 
 export { Observer, observer, useObserver } from "./observers";
-export { debugHooks } from "./debugHooks";
 export { __observer, createStore } from "./store";
 export { effect } from "./effect";
 export { signal } from "./signal";

@@ -1,5 +1,3 @@
-import { debugHooks } from "./debugHooks";
-
 export type ObserverContextType = "component" | "derived" | "effect";
 
 // Use for memory leak debugging
@@ -65,9 +63,6 @@ export class ObserverContext {
   snapshot = currentSnapshot;
 
   constructor(public type: ObserverContextType) {
-    if (debugHooks.onGetValue) {
-      this.stackTrace = new Error().stack || "";
-    }
     // Use for memory leak debugging
     // registry.register(this, this.id + " has been collected");
   }

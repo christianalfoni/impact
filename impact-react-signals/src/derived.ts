@@ -1,7 +1,5 @@
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
 
-import { debugHooks } from "./debugHooks";
-
 export type Derived<T> = () => T;
 
 export function derived<T>(cb: () => T) {
@@ -20,9 +18,6 @@ export function derived<T>(cb: () => T) {
   return () => {
     if (ObserverContext.current) {
       ObserverContext.current.registerGetter(signalNotifier);
-      if (debugHooks.onGetValue) {
-        debugHooks.onGetValue(ObserverContext.current, signalNotifier);
-      }
     }
 
     if (isDirty) {
@@ -46,10 +41,6 @@ export function derived<T>(cb: () => T) {
 
       // With a new value calculated it is not dirty anymore
       isDirty = false;
-
-      if (debugHooks.onSetValue) {
-        debugHooks.onSetValue(signalNotifier, value, true);
-      }
     }
 
     return value;

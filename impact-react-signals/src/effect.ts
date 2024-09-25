@@ -1,5 +1,4 @@
 import { ObserverContext } from "./ObserverContext";
-import { debugHooks } from "./debugHooks";
 
 export function effect(cb: () => void) {
   let disposer: (() => void) | void;
@@ -17,10 +16,6 @@ export function effect(cb: () => void) {
     ObserverContext.stack.pop();
 
     disposer = context.subscribe(runEffect);
-
-    if (debugHooks.onEffectRun) {
-      debugHooks.onEffectRun(cb);
-    }
   }
 
   return () => {

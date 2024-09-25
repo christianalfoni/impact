@@ -8,6 +8,19 @@ import {
   useState,
 } from "react";
 
+type DebugHook = (
+  storeRef: Store<any, any>,
+  componentRef: { name: string },
+  path: string[],
+  value: any,
+) => void;
+
+let debugHook: DebugHook | undefined;
+
+export function registerDebugHook(cb: DebugHook) {
+  debugHook = cb;
+}
+
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
 // can resolve other contexts we keep track of the currently resolving reactive context
 const resolvingStoreContainers: Array<StoreContainer> = [];
@@ -269,7 +282,9 @@ export function configureStore(toObservableProp: Converter<any>) {
         throw new Error("There are no parent reactive components");
       }
 
-      return storeContainer.resolve(store);
+      if (process.env.NODE_ENV === "development") {
+        return storeContainer.resolve(store);
+      }
     }
 
     useStore.provider = storeProvider;
