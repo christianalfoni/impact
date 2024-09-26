@@ -9,7 +9,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: ["@impact-react/mobx/transform"],
+        plugins: ["@impact-react/signals/transform"],
       },
     }),
   ],

@@ -54,10 +54,10 @@ export function getResolvingStoreContainer() {
 }
 
 // The type for a reactive context, which is just a function with optional props returning whatever
-export type Store<
-  P extends Record<string, unknown> | void,
-  T extends Record<string, unknown>,
-> = (props: P, cleanup: Cleanup) => T;
+export type Store<P extends Record<string, unknown> | void, T> = (
+  props: P,
+  cleanup: Cleanup,
+) => T;
 
 export type Cleanup = (cb: () => void) => void;
 
@@ -154,7 +154,7 @@ export function configureStore(
   return function createStore<
     SP extends NonNullable<unknown>,
     CP extends NonNullable<unknown>,
-    T extends Record<string, unknown>,
+    T,
   >(
     store: Store<SP, T>,
   ): (() => T) & {
@@ -242,7 +242,11 @@ export function configureStore(
         resolvingStoreContainers.push(storeContainerRef.current);
         storeRef.current = store(storeProps, cleanup);
 
-        if (debugListeners.size) {
+        if (
+          debugListeners.size &&
+          typeof storeRef.current === "object" &&
+          storeRef.current !== null
+        ) {
           cleanup(
             observeStore(storeRef.current, (state) => {
               debugListeners.forEach((listener) => {
