@@ -11,26 +11,40 @@ import {
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
 } from "react";
 
+export type SerializedStore = {
+  id: string;
+  name: string;
+  parent?: SerializedStore;
+};
+
 export type DebugEvent =
   | { type: "connected" }
   | {
       type: "state";
-      storeContainer: StoreContainer;
+      storeContext: StoreContainer;
       state: Record<string, unknown>;
     }
   | {
       type: "props";
-      storeContainer: StoreContainer;
+      storeContext: StoreContainer;
       props: Record<string, unknown>;
     }
   | {
       type: "store_mounted";
-      storeContainer: StoreContainer;
+      storeContext: StoreContainer;
       componentRef: any;
     }
   | {
+      type: "store_mounted_debugger"; // TODO: find a better name
+      store: SerializedStore;
+    }
+  | {
       type: "store_unmounted";
-      storeContainer: StoreContainer;
+      storeContext: StoreContainer;
+    }
+  | {
+      type: "store_unmounted_debugger"; // TODO: find a better name
+      id: SerializedStore["id"];
     };
 
 type DebugListener = (event: DebugEvent) => void;
@@ -64,7 +78,7 @@ export type Cleanup = (cb: () => void) => void;
 
 // A reactive context container is created by the ReactiveContextProvider in React. When using the "useReactiveContext" hook it first finds the
 // context providing the reactive context container and then resolves the context
-class StoreContainer {
+export class StoreContainer {
   // For obscure reasons (https://github.com/facebook/react/issues/17163#issuecomment-607510381) React will
   // swallow the first error on render and render again. To correctly throw the initial error we keep a reference to it
   _resolvementError?: Error;
@@ -78,6 +92,7 @@ class StoreContainer {
     // When the ReactiveContextProvider mounts it uses the React context to find the parent
     // reactive context container
     public parent: StoreContainer | null,
+    public name: string,
   ) {}
   setValue(value: any) {
     this._storeValue = value;
@@ -122,10 +137,10 @@ class StoreContainer {
 }
 
 // The context for the reactive contextContainer
-const storeContainerContext = createContext<StoreContainer | null>(null);
+const storeContext = createContext<StoreContainer | null>(null);
 
 // @ts-ignore
-storeContainerContext.Provider.displayName = "StateProvider";
+storeContext.Provider.displayName = "StateProvider";
 
 type Converter<T> = (prop: T) => {
   get(): any;
@@ -162,9 +177,9 @@ export function configureStore(
     provider: (component: FunctionComponent<CP>) => FunctionComponent<SP & CP>;
   } {
     function useConfigStore(props: any) {
-      const parentStoreContainer = useContext(storeContainerContext);
+      const parentStoreContext = useContext(storeContext);
       const observablePropsRef = useRef<any>();
-      const storeContainerRef = useRef<any>();
+      const storeContextRef = useRef<any>();
       const storeRef = useRef<any>(null);
       const comp = useCurrentComponent();
 
@@ -173,7 +188,8 @@ export function configureStore(
           debugListeners.forEach((listener) => {
             listener({
               type: "store_mounted",
-              storeContainer: storeContainerRef.current,
+              // TODO: consider another name for `container`
+              storeContext: storeContextRef.current,
               componentRef: comp,
             });
           });
@@ -181,7 +197,7 @@ export function configureStore(
             debugListeners.forEach((listener) => {
               listener({
                 type: "store_unmounted",
-                storeContainer: storeContainerRef.current,
+                storeContext: storeContextRef.current,
               });
             });
           };
@@ -206,7 +222,7 @@ export function configureStore(
           debugListeners.forEach((listener) => {
             listener({
               type: "props",
-              storeContainer: storeContainerRef.current,
+              storeContext: storeContextRef.current,
               props,
             });
           });
@@ -214,11 +230,12 @@ export function configureStore(
       }, [props]);
 
       function configureStore() {
-        const container = (storeContainerRef.current = new StoreContainer(
+        const container = (storeContextRef.current = new StoreContainer(
           store,
           // eslint-disable-next-line
           // @ts-ignore
-          parentStoreContainer,
+          parentStoreContext,
+          store.name,
         ));
 
         const observableProps = (observablePropsRef.current = {}) as any;
@@ -240,7 +257,7 @@ export function configureStore(
           });
         }
 
-        resolvingStoreContainers.push(storeContainerRef.current);
+        resolvingStoreContainers.push(storeContextRef.current);
         storeRef.current = store(storeProps, cleanup);
 
         if (
@@ -254,7 +271,7 @@ export function configureStore(
                 // Pass the fiber as well
                 listener({
                   type: "state",
-                  storeContainer: storeContainerRef.current,
+                  storeContext: storeContextRef.current,
                   state,
                 });
               });
@@ -272,7 +289,7 @@ export function configureStore(
       return {
         configureStore,
         observablePropsRef,
-        storeContainerRef,
+        storeContainerRef: storeContextRef,
         storeRef,
       };
     }
@@ -297,7 +314,7 @@ export function configureStore(
           resolvingStoreContainers.push(storeContainerRef.current);
 
           const result = createElement(
-            storeContainerContext.Provider,
+            storeContext.Provider,
             {
               value: storeContainerRef.current,
             },
@@ -347,7 +364,7 @@ export function configureStore(
           }
 
           return createElement(
-            storeContainerContext.Provider,
+            storeContext.Provider,
             {
               value: storeContainerRef.current,
             },
@@ -363,7 +380,7 @@ export function configureStore(
         return resolvingStoreContainer.resolve(store);
       }
 
-      const storeContainer = useContext(storeContainerContext);
+      const storeContainer = useContext(storeContext);
 
       if (!storeContainer) {
         throw new Error("There are no parent reactive components");

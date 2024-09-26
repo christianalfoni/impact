@@ -52,33 +52,34 @@ export default function ReactDevTool() {
             break;
           }
 
+          case "store_unmounted":
+          case "store_mounted": {
+            // ignore
+            break;
+          }
+
+          case "store_mounted_debugger": {
+            dispatch({
+              type: "add",
+              payload: payload.store,
+            });
+
+            break;
+          }
+
+          case "store_unmounted_debugger": {
+            dispatch({
+              type: "stale",
+              payload: { id: payload.id },
+            });
+
+            break;
+          }
+
           default: {
             console.log("[debugger]: event not handled -> ", payload);
           }
         }
-
-        // if ("connected" in payload) {
-        //   setIsLoading(false);
-
-        //   return;
-        // } else if ("store_mounted" in payload) {
-        //   dispatch({
-        //     type: "add",
-        //     payload: payload.store_mounted,
-        //   });
-
-        //   return;
-        // } else if ("store_unmounted" in payload) {
-        //   dispatch({
-        //     type: "stale",
-        //     payload: { id: payload.store_unmounted.storeRefId },
-        //   });
-
-        //   return;
-        // } else {
-        //   console.log("unknown payload");
-        //   console.log(payload);
-        // }
       }
     };
 
@@ -231,12 +232,12 @@ function TreeNode({
 }
 
 function createChild(
-  payload: types.StoreMountedPayload["store_mounted"],
+  store: types.SerializedStore,
   stale: boolean,
 ): ComponentData {
   return {
-    id: payload.store.id,
-    name: payload.store.name.replace("Store", ""),
+    id: store.id,
+    name: store.name,
     props: {}, // todo
     state: {}, // todo
     stateTimeline: [], // todo
@@ -248,7 +249,7 @@ function createChild(
 type Action =
   | {
       type: "add";
-      payload: types.StoreMountedPayload["store_mounted"];
+      payload: types.SerializedStore;
     }
   | { type: "stale"; payload: { id: string } };
 
@@ -267,20 +268,20 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 
 function addComponent(
   state: ComponentData[],
-  payload: types.StoreMountedPayload["store_mounted"],
+  store: types.SerializedStore,
 ): ComponentData[] {
-  if (!payload.store.parent) {
-    return state.some((item) => item.id === payload.store.id)
+  if (!store.parent) {
+    return state.some((item) => item.id === store.id)
       ? state.map((item) =>
-          item.id === payload.store.id ? { ...item, stale: false } : item,
+          item.id === store.id ? { ...item, stale: false } : item,
         )
-      : [...state, createChild(payload, false)];
+      : [...state, createChild(store, false)];
   }
 
   return state.map((item) => {
-    if (item.id === payload.store.parent!.id) {
+    if (item.id === store.parent!.id) {
       const existingChildIndex = item.children.findIndex(
-        (child) => child.id === payload.store.id,
+        (child) => child.id === store.id,
       );
 
       if (existingChildIndex !== -1) {
@@ -290,7 +291,7 @@ function addComponent(
           newChildren.splice(existingChildIndex, 1);
           return {
             ...item,
-            children: [...newChildren, createChild(payload, false)],
+            children: [...newChildren, createChild(store, false)],
           };
         }
         // If child exists and is not stale, don't modify
@@ -300,13 +301,13 @@ function addComponent(
       // If child doesn't exist, add it
       return {
         ...item,
-        children: [...item.children, createChild(payload, false)],
+        children: [...item.children, createChild(store, false)],
       };
     }
 
     return {
       ...item,
-      children: addComponent(item.children, payload),
+      children: addComponent(item.children, store),
     };
   });
 }

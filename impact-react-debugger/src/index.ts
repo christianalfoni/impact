@@ -1,7 +1,9 @@
 import * as types from "./types";
 export * as types from "./types";
 
-import { addDebugListener } from "@impact-react/store";
+import { addDebugListener, StoreContainer } from "@impact-react/store";
+
+const storeRefs = new Map<StoreContainer, string>();
 
 let promiseResolver: (value: Window) => void;
 const awaitBridge = new Promise<Window>((resolve) => {
@@ -14,6 +16,7 @@ export function connectDebuggerBridge(target: Window) {
 }
 
 async function sendMessageToDebugger(event: types.DebugEvent) {
+  // Barrier to ensure that the bridge is connected before sending messages
   const targetWindow = await awaitBridge;
 
   const message: types.DebugData = {
@@ -21,7 +24,60 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
     event,
   };
 
-  targetWindow.postMessage(message, "*");
+  switch (event.type) {
+    case "store_mounted": {
+      const storeRefId = createUniqueId();
+
+      if (!storeRefs.has(event.storeContext)) {
+        storeRefs.set(event.storeContext, storeRefId);
+      }
+
+      const getParentStore = () => {
+        const parent = event.storeContext.parent;
+        if (parent == null) return;
+
+        const parentId = storeRefs.get(parent);
+        if (parentId == undefined) return;
+
+        return {
+          id: parentId,
+          name: parent.name,
+        };
+      };
+
+      message.event = {
+        type: "store_mounted_debugger",
+        store: {
+          id: storeRefId,
+          name: event.storeContext.name,
+          parent: getParentStore(),
+        },
+      };
+
+      break;
+    }
+
+    case "store_unmounted": {
+      if (storeRefs.get(event.storeContext)) {
+        message.event = {
+          type: "store_unmounted_debugger",
+          id: storeRefs.get(event.storeContext)!,
+        };
+      }
+
+      break;
+    }
+  }
+
+  try {
+    targetWindow.postMessage(message, "*");
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 addDebugListener(sendMessageToDebugger);
+
+function createUniqueId() {
+  return Math.random().toString(36).substring(2, 15);
+}
