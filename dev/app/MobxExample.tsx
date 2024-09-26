@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 
 type State = { groceries: string[]; grocery: string };
 
-const useStore = createStore(function Store() {
+const useStore = createStore(function Store(props: { foo: string }) {
   const state = observable<State>({
     groceries: [],
     grocery: "",
@@ -88,5 +88,16 @@ const App = useStore.provider(function App() {
 });
 
 export function MobxExample() {
-  return <App />;
+  const [foo, setFoo] = useState("hello");
+
+  useEffect(() => {
+    const interval = setInterval(
+      () => setFoo((current) => current + "!"),
+      1000,
+    );
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return <App foo={foo} />;
 }
