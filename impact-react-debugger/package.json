@@ -43,7 +43,7 @@
     "stacktrace-gps": "^3.1.2"
   },
   "peerDependencies": {
-    "impact-react": "*"
+    "@impact-react/store": "*"
   },
   "devDependencies": {
     "vite": "^5.0.11"
