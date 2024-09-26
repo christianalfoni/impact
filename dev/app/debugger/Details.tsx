@@ -37,15 +37,15 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
 
   return (
     <div className="p-4 overflow-auto h-full">
-      <h3 className="text-lg font-semibold text-white mb-2">
-        {data.name}
+      <h3 className="text-lg flex items-center gap-3 font-semibold text-white mb-2">
+        <span>{data.name}</span>
         {data.stale && (
-          <>
+          <span>
             {" "}
-            <span className="border border-orange-500/50 text-orange-400 px-1 rounded-sm text-xs font-normal">
+            <span className="rounded-md font-normal bg-orange-500/10 px-2 py-1 text-sm text-orange-500 ring-1 ring-inset ring-orange-500/40">
               Stale
             </span>
-          </>
+          </span>
         )}
       </h3>
       <div className="mb-4">

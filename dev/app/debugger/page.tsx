@@ -191,16 +191,18 @@ function TreeNode({
             ))}
         </span>
         <span
-          className={`text-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
+          className={`text-sm flex items-center gap-3 ${
+            isSelected ? "text-white" : "text-zinc-400"
+          }`}
         >
           {data.name}
           {data.stale && (
-            <>
+            <span>
               {" "}
-              <span className="border border-orange-500/50 text-orange-400 px-1 rounded-sm text-xs">
+              <span className="rounded-md bg-orange-500/10 px-2 py-1 text-[10px] text-orange-500 ring-1 ring-inset ring-orange-500/40">
                 Stale
               </span>
-            </>
+            </span>
           )}
         </span>
       </div>
@@ -224,7 +226,7 @@ function createChild(
 ): ComponentData {
   return {
     id: payload.store.id,
-    name: payload.store.name,
+    name: payload.store.name.replace("Store", ""),
     props: {}, // todo
     state: {}, // todo
     stateTimeline: [], // todo
@@ -268,7 +270,7 @@ function addComponent(
   return state.map((item) => {
     if (item.id === payload.store.parent!.id) {
       const existingChildIndex = item.children.findIndex(
-        (child) => child.name === payload.store.name,
+        (child) => child.id === payload.store.id,
       );
 
       if (existingChildIndex !== -1) {
