@@ -198,11 +198,17 @@ function AppStore(props) {
 
 const useAppStore = createStore(AppStore);
 
-const App = useAppStore.provider(function App() {});
+function App() {
+  const { user } = useAppStore();
+}
 
 export default function Client() {
   // This part resolves a user
-  return <App key={user.id} user={user} />;
+  return (
+    <useAppStore.Provider key={user.id} user={user}>
+      <App />
+    </useAppStore.Provider>
+  );
 }
 ```
 
