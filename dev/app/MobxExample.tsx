@@ -25,13 +25,11 @@ const useConditionalStore = createStore(function ConditionalStore() {
   return state;
 });
 
-const ConditionalComponent = useConditionalStore.provider(
-  function ConditionalComponent() {
-    return <p>Hello, I'm a conditional store</p>;
-  },
-);
+function ConditionalComponent() {
+  return <p>Hello, I'm a conditional store</p>;
+}
 
-const App = useStore.provider(function App() {
+function App() {
   const iframe = useRef<HTMLIFrameElement>(null);
   const [showConditionalStore, setShowConditionalStore] = useState(false);
   const state = useStore();
@@ -54,7 +52,11 @@ const App = useStore.provider(function App() {
         Toggle conditional store
       </button>
 
-      {showConditionalStore && <ConditionalComponent />}
+      {showConditionalStore && (
+        <useConditionalStore.Provider>
+          <ConditionalComponent />
+        </useConditionalStore.Provider>
+      )}
 
       <br />
 
@@ -85,7 +87,7 @@ const App = useStore.provider(function App() {
       </div>
     </>
   );
-});
+}
 
 export function MobxExample() {
   const [foo, setFoo] = useState("hello");
@@ -99,5 +101,9 @@ export function MobxExample() {
     return () => clearInterval(interval);
   }, []);
 
-  return <App foo={foo} />;
+  return (
+    <useStore.Provider foo={foo}>
+      <App />
+    </useStore.Provider>
+  );
 }

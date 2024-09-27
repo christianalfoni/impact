@@ -9,6 +9,7 @@ import {
   useState,
   // @ts-ignore
   __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED,
+  ReactNode,
 } from "react";
 
 export type SerializedStore = {
@@ -167,14 +168,10 @@ export function configureStore(
   toObservableProp: Converter<any>,
   observeStore: StoreObserver,
 ) {
-  return function createStore<
-    SP extends NonNullable<unknown>,
-    CP extends NonNullable<unknown>,
-    T,
-  >(
+  return function createStore<SP extends Record<string, unknown>, T>(
     store: Store<SP, T>,
   ): (() => T) & {
-    provider: (component: FunctionComponent<CP>) => FunctionComponent<SP & CP>;
+    Provider: FunctionComponent<SP & { children: ReactNode }>;
   } {
     function useConfigStore(props: any) {
       const parentStoreContext = useContext(storeContext);
@@ -296,82 +293,75 @@ export function configureStore(
 
     const concurrentCompatible = store.length <= 1;
 
-    let storeProvider: (
-      component: FunctionComponent<CP>,
-    ) => FunctionComponent<SP & CP>;
+    let StoreProvider: FunctionComponent<SP & { children: ReactNode }>;
 
     if (concurrentCompatible) {
-      storeProvider = (component) => {
-        const wrappedComponent = function StoreProvider(props: SP & CP) {
-          const { storeContainerRef, configureStore } = useConfigStore(props);
-          const hmrRef = useRef(store);
+      StoreProvider = function StoreProvider(props) {
+        const { storeContainerRef, configureStore } = useConfigStore(props);
+        const hmrRef = useRef(store);
 
-          if (!storeContainerRef.current || hmrRef.current !== store) {
-            configureStore();
-            hmrRef.current = store;
-          }
+        if (!storeContainerRef.current || hmrRef.current !== store) {
+          configureStore();
+          hmrRef.current = store;
+        }
 
-          resolvingStoreContainers.push(storeContainerRef.current);
+        resolvingStoreContainers.push(storeContainerRef.current);
 
-          const result = createElement(
-            storeContext.Provider,
-            {
-              value: storeContainerRef.current,
-            },
-            createElement(component, props),
-          );
-          resolvingStoreContainers.pop();
+        const result = createElement(
+          storeContext.Provider,
+          {
+            value: storeContainerRef.current,
+          },
+          props.children,
+        );
+        resolvingStoreContainers.pop();
 
-          return result;
-        };
-
-        wrappedComponent.displayName = component.name;
-
-        return wrappedComponent;
+        return result;
       };
     } else {
-      // eslint-disable-next-line
-      storeProvider = (component) =>
-        function StoreProvider(props: SP & CP) {
-          const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
-          const { storeContainerRef, configureStore } = useConfigStore(props);
-          const hmrRef = useRef(store);
+      StoreProvider = function StoreProvider(props) {
+        const [resolvedStoreCount, setResolvedStoreCount] = useState(0);
+        const { storeContainerRef, configureStore } = useConfigStore(props);
+        const hmrRef = useRef(store);
 
-          if (!canUseDOM) {
-            throw new Error(
-              `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
-            );
-          }
-
-          if (hmrRef.current !== store) {
-            storeContainerRef.current.cleanup();
-            configureStore();
-            hmrRef.current = store;
-          }
-
-          useLayoutEffect(() => {
-            const container = configureStore();
-
-            setResolvedStoreCount((current) => current + 1);
-
-            return () => {
-              container.cleanup();
-            };
-          }, []);
-
-          if (resolvedStoreCount === 0) {
-            return null;
-          }
-
-          return createElement(
-            storeContext.Provider,
-            {
-              value: storeContainerRef.current,
-            },
-            createElement(component, props),
+        if (!canUseDOM) {
+          throw new Error(
+            `The store "${store.name}" has side effects (cleanup). Do not provide it on the server`,
           );
-        };
+        }
+
+        if (hmrRef.current !== store) {
+          storeContainerRef.current.cleanup();
+          configureStore();
+          hmrRef.current = store;
+        }
+
+        useLayoutEffect(() => {
+          const container = configureStore();
+
+          setResolvedStoreCount((current) => current + 1);
+
+          return () => {
+            container.cleanup();
+          };
+        }, []);
+
+        if (resolvedStoreCount === 0) {
+          return null;
+        }
+
+        return createElement(
+          storeContext.Provider,
+          {
+            value: storeContainerRef.current,
+          },
+          // eslint-disable-next-line
+          props.children,
+        );
+      };
     }
+
+    StoreProvider.displayName = store.name;
 
     function useStore(): T {
       const resolvingStoreContainer = getResolvingStoreContainer();
@@ -389,7 +379,7 @@ export function configureStore(
       return storeContainer.resolve(store);
     }
 
-    useStore.provider = storeProvider;
+    useStore.Provider = StoreProvider;
 
     return useStore;
   };

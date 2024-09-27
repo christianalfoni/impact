@@ -7,7 +7,7 @@ const useCounterStore = createStore(function CounterStore() {
   return { list, setList };
 });
 
-export const Counter = useCounterStore.provider(function Counter() {
+function Counter() {
   const state = useCounterStore();
 
   return (
@@ -38,4 +38,12 @@ export const Counter = useCounterStore.provider(function Counter() {
       </ul>
     </div>
   );
-});
+}
+
+export function App() {
+  return (
+    <useCounterStore.Provider>
+      <Counter />
+    </useCounterStore.Provider>
+  );
+}
