@@ -62,6 +62,7 @@ export default function ReactDevTool() {
             dispatch({
               type: "add",
               payload: payload.store,
+              reactFiberId: payload.reactFiberId,
             });
 
             break;
@@ -186,6 +187,17 @@ function TreeNode({
           isSelected ? "bg-zinc-800 border-cyan-400" : "border-transparent "
         }`}
         onClick={() => onSelect(data.id)}
+        onMouseEnter={() => {
+          window.parent.postMessage({
+            type: "highlight-element",
+            reactFiberId: data.reactFiberId,
+          });
+        }}
+        onMouseLeave={() => {
+          window.parent.postMessage({
+            type: "highlight-clean",
+          });
+        }}
       >
         <span
           className="mr-1 w-4 text-zinc-400 hover:text-white"
@@ -233,6 +245,7 @@ function TreeNode({
 
 function createChild(
   store: types.SerializedStore,
+  reactFiberId: string,
   stale: boolean,
 ): ComponentData {
   return {
@@ -243,6 +256,7 @@ function createChild(
     stateTimeline: [], // todo
     children: [],
     stale,
+    reactFiberId,
   };
 }
 
@@ -250,13 +264,14 @@ type Action =
   | {
       type: "add";
       payload: types.SerializedStore;
+      reactFiberId: string;
     }
   | { type: "stale"; payload: { id: string } };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
   switch (action.type) {
     case "add":
-      return addComponent(state, action.payload);
+      return addComponent(state, action.payload, action.reactFiberId);
 
     case "stale":
       return markComponentAsStale(state, action.payload.id);
@@ -269,13 +284,14 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 function addComponent(
   state: ComponentData[],
   store: types.SerializedStore,
+  reactFiberId: string,
 ): ComponentData[] {
   if (!store.parent) {
     return state.some((item) => item.id === store.id)
       ? state.map((item) =>
           item.id === store.id ? { ...item, stale: false } : item,
         )
-      : [...state, createChild(store, false)];
+      : [...state, createChild(store, reactFiberId, false)];
   }
 
   return state.map((item) => {
@@ -291,7 +307,7 @@ function addComponent(
           newChildren.splice(existingChildIndex, 1);
           return {
             ...item,
-            children: [...newChildren, createChild(store, false)],
+            children: [...newChildren, createChild(store, reactFiberId, false)],
           };
         }
         // If child exists and is not stale, don't modify
@@ -301,13 +317,13 @@ function addComponent(
       // If child doesn't exist, add it
       return {
         ...item,
-        children: [...item.children, createChild(store, false)],
+        children: [...item.children, createChild(store, reactFiberId, false)],
       };
     }
 
     return {
       ...item,
-      children: addComponent(item.children, store),
+      children: addComponent(item.children, store, reactFiberId),
     };
   });
 }

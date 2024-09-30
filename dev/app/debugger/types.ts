@@ -13,4 +13,5 @@ export type ComponentData = {
   children: ComponentData[];
   stateTimeline: StateChange[];
   stale: boolean;
+  reactFiberId: string;
 };

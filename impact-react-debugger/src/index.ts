@@ -15,6 +15,32 @@ export function connectDebuggerBridge(target: Window) {
   promiseResolver(target);
 }
 
+window.addEventListener("message", (e) => {
+  if (e.data.type === "highlight-element") {
+    window.postMessage({
+      source: "react-devtools-content-script",
+      payload: {
+        event: "highlightNativeElement",
+        payload: {
+          displayName: "App",
+          hideAfterTimeout: false,
+          id: e.data.reactFiberId,
+          openNativeElementsPanel: false,
+          rendererID: 1,
+          scrollIntoView: false,
+        },
+      },
+    });
+  } else if (e.data.type === "highlight-clean") {
+    window.postMessage({
+      source: "react-devtools-content-script",
+      payload: {
+        event: "clearNativeElementHighlight",
+      },
+    });
+  }
+});
+
 async function sendMessageToDebugger(event: types.DebugEvent) {
   // Barrier to ensure that the bridge is connected before sending messages
   const targetWindow = await awaitBridge;
@@ -26,9 +52,8 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
 
   switch (event.type) {
     case "store_mounted": {
-      const storeRefId = createUniqueId();
-
       if (!storeRefs.has(event.storeContext)) {
+        const storeRefId = createUniqueId();
         storeRefs.set(event.storeContext, storeRefId);
       }
 
@@ -45,10 +70,24 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
         };
       };
 
+      // recursevely find stateNode inside event.componentRef
+      function findStateNode(componentRef: any): any {
+        if (componentRef.stateNode) {
+          return componentRef.stateNode;
+        }
+
+        return findStateNode(componentRef.return);
+      }
+
+      console.log(findStateNode(event.componentRef));
+
       message.event = {
         type: "store_mounted_debugger",
+        // reactFiberId: window.__REACT_DEVTOOLS_GLOBAL_HOOK__.rendererInterfaces
+        //   .get(1)
+        //   .getFiberIDForNative(event.componentRef.return.return.stateNode),
         store: {
-          id: storeRefId,
+          id: storeRefs.get(event.storeContext)!,
           name: event.storeContext.name,
           parent: getParentStore(),
         },
