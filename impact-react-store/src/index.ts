@@ -168,10 +168,21 @@ export function configureStore(
   toObservableProp: Converter<any>,
   observeStore: StoreObserver,
 ) {
-  return function createStore<SP extends Record<string, unknown>, T>(
+  return function createStore<
+    SP extends Record<string, unknown>,
+    CP extends Record<string, unknown>,
+    T,
+  >(
     store: Store<SP, T>,
   ): (() => T) & {
     Provider: FunctionComponent<SP & { children: ReactNode }>;
+    /**
+     * Please use the .Provider instead
+     * @deprecated
+     */
+    provider: (
+      component: (props: CP) => ReactNode,
+    ) => FunctionComponent<SP & CP & { children: ReactNode }>;
   } {
     function useConfigStore(props: any) {
       const parentStoreContext = useContext(storeContext);
@@ -380,6 +391,8 @@ export function configureStore(
     }
 
     useStore.Provider = StoreProvider;
+    useStore.provider = (component) => (props) =>
+      createElement(StoreProvider, props, component(props));
 
     return useStore;
   };
