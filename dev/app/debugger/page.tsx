@@ -12,7 +12,9 @@ import {
 import { Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
-import { types } from "impact-react-debugger";
+import { types, DebuggerProtocolSender } from "impact-react-debugger";
+
+const protocolSender = new DebuggerProtocolSender(window.parent);
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -188,15 +190,13 @@ function TreeNode({
         }`}
         onClick={() => onSelect(data.id)}
         onMouseEnter={() => {
-          window.parent.postMessage({
-            type: "highlight-element",
+          protocolSender.sendMessage("highlight-element", {
             reactFiberId: data.reactFiberId,
+            componentDisplayName: data.name,
           });
         }}
         onMouseLeave={() => {
-          window.parent.postMessage({
-            type: "highlight-clean",
-          });
+          protocolSender.sendMessage("highlight-clean");
         }}
       >
         <span
@@ -245,7 +245,7 @@ function TreeNode({
 
 function createChild(
   store: types.SerializedStore,
-  reactFiberId: string,
+  reactFiberId: number,
   stale: boolean,
 ): ComponentData {
   return {
@@ -264,7 +264,7 @@ type Action =
   | {
       type: "add";
       payload: types.SerializedStore;
-      reactFiberId: string;
+      reactFiberId: number;
     }
   | { type: "stale"; payload: { id: string } };
 
@@ -284,7 +284,7 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 function addComponent(
   state: ComponentData[],
   store: types.SerializedStore,
-  reactFiberId: string,
+  reactFiberId: number,
 ): ComponentData[] {
   if (!store.parent) {
     return state.some((item) => item.id === store.id)

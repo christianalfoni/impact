@@ -16,3 +16,13 @@ export const CONNECT_DEBUG_MESSAGE: DebugData = {
   source: DEBUG_SOURCE,
   event: { type: "connected" },
 };
+
+export type DebuggerProtocol =
+  | {
+      type: "highlight-element";
+      data: { reactFiberId: number; componentDisplayName: string };
+    }
+  | {
+      type: "highlight-clean";
+      data: undefined;
+    };

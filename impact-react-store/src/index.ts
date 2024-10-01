@@ -37,7 +37,7 @@ export type DebugEvent =
     }
   | {
       type: "store_mounted_debugger"; // TODO: find a better name
-      reactFiberId: string;
+      reactFiberId: number;
       store: SerializedStore;
     }
   | {

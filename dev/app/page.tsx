@@ -12,7 +12,9 @@ export default function Home() {
       {/*<SignalsExample />*/}
       <hr />
       <h4>Mobx</h4>
+
       <MobxExample />
+
       <hr />
       <h4>Preact</h4>
       {/*<PreactExample />*/}

@@ -30,21 +30,8 @@ function ConditionalComponent() {
 }
 
 function App() {
-  const iframe = useRef<HTMLIFrameElement>(null);
   const [showConditionalStore, setShowConditionalStore] = useState(false);
   const state = useStore();
-
-  useEffect(() => {
-    const delayToAvoidCallTwice = setTimeout(() => {
-      if (iframe.current?.contentWindow) {
-        connectDebuggerBridge(iframe.current.contentWindow);
-      }
-    }, 1000);
-
-    return () => {
-      clearTimeout(delayToAvoidCallTwice);
-    };
-  }, [iframe]);
 
   return (
     <>
@@ -52,11 +39,13 @@ function App() {
         Toggle conditional store
       </button>
 
-      {showConditionalStore && (
-        <useConditionalStore.Provider>
-          <ConditionalComponent />
-        </useConditionalStore.Provider>
-      )}
+      <article>
+        {showConditionalStore && (
+          <useConditionalStore.Provider>
+            <ConditionalComponent />
+          </useConditionalStore.Provider>
+        )}
+      </article>
 
       <br />
 
@@ -81,15 +70,12 @@ function App() {
           ))}
         </ul>
       </div>
-
-      <div className="rounded overflow-hidden m-5 w-full">
-        <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
-      </div>
     </>
   );
 }
 
 export function MobxExample() {
+  const iframe = useRef<HTMLIFrameElement>(null);
   const [foo, setFoo] = useState("hello");
 
   useEffect(() => {
@@ -101,9 +87,29 @@ export function MobxExample() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const delayToAvoidCallTwice = setTimeout(() => {
+      if (iframe.current?.contentWindow) {
+        connectDebuggerBridge(iframe.current.contentWindow);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(delayToAvoidCallTwice);
+    };
+  }, [iframe]);
+
   return (
-    <useStore.Provider foo={foo}>
-      <App />
-    </useStore.Provider>
+    <>
+      <div>
+        <useStore.Provider foo={foo}>
+          <App />
+        </useStore.Provider>
+      </div>
+
+      <div className="rounded overflow-hidden m-5 w-full">
+        <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
+      </div>
+    </>
   );
 }
