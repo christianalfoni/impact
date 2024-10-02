@@ -135,7 +135,7 @@ export default function ReactDevTool() {
   return (
     <div className="flex h-screen bg-zinc-900 font-mono text-white">
       {isSidebarOpen && (
-        <div className="flex w-1/2 flex-col border-r border-zinc-800">
+        <div className="flex w-2/3 flex-col border-r border-zinc-800">
           <div className="flex items-center border-b border-zinc-800 px-4 py-4">
             <Logo />
 
@@ -229,7 +229,7 @@ function TreeNode({
   return (
     <div className="ml-4">
       <div
-        className={`mb-1 flex cursor-pointer items-center rounded border p-1 hover:bg-zinc-800 ${
+        className={`mb-1 flex cursor-pointer items-center rounded border p-1 transition-colors hover:bg-zinc-800 ${
           isSelected ? "border-cyan-400 bg-zinc-800" : "border-transparent"
         }`}
         onClick={() => onSelect(data.id)}
