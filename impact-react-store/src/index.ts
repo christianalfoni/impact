@@ -201,6 +201,7 @@ export function configureStore(
       const storeContextRef = useRef<any>();
       const storeRef = useRef<any>(null);
       const comp = useCurrentComponent();
+      const prevPropsRef = useRef<any>(props);
 
       if (debugListeners.size) {
         useEffect(() => {
@@ -246,6 +247,21 @@ export function configureStore(
       // Update props
       useEffect(() => {
         if (debugListeners.size) {
+          let hasChangedProps = false;
+
+          for (const key in props) {
+            if (props[key] !== prevPropsRef.current[key]) {
+              hasChangedProps = true;
+              break;
+            }
+          }
+
+          prevPropsRef.current = props;
+
+          if (!hasChangedProps) {
+            return;
+          }
+
           debugListeners.forEach((listener) => {
             listener({
               type: "props",
