@@ -1,5 +1,6 @@
 import { ClockIcon } from "lucide-react";
 import { ComponentData, StateChange } from "./types";
+import ValueInspector from './ValueInspector'
 
 function StateTimeline({ timeline }: { timeline: StateChange[] }) {
   return (
@@ -51,7 +52,7 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
       <div className="mb-4">
         <h4 className="mb-1 text-sm font-medium text-zinc-400">Props</h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
-          {JSON.stringify(data.props, null, 2)}
+          <ValueInspector value={data.props} delimiter="." />
         </pre>
       </div>
       <div className="mb-4">
@@ -59,7 +60,7 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
           Current State
         </h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
-          {JSON.stringify(data.state, null, 2)}
+          <ValueInspector value={data.state} delimiter="." />
         </pre>
       </div>
       <StateTimeline timeline={data.stateTimeline} />
