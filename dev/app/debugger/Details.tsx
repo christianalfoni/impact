@@ -52,7 +52,7 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
       <div className="mb-4">
         <h4 className="mb-1 text-sm font-medium text-zinc-400">Props</h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
-          <ValueInspector value={data.props} delimiter="." />
+          <ValueInspector value={data.props} delimiter="."  expandedPaths={[""]}/>
         </pre>
       </div>
       <div className="mb-4">
@@ -60,7 +60,7 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
           Current State
         </h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
-          <ValueInspector value={data.state} delimiter="." />
+          <ValueInspector value={data.state} delimiter="."   expandedPaths={[""]}/>
         </pre>
       </div>
       <StateTimeline timeline={data.stateTimeline} />

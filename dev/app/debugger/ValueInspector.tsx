@@ -1,16 +1,29 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Inspector from "./Inspector";
 
 type Props = {
   value: any;
   delimiter: string;
+  expandedPaths?: string[]
 };
 
-const ValueInspector = ({ value, delimiter }: Props) => {
-  const [expandedPaths, setExpandedPaths] = useState<string[]>([""]);
+const ValueInspector = (props: Props) => {
+  const [expandedPaths, setExpandedPaths] = useState<string[]>(props.expandedPaths ?? []);
+  const valueReferenceRef = useRef({
+    key: 0,
+    value: props.value
+  })
+  
+  if (valueReferenceRef.current.value !== props.value) {
+    valueReferenceRef.current = {
+      key: valueReferenceRef.current.key + 1,
+      value: props.value
+    }
+  }
+  
 
   function onToggleExpand(path: string[]) {
-    const pathString = path.join(delimiter);
+    const pathString = path.join(props.delimiter);
 
     if (expandedPaths.includes(pathString)) {
       setExpandedPaths(
@@ -23,8 +36,9 @@ const ValueInspector = ({ value, delimiter }: Props) => {
 
   return (
     <Inspector
-      delimiter={delimiter}
-      value={value}
+      key={valueReferenceRef.current.key}
+      delimiter={props.delimiter}
+      value={valueReferenceRef.current.value}
       expandedPaths={expandedPaths}
       onToggleExpand={onToggleExpand}
     />

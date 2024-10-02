@@ -214,7 +214,7 @@ export function configureStore(
             });
           });
 
-          let disposeObserveStore;
+          let disposeObserveStore: (() => void) | undefined;
 
           if (
             typeof storeRef.current === "object" &&
@@ -432,7 +432,7 @@ export function configureStore(
     }
 
     useStore.Provider = StoreProvider;
-    useStore.provider = (component) => (props) =>
+    useStore.provider = (component: any) => (props: any) =>
       createElement(StoreProvider, props, component(props));
 
     return useStore;
