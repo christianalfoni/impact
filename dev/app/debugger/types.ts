@@ -14,4 +14,5 @@ export type ComponentData = {
   stateTimeline: StateChange[];
   stale: boolean;
   reactFiberId: number;
+  highlighted: boolean;
 };

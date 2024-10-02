@@ -208,12 +208,31 @@ function TreeNode({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = data.id === selectedId;
+  const [isHighlighted, setIsHighlighted] = useState(data.highlighted);
+
+  useEffect(() => {
+    setIsHighlighted(data.highlighted);
+
+    const timer = setTimeout(() => {
+      setIsHighlighted(false);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [data.highlighted]);
+
+  console.log(isHighlighted);
 
   return (
     <div className="ml-4">
       <div
         className={`border flex items-center cursor-pointer hover:bg-zinc-800 p-1 mb-1 rounded ${
-          isSelected ? "bg-zinc-800 border-cyan-400" : "border-transparent "
+          isSelected
+            ? "bg-zinc-800 border-cyan-400"
+            : isHighlighted
+            ? "border-cyan-400"
+            : "border-transparent "
         }`}
         onClick={() => onSelect(data.id)}
         onMouseEnter={() => {
@@ -284,6 +303,7 @@ function createChild(
     children: [],
     stale,
     reactFiberId,
+    highlighted: false,
   };
 }
 
@@ -333,6 +353,7 @@ function updateComponent(
         ...item,
         ...(props !== undefined && { props }),
         ...(state !== undefined && { state }),
+        highlighted: state !== undefined,
       };
     }
 

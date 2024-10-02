@@ -78,14 +78,14 @@ export function MobxExample() {
   const iframe = useRef<HTMLIFrameElement>(null);
   const [foo, setFoo] = useState("hello");
 
-  useEffect(() => {
-    const interval = setInterval(
-      () => setFoo((current) => current + "!"),
-      1000,
-    );
+  // useEffect(() => {
+  //   const interval = setInterval(
+  //     () => setFoo((current) => current + "!"),
+  //     1000,
+  //   );
 
-    return () => clearInterval(interval);
-  }, []);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
     const delayToAvoidCallTwice = setTimeout(() => {
