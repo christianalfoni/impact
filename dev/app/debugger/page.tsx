@@ -8,8 +8,9 @@ import {
   XIcon,
   ChevronDownIcon,
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 
-import { Logo, LogoMuted } from "./Logo";
+import { Lightning, Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
 import { types, DebuggerProtocolSender } from "impact-react-debugger";
@@ -43,7 +44,7 @@ export default function ReactDevTool() {
   const selectedComponent = findComponentById(store, selectedId);
 
   useEffect(() => {
-    const bridge = (e: MessageEvent<types.DebugData>) => {
+    const bridge = (e: MessageEvent) => {
       if (e.data.source === "impact-react-debugger") {
         const payload = e.data.event;
 
@@ -121,29 +122,29 @@ export default function ReactDevTool() {
 
   if (isLoading) {
     return (
-      <div className="bg-zinc-900 text-zinc-600 h-screen font-mono flex">
+      <div className="flex h-screen bg-zinc-900 font-mono text-zinc-600">
         <div className="m-auto flex flex-col items-center">
-          <LogoMuted className="w-16 h-16" />
+          <LogoMuted className="h-16 w-16" />
 
-          <p className="text-center mt-4">Loading</p>
+          <p className="mt-4 text-center">Loading</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-zinc-900 text-white h-screen flex font-mono">
+    <div className="flex h-screen bg-zinc-900 font-mono text-white">
       {isSidebarOpen && (
-        <div className="w-1/2 border-r border-zinc-800 flex flex-col">
-          <div className="px-4 py-4 border-b border-zinc-800 flex items-center">
+        <div className="flex w-1/2 flex-col border-r border-zinc-800">
+          <div className="flex items-center border-b border-zinc-800 px-4 py-4">
             <Logo />
 
             <div className="relative w-full">
-              <SearchIcon className="w-3 h-3 text-zinc-400 mr-2 absolute top-2 left-2" />
+              <SearchIcon className="absolute left-2 top-2 mr-2 h-3 w-3 text-zinc-400" />
               <input
                 type="text"
                 placeholder="Search stores"
-                className="bg-zinc-800 text-white text-sm placeholder-zinc-400 w-full p-1 pl-6 rounded outline-none"
+                className="w-full rounded bg-zinc-800 p-1 pl-6 text-sm text-white placeholder-zinc-400 outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -151,15 +152,15 @@ export default function ReactDevTool() {
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm("")}
-                  className="absolute top-2 right-2 ml-2 text-zinc-400 hover:text-white"
+                  className="absolute right-2 top-2 ml-2 text-zinc-400 hover:text-white"
                 >
-                  <XIcon className="w-4 h-4" />
+                  <XIcon className="h-4 w-4" />
                 </button>
               )}
             </div>
           </div>
 
-          <div className="overflow-auto flex-grow pt-4 pr-4">
+          <div className="flex-grow overflow-auto pr-4 pt-4">
             {filteredTrees.map((tree, index) => (
               <TreeNode
                 key={index}
@@ -174,16 +175,16 @@ export default function ReactDevTool() {
       <div
         className={`flex-grow ${isSidebarOpen ? "" : "w-full"} flex flex-col`}
       >
-        <div className="p-4 pb-0 pt-5 flex justify-between items-center">
+        <div className="flex items-center justify-between p-4 pb-0 pt-5">
           <h2 className="text-sm text-zinc-400">Store Details</h2>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="text-zinc-400 hover:text-white"
           >
             {isSidebarOpen ? (
-              <ChevronLeftIcon className="w-5 h-5" />
+              <ChevronLeftIcon className="h-5 w-5" />
             ) : (
-              <ChevronRightIcon className="w-5 h-5" />
+              <ChevronRightIcon className="h-5 w-5" />
             )}
           </button>
         </div>
@@ -211,28 +212,25 @@ function TreeNode({
   const [isHighlighted, setIsHighlighted] = useState(data.highlighted);
 
   useEffect(() => {
-    setIsHighlighted(data.highlighted);
+    const debounce = setTimeout(() => {
+      setIsHighlighted(data.highlighted);
+    }, 200);
 
     const timer = setTimeout(() => {
       setIsHighlighted(false);
-    }, 300);
+    }, 5_000);
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(debounce);
     };
-  }, [data.highlighted]);
-
-  console.log(isHighlighted);
+  }, [data]);
 
   return (
     <div className="ml-4">
       <div
-        className={`border flex items-center cursor-pointer hover:bg-zinc-800 p-1 mb-1 rounded ${
-          isSelected
-            ? "bg-zinc-800 border-cyan-400"
-            : isHighlighted
-            ? "border-cyan-400"
-            : "border-transparent "
+        className={`mb-1 flex cursor-pointer items-center rounded border p-1 hover:bg-zinc-800 ${
+          isSelected ? "border-cyan-400 bg-zinc-800" : "border-transparent"
         }`}
         onClick={() => onSelect(data.id)}
         onMouseEnter={() => {
@@ -254,25 +252,37 @@ function TreeNode({
         >
           {data.children.length > 0 &&
             (isExpanded ? (
-              <ChevronDownIcon className="w-4 h-4" />
+              <ChevronDownIcon className="h-4 w-4" />
             ) : (
-              <ChevronRightIcon className="w-4 h-4" />
+              <ChevronRightIcon className="h-4 w-4" />
             ))}
         </span>
         <span
-          className={`text-sm flex items-center gap-3 ${
+          className={`flex flex-1 items-center justify-between text-sm ${
             isSelected ? "text-white" : "text-zinc-400"
           }`}
         >
-          {data.name}
+          <span>{data.name}</span>
+
           {data.stale && (
-            <span>
-              {" "}
-              <span className="rounded-md bg-orange-500/10 px-2 py-1 text-[10px] text-orange-500 ring-1 ring-inset ring-orange-500/40">
-                Stale
-              </span>
+            <span className="inline-flex rounded-md bg-orange-500/10 px-2 py-1 text-[10px] leading-[1.1] text-orange-500 ring-1 ring-inset ring-orange-500/40">
+              Unmounted
             </span>
           )}
+
+          <AnimatePresence>
+            {isHighlighted && (
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 0 } }}
+                exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                className="animate-fadeIn relative inline-flex items-center rounded-md bg-cyan-400/10 px-2 py-1 pl-5 text-[10px] leading-[1.1] text-cyan-400 ring-1 ring-inset ring-cyan-400/40"
+              >
+                <Lightning className="absolute left-1.5 top-[3px] h-3 w-3" />
+                <span>Updated</span>
+              </motion.span>
+            )}
+          </AnimatePresence>
         </span>
       </div>
       {isExpanded &&
@@ -318,7 +328,9 @@ type Action =
       type: "update";
       payload: {
         id: string;
+        // prettier-ignore
         props?: Record<string, any>;
+        // prettier-ignore
         state?: Record<string, any>;
       };
     };

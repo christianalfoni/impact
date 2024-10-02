@@ -4,15 +4,15 @@ import { ComponentData, StateChange } from "./types";
 function StateTimeline({ timeline }: { timeline: StateChange[] }) {
   return (
     <div className="mt-4">
-      <h4 className="text-sm font-medium text-zinc-400 mb-2">State Timeline</h4>
+      <h4 className="mb-2 text-sm font-medium text-zinc-400">State Timeline</h4>
       {timeline.length === 0 ? (
         <p className="text-sm text-zinc-500">No state changes recorded.</p>
       ) : (
         <ul className="space-y-2">
           {timeline.map((change, index) => (
-            <li key={index} className="bg-zinc-800 p-2 rounded text-sm">
-              <div className="flex items-center text-zinc-400 mb-1">
-                <ClockIcon className="w-4 h-4 mr-1" />
+            <li key={index} className="rounded bg-zinc-800 p-2 text-sm">
+              <div className="mb-1 flex items-center text-zinc-400">
+                <ClockIcon className="mr-1 h-4 w-4" />
                 <span>{new Date(change.timestamp).toLocaleTimeString()}</span>
               </div>
               <div className="text-white">
@@ -36,29 +36,29 @@ export function ComponentDetails({ data }: { data?: ComponentData }) {
   if (!data) return null;
 
   return (
-    <div className="p-4 overflow-auto h-full">
-      <h3 className="text-lg flex items-center gap-3 font-semibold text-white mb-2">
+    <div className="h-full overflow-auto p-4">
+      <h3 className="mb-2 flex items-center gap-3 text-lg font-semibold text-white">
         <span>{data.name}</span>
         {data.stale && (
           <span>
             {" "}
-            <span className="rounded-md font-normal bg-orange-500/10 px-2 py-1 text-sm text-orange-500 ring-1 ring-inset ring-orange-500/40">
-              Stale
+            <span className="rounded-md bg-orange-500/10 px-2 py-1 text-sm font-normal text-orange-500 ring-1 ring-inset ring-orange-500/40">
+              Unmounted
             </span>
           </span>
         )}
       </h3>
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-zinc-400 mb-1">Props</h4>
-        <pre className="text-sm text-white bg-zinc-800 p-2 rounded">
+        <h4 className="mb-1 text-sm font-medium text-zinc-400">Props</h4>
+        <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
           {JSON.stringify(data.props, null, 2)}
         </pre>
       </div>
       <div className="mb-4">
-        <h4 className="text-sm font-medium text-zinc-400 mb-1">
+        <h4 className="mb-1 text-sm font-medium text-zinc-400">
           Current State
         </h4>
-        <pre className="text-sm text-white bg-zinc-800 p-2 rounded">
+        <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
           {JSON.stringify(data.state, null, 2)}
         </pre>
       </div>
