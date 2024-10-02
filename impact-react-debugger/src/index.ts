@@ -59,15 +59,15 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
     event,
   };
 
-  console.log(event);
+  if ("storeContext" in event && !storeRefs.has(event.storeContext)) {
+    const storeRefId = createUniqueId();
+    storeRefs.set(event.storeContext, storeRefId);
+  }
+
+  // console.log(event);
 
   switch (event.type) {
     case "store_mounted": {
-      if (!storeRefs.has(event.storeContext)) {
-        const storeRefId = createUniqueId();
-        storeRefs.set(event.storeContext, storeRefId);
-      }
-
       const getParentStore = () => {
         const parent = event.storeContext.parent;
         if (parent == null) return;
@@ -80,15 +80,6 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
           name: parent.name,
         };
       };
-
-      // wait for window.__REACT_DEVTOOLS_GLOBAL_HOOK__ be available
-      await new Promise((resolve) => {
-        if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-          resolve(undefined);
-        } else {
-          window.addEventListener("load", resolve);
-        }
-      });
 
       const node = findStateNode(event.componentRef);
       const reactFiberId =
@@ -113,9 +104,33 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
       if (storeRefs.get(event.storeContext)) {
         message.event = {
           type: "store_unmounted_debugger",
-          id: storeRefs.get(event.storeContext)!,
+          storeRefId: storeRefs.get(event.storeContext)!,
         };
       }
+
+      break;
+    }
+
+    case "props": {
+      const propsClone = { ...event.props };
+
+      delete propsClone.children;
+
+      message.event = {
+        type: "props_debugger",
+        props: propsClone,
+        storeRefId: storeRefs.get(event.storeContext)!,
+      };
+
+      break;
+    }
+
+    case "state": {
+      message.event = {
+        type: "state_debugger",
+        state: event.state,
+        storeRefId: storeRefs.get(event.storeContext)!,
+      };
 
       break;
     }

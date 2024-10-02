@@ -26,8 +26,18 @@ export type DebugEvent =
       state: Record<string, unknown>;
     }
   | {
+      type: "state_debugger"; // TODO: find a better name
+      storeRefId: SerializedStore["id"];
+      state: Record<string, unknown>;
+    }
+  | {
       type: "props";
       storeContext: StoreContainer;
+      props: Record<string, unknown>;
+    }
+  | {
+      type: "props_debugger"; // TODO: find a better name
+      storeRefId: SerializedStore["id"];
       props: Record<string, unknown>;
     }
   | {
@@ -46,7 +56,7 @@ export type DebugEvent =
     }
   | {
       type: "store_unmounted_debugger"; // TODO: find a better name
-      id: SerializedStore["id"];
+      storeRefId: SerializedStore["id"];
     };
 
 type DebugListener = (event: DebugEvent) => void;
@@ -202,6 +212,24 @@ export function configureStore(
               componentRef: comp,
             });
           });
+
+          let disposeObserveStore;
+
+          if (
+            typeof storeRef.current === "object" &&
+            storeRef.current !== null
+          ) {
+            disposeObserveStore = observeStore(storeRef.current, (state) => {
+              debugListeners.forEach((listener) => {
+                listener({
+                  type: "state",
+                  storeContext: storeContextRef.current,
+                  state,
+                });
+              });
+            });
+          }
+
           return () => {
             debugListeners.forEach((listener) => {
               listener({
@@ -209,9 +237,24 @@ export function configureStore(
                 storeContext: storeContextRef.current,
               });
             });
+
+            disposeObserveStore?.();
           };
         }, []);
       }
+
+      // Update props
+      useEffect(() => {
+        if (debugListeners.size) {
+          debugListeners.forEach((listener) => {
+            listener({
+              type: "props",
+              storeContext: storeContextRef.current,
+              props,
+            });
+          });
+        }
+      }, [props]);
 
       // Update props
       useLayoutEffect(() => {
@@ -268,25 +311,6 @@ export function configureStore(
 
         resolvingStoreContainers.push(storeContextRef.current);
         storeRef.current = store(storeProps, cleanup);
-
-        if (
-          debugListeners.size &&
-          typeof storeRef.current === "object" &&
-          storeRef.current !== null
-        ) {
-          cleanup(
-            observeStore(storeRef.current, (state) => {
-              debugListeners.forEach((listener) => {
-                // Pass the fiber as well
-                listener({
-                  type: "state",
-                  storeContext: storeContextRef.current,
-                  state,
-                });
-              });
-            }),
-          );
-        }
 
         resolvingStoreContainers.pop();
 

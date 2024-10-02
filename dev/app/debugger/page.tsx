@@ -54,6 +54,7 @@ export default function ReactDevTool() {
             break;
           }
 
+          case "props":
           case "store_unmounted":
           case "store_mounted": {
             // ignore
@@ -73,7 +74,33 @@ export default function ReactDevTool() {
           case "store_unmounted_debugger": {
             dispatch({
               type: "stale",
-              payload: { id: payload.id },
+              payload: { id: payload.storeRefId },
+            });
+
+            break;
+          }
+
+          case "props_debugger": {
+            dispatch({
+              type: "update",
+              payload: {
+                id: payload.storeRefId,
+                props: payload.props,
+                state: undefined,
+              },
+            });
+
+            break;
+          }
+
+          case "state_debugger": {
+            dispatch({
+              type: "update",
+              payload: {
+                id: payload.storeRefId,
+                props: undefined,
+                state: payload.state,
+              },
             });
 
             break;
@@ -266,19 +293,54 @@ type Action =
       payload: types.SerializedStore;
       reactFiberId: number;
     }
-  | { type: "stale"; payload: { id: string } };
+  | { type: "stale"; payload: { id: string } }
+  | {
+      type: "update";
+      payload: {
+        id: string;
+        props?: Record<string, any>;
+        state?: Record<string, any>;
+      };
+    };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
   switch (action.type) {
     case "add":
       return addComponent(state, action.payload, action.reactFiberId);
-
     case "stale":
       return markComponentAsStale(state, action.payload.id);
-
+    case "update":
+      return updateComponent(
+        state,
+        action.payload.id,
+        action.payload.props,
+        action.payload.state,
+      );
     default:
       return state;
   }
+}
+
+function updateComponent(
+  stateReducer: ComponentData[],
+  id: string,
+  props?: any,
+  state?: any,
+): ComponentData[] {
+  return stateReducer.map((item) => {
+    if (item.id === id) {
+      return {
+        ...item,
+        ...(props !== undefined && { props }),
+        ...(state !== undefined && { state }),
+      };
+    }
+
+    return {
+      ...item,
+      children: updateComponent(item.children, id, props, state),
+    };
+  });
 }
 
 function addComponent(
