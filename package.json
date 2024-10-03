@@ -47,6 +47,7 @@
     "@codesandbox/sandpack-client": "^2.12.0",
     "@ddietr/codemirror-themes": "^1.4.2",
     "codemirror": "^6.0.1",
+    "prettier": "^3.3.3",
     "vue-codemirror": "^6.1.1"
   }
 }

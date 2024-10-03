@@ -125,7 +125,7 @@ export default function ReactDevTool() {
         <div className="m-auto flex flex-col items-center">
           <LogoMuted className="h-16 w-16" />
 
-          <p className="mt-4 text-center">Loading</p>
+          <p className="mt-4 animate-pulse text-center">Loading</p>
         </div>
       </div>
     );
@@ -134,7 +134,9 @@ export default function ReactDevTool() {
   return (
     <div className="flex h-screen bg-zinc-900 font-mono text-white">
       {isSidebarOpen && (
-        <div className="flex w-2/3 flex-col border-r border-zinc-800">
+        <div
+          className={`flex flex-col border-r border-zinc-800 ${selectedComponent ? "w-1/2" : "w-full"}`}
+        >
           <div className="flex items-center border-b border-zinc-800 px-4 py-4">
             <Logo />
 
@@ -159,7 +161,12 @@ export default function ReactDevTool() {
             </div>
           </div>
 
-          <div className="flex-grow overflow-auto pr-4 pt-4">
+          <div
+            className="flex-grow overflow-auto pr-4 pt-4"
+            onClick={() => {
+              setSelectedId(null);
+            }}
+          >
             {filteredTrees.map((tree, index) => (
               <TreeNode
                 key={index}
@@ -171,26 +178,28 @@ export default function ReactDevTool() {
           </div>
         </div>
       )}
-      <div
-        className={`flex-grow ${isSidebarOpen ? "" : "w-full"} flex flex-col`}
-      >
-        <div className="flex items-center justify-between p-4 pb-0 pt-5">
-          <h2 className="text-sm text-zinc-400">Store Details</h2>
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="text-zinc-400 hover:text-white"
-          >
-            {isSidebarOpen ? (
-              <ChevronLeftIcon className="h-5 w-5" />
-            ) : (
-              <ChevronRightIcon className="h-5 w-5" />
-            )}
-          </button>
+      {selectedComponent && (
+        <div
+          className={`flex-grow ${isSidebarOpen ? "" : "w-full"} flex flex-col`}
+        >
+          <div className="flex items-center justify-between p-4 pb-0 pt-5">
+            <h2 className="text-sm text-zinc-400">Store Details</h2>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="text-zinc-400 hover:text-white"
+            >
+              {isSidebarOpen ? (
+                <ChevronLeftIcon className="h-5 w-5" />
+              ) : (
+                <ChevronRightIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          <div className="flex-grow overflow-auto">
+            <ComponentDetails data={selectedComponent} />
+          </div>
         </div>
-        <div className="flex-grow overflow-auto">
-          <ComponentDetails data={selectedComponent} />
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -231,7 +240,10 @@ function TreeNode({
         className={`mb-1 flex cursor-pointer items-center rounded border p-1 transition-colors hover:bg-zinc-800 ${
           isSelected ? "border-cyan-400 bg-zinc-800" : "border-transparent"
         }`}
-        onClick={() => onSelect(data.id)}
+        onClick={(event) => {
+          onSelect(data.id);
+          event.stopPropagation();
+        }}
         onMouseEnter={() => {
           protocolSender.sendMessage("highlight-element", {
             reactFiberId: data.reactFiberId,

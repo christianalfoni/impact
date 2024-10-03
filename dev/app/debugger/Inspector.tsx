@@ -337,7 +337,7 @@ const ValueComponent = memo(
 
     return (
       <div
-        className={`flex items-center text-zinc-500 ${isState ? "text-cyan-400" : "text-zinc-200"}`}
+        className={`flex items-center ${isState ? "text-cyan-400" : "text-zinc-200"}`}
       >
         <PathKey
           path={path}
