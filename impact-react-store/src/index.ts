@@ -208,7 +208,6 @@ export function configureStore(
           debugListeners.forEach((listener) => {
             listener({
               type: "store_mounted",
-              // TODO: consider another name for `container`
               storeContext: storeContextRef.current,
               componentRef: comp,
             });

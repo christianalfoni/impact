@@ -8,7 +8,6 @@ import {
   XIcon,
   ChevronDownIcon,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { Lightning, Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
@@ -264,25 +263,21 @@ function TreeNode({
         >
           <span>{data.name}</span>
 
-          {data.stale && (
-            <span className="inline-flex rounded-md bg-orange-500/10 px-2 py-1 text-[10px] leading-[1.1] text-orange-500 ring-1 ring-inset ring-orange-500/40">
-              Unmounted
-            </span>
-          )}
-
-          <AnimatePresence>
-            {isHighlighted && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { duration: 0 } }}
-                exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                className="animate-fadeIn relative inline-flex items-center rounded-md bg-cyan-400/10 px-2 py-1 pl-5 text-[10px] leading-[1.1] text-cyan-400 ring-1 ring-inset ring-cyan-400/40"
-              >
-                <Lightning className="absolute left-1.5 top-[3px] h-3 w-3" />
-                <span>Updated</span>
-              </motion.span>
+          <div className="flex gap-2">
+            {data.stale && (
+              <span className="inline-flex rounded-md bg-orange-500/10 px-2 py-1 text-[10px] leading-[1.1] text-orange-500 ring-1 ring-inset ring-orange-500/40">
+                Unmounted
+              </span>
             )}
-          </AnimatePresence>
+
+            {!data.stale && isHighlighted && (
+              <span className="animate-fadeIn relative inline-flex items-center rounded-md bg-cyan-400/10 px-2 py-1 pl-5 text-[10px] leading-[1.1] text-cyan-400 ring-1 ring-inset ring-cyan-400/40">
+                <span className="absolute left-2 top-[5px] inline-flex h-2 w-2 animate-ping rounded-full bg-cyan-400 opacity-30"></span>
+                <Lightning className="absolute left-1.5 top-[3px] z-10 h-3 w-3" />
+                <span>Updated</span>
+              </span>
+            )}
+          </div>
         </span>
       </div>
       {isExpanded &&

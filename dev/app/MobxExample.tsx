@@ -107,7 +107,7 @@ export function MobxExample() {
         </useStore.Provider>
       </div>
 
-      <div className="rounded overflow-hidden m-5 w-full">
+      <div className="m-5 w-full overflow-hidden rounded">
         <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
       </div>
     </>

@@ -64,8 +64,6 @@ async function sendMessageToDebugger(event: types.DebugEvent) {
     storeRefs.set(event.storeContext, storeRefId);
   }
 
-  // console.log(event);
-
   switch (event.type) {
     case "store_mounted": {
       const getParentStore = () => {
