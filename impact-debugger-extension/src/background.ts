@@ -3,8 +3,9 @@
 // Connections to DevTools panels
 const connections: Record<string, chrome.runtime.Port> = {};
 
+// This is where the panel connects with the current inspected tab, so it can
+// show different tabs (needs implementation in panel code)
 chrome.runtime.onConnect.addListener((port) => {
-  // Assign the port a unique ID
   const extensionListener = (message: any) => {
     if (message.name === "init") {
       connections[message.tabId] = port;

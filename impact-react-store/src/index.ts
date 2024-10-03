@@ -12,62 +12,72 @@ import {
   ReactNode,
 } from "react";
 
-export type SerializedStore = {
+export type StoreReference = {
   id: string;
   name: string;
-  parent?: SerializedStore;
+  parent?: StoreReference;
 };
 
 export type DebugEvent =
-  | { type: "connected" }
   | {
       type: "state";
-      storeContext: StoreContainer;
-      state: Record<string, unknown>;
-    }
-  | {
-      type: "state_debugger"; // TODO: find a better name
-      storeRefId: SerializedStore["id"];
+      storeReference: StoreReference;
       state: Record<string, unknown>;
     }
   | {
       type: "props";
-      storeContext: StoreContainer;
-      props: Record<string, unknown>;
-    }
-  | {
-      type: "props_debugger"; // TODO: find a better name
-      storeRefId: SerializedStore["id"];
+      storeReference: StoreReference;
       props: Record<string, unknown>;
     }
   | {
       type: "store_mounted";
-      storeContext: StoreContainer;
-      componentRef: any;
-    }
-  | {
-      type: "store_mounted_debugger"; // TODO: find a better name
+      storeReference: StoreReference;
       reactFiberId: number;
-      store: SerializedStore;
     }
   | {
       type: "store_unmounted";
-      storeContext: StoreContainer;
-    }
-  | {
-      type: "store_unmounted_debugger"; // TODO: find a better name
-      storeRefId: SerializedStore["id"];
+      storeReference: StoreReference;
     };
 
-type DebugListener = (event: DebugEvent) => void;
+let sendDebugMessage: (event: DebugEvent) => void | undefined;
 
-const debugListeners = new Set<DebugListener>();
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  sendDebugMessage = (message) =>
+    window.postMessage({ type: "IMPACT_DEBUG_MESSAGE", message }, "*");
+}
 
-export function addDebugListener(listener: DebugListener) {
-  debugListeners.add(listener);
-  return () => {
-    debugListeners.delete(listener);
+function createUniqueId() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
+function findStateNode(componentRef: any): HTMLElement | null {
+  if (componentRef.stateNode) {
+    return componentRef.stateNode;
+  }
+
+  return findStateNode(componentRef.return);
+}
+
+const storeReferences = new Map<StoreContainer, StoreReference>();
+
+function resolveStoreReference(storeContainer: StoreContainer): StoreReference {
+  let storeReference = storeReferences.get(storeContainer);
+
+  if (storeReference) {
+    return storeReference;
+  }
+
+  storeReference = {
+    id: createUniqueId(),
+    name: storeContainer.name,
+    parent: storeContainer.parent
+      ? resolveStoreReference(storeContainer.parent)
+      : undefined,
   };
+
+  storeReferences.set(storeContainer, storeReference);
+
+  return storeReference;
 }
 
 // A reactive context container is like an injection container. It is responsible for resolving a reactive context. As reactive contexts
@@ -203,14 +213,19 @@ export function configureStore(
       const comp = useCurrentComponent();
       const prevPropsRef = useRef<any>(props);
 
-      if (debugListeners.size) {
+      if (sendDebugMessage) {
         useEffect(() => {
-          debugListeners.forEach((listener) => {
-            listener({
-              type: "store_mounted",
-              storeContext: storeContextRef.current,
-              componentRef: comp,
-            });
+          const node = findStateNode(comp);
+          // @ts-ignore
+          const reactFiberId = // @ts-ignore
+            window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.rendererInterfaces
+              ?.get(1)
+              ?.getFiberIDForNative(node);
+
+          sendDebugMessage({
+            type: "store_mounted",
+            storeReference: resolveStoreReference(storeContextRef.current),
+            reactFiberId,
           });
 
           let disposeObserveStore: (() => void) | undefined;
@@ -220,22 +235,18 @@ export function configureStore(
             storeRef.current !== null
           ) {
             disposeObserveStore = observeStore(storeRef.current, (state) => {
-              debugListeners.forEach((listener) => {
-                listener({
-                  type: "state",
-                  storeContext: storeContextRef.current,
-                  state,
-                });
+              sendDebugMessage({
+                type: "state",
+                storeReference: resolveStoreReference(storeContextRef.current),
+                state,
               });
             });
           }
 
           return () => {
-            debugListeners.forEach((listener) => {
-              listener({
-                type: "store_unmounted",
-                storeContext: storeContextRef.current,
-              });
+            sendDebugMessage({
+              type: "store_unmounted",
+              storeReference: resolveStoreReference(storeContextRef.current),
             });
 
             disposeObserveStore?.();
@@ -245,7 +256,7 @@ export function configureStore(
 
       // Update props
       useEffect(() => {
-        if (debugListeners.size) {
+        if (sendDebugMessage) {
           let hasChangedProps = false;
 
           for (const key in props) {
@@ -261,12 +272,13 @@ export function configureStore(
             return;
           }
 
-          debugListeners.forEach((listener) => {
-            listener({
-              type: "props",
-              storeContext: storeContextRef.current,
-              props,
-            });
+          sendDebugMessage({
+            type: "props",
+            storeReference: resolveStoreReference(storeContextRef.current),
+            props: {
+              ...props,
+              children: undefined,
+            },
           });
         }
       }, [props]);
@@ -285,13 +297,14 @@ export function configureStore(
           observablePropsRef.current[key].set(props[key]);
         }
 
-        if (debugListeners.size) {
-          debugListeners.forEach((listener) => {
-            listener({
-              type: "props",
-              storeContext: storeContextRef.current,
-              props,
-            });
+        if (sendDebugMessage) {
+          sendDebugMessage({
+            type: "props",
+            storeReference: resolveStoreReference(storeContextRef.current),
+            props: {
+              ...props,
+              children: undefined,
+            },
           });
         }
       }, [props]);

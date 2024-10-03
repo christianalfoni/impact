@@ -1,10 +1,16 @@
 console.log("Content script loaded.");
 
-// Send a message to the background script
-chrome.runtime.sendMessage({
-  from: "content-script",
-  message: "Hello from content script",
-});
+window.addEventListener(
+  "message",
+  function (event) {
+    if (event.source !== window) return;
+
+    if (event.data.type && event.data.type === "IMPACT_DEBUG_MESSAGE") {
+      chrome.runtime.sendMessage(event.data.message);
+    }
+  },
+  false,
+);
 
 // Listen for messages from the background script
 chrome.runtime.onMessage.addListener((request, _, sendResponse) => {

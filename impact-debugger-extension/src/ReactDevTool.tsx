@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import {
   ChevronRightIcon,
   ChevronLeftIcon,
@@ -10,7 +10,7 @@ import {
 import { Lightning, Logo, LogoMuted } from "./Logo";
 import { ComponentData } from "./types";
 import { ComponentDetails } from "./Details";
-import { SerializedStore } from "@impact-react/store";
+import { DebugEvent, StoreReference } from "@impact-react/store";
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,6 +18,7 @@ export default function ReactDevTool() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [store, dispatch] = useReducer(storeReducer, []);
+  const portRef = useRef<chrome.runtime.Port>();
 
   const filterTree = (node: ComponentData): ComponentData | null => {
     if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
@@ -40,7 +41,9 @@ export default function ReactDevTool() {
 
   useEffect(() => {
     // Establish a connection with the background script
-    const port = chrome.runtime.connect({ name: "devtools" });
+    const port = chrome.runtime.connect();
+
+    portRef.current = port;
 
     // Send an initialization message with the current tab ID
     port.postMessage({
@@ -49,96 +52,61 @@ export default function ReactDevTool() {
     });
 
     // Listen for messages from the background script
-    port.onMessage.addListener((message) => {
-      if (message.from === "content-script") {
-        console.log("Message from content script:", message.message);
-      }
-    });
+    port.onMessage.addListener((payload: DebugEvent) => {
+      setIsLoading(false);
 
-    // Send a message to the content script via the background script
-    port.postMessage({
-      name: "message",
-      tabId: chrome.devtools.inspectedWindow.tabId,
-      message: { from: "devtools-panel", message: "Hello from DevTools panel" },
-    });
-  }, []);
+      switch (payload.type) {
+        case "store_mounted": {
+          dispatch({
+            type: "add",
+            payload: payload.storeReference,
+            reactFiberId: payload.reactFiberId,
+          });
 
-  useEffect(() => {
-    const bridge = (e: MessageEvent) => {
-      if (e.data.source === "impact-react-debugger") {
-        const payload = e.data.event;
+          break;
+        }
 
-        switch (payload.type) {
-          case "connected": {
-            setIsLoading(false);
+        case "store_unmounted": {
+          dispatch({
+            type: "stale",
+            payload: { id: payload.storeReference.id },
+          });
 
-            break;
-          }
+          break;
+        }
 
-          case "props":
-          case "store_unmounted":
-          case "store_mounted": {
-            // ignore
-            break;
-          }
+        case "props": {
+          dispatch({
+            type: "update",
+            payload: {
+              id: payload.storeReference.id,
+              props: payload.props,
+              state: undefined,
+            },
+          });
 
-          case "store_mounted_debugger": {
-            dispatch({
-              type: "add",
-              payload: payload.store,
-              reactFiberId: payload.reactFiberId,
-            });
+          break;
+        }
 
-            break;
-          }
+        case "state": {
+          dispatch({
+            type: "update",
+            payload: {
+              id: payload.storeReference.id,
+              props: undefined,
+              state: payload.state,
+            },
+          });
 
-          case "store_unmounted_debugger": {
-            dispatch({
-              type: "stale",
-              payload: { id: payload.storeRefId },
-            });
+          break;
+        }
 
-            break;
-          }
-
-          case "props_debugger": {
-            dispatch({
-              type: "update",
-              payload: {
-                id: payload.storeRefId,
-                props: payload.props,
-                state: undefined,
-              },
-            });
-
-            break;
-          }
-
-          case "state_debugger": {
-            dispatch({
-              type: "update",
-              payload: {
-                id: payload.storeRefId,
-                props: undefined,
-                state: payload.state,
-              },
-            });
-
-            break;
-          }
-
-          default: {
-            console.log("[debugger]: event not handled -> ", payload);
-          }
+        default: {
+          console.log("[debugger]: event not handled -> ", payload);
         }
       }
-    };
-
-    window.addEventListener("message", bridge);
-    return () => {
-      window.removeEventListener("message", bridge);
-    };
-  }, [store]);
+    });
+  }, []);
 
   if (isLoading) {
     return (
@@ -273,6 +241,13 @@ function TreeNode({
             reactFiberId: data.reactFiberId,
             componentDisplayName: data.name,
           });
+          
+              // Send a message to the content script via the background script
+    port.postMessage({
+      name: "message",
+      tabId: chrome.devtools.inspectedWindow.tabId,
+      message: { from: "devtools-panel", message: "Hello from DevTools panel" },
+    });
 
           */
         }}
@@ -335,7 +310,7 @@ function TreeNode({
 }
 
 function createChild(
-  store: SerializedStore,
+  store: StoreReference,
   reactFiberId: number,
   stale: boolean,
 ): ComponentData {
@@ -355,7 +330,7 @@ function createChild(
 type Action =
   | {
       type: "add";
-      payload: SerializedStore;
+      payload: StoreReference;
       reactFiberId: number;
     }
   | { type: "stale"; payload: { id: string } }
@@ -371,6 +346,7 @@ type Action =
     };
 
 function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
+  console.log("ACTION", action);
   switch (action.type) {
     case "add":
       return addComponent(state, action.payload, action.reactFiberId);
@@ -413,7 +389,7 @@ function updateComponent(
 
 function addComponent(
   state: ComponentData[],
-  store: SerializedStore,
+  store: StoreReference,
   reactFiberId: number,
 ): ComponentData[] {
   if (!store.parent) {
