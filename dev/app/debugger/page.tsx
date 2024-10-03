@@ -314,9 +314,9 @@ function createChild(
   return {
     id: store.id,
     name: store.name,
-    props: {}, // todo
-    state: {}, // todo
-    stateTimeline: [], // todo
+    props: null,
+    state: null,
+    stateTimeline: [],
     children: [],
     stale,
     reactFiberId,
@@ -367,11 +367,43 @@ function updateComponent(
   state?: any,
 ): ComponentData[] {
   return stateReducer.map((item) => {
+    const buildTimeline = () => {
+      if (state === undefined) {
+        return item.stateTimeline;
+      }
+
+      if (item.state === null || deepEqual(item.state, state)) {
+        return item.stateTimeline;
+      }
+
+      const diff = findObjectDifferences(item.state!, state);
+
+      const diffTo = {};
+      const diffFrom = {};
+      Object.keys(diff).forEach((key) => {
+        diffTo[key] = diff[key].to ?? diff[key].added;
+        diffFrom[key] = diff[key].from ?? diff[key].removed;
+      });
+
+      console.log(diff, diffTo);
+
+      return [
+        {
+          timestamp: Date.now(),
+          key: Date.now() + JSON.stringify(state),
+          newValue: diffTo,
+          oldValue: diffFrom,
+        },
+        ...item.stateTimeline,
+      ];
+    };
+
     if (item.id === id) {
       return {
         ...item,
         ...(props !== undefined && { props }),
         ...(state !== undefined && { state }),
+        stateTimeline: buildTimeline(),
         highlighted: state !== undefined,
       };
     }
@@ -456,4 +488,90 @@ function findComponentById(
     if (found) return found;
   }
   return undefined;
+}
+
+function deepEqual(obj1: Record<string, any>, obj2: Record<string, any>) {
+  // Check if both inputs are objects
+  if (typeof obj1 !== "object" || typeof obj2 !== "object") {
+    return obj1 === obj2;
+  }
+
+  // Check if both are null (typeof null is 'object')
+  if (obj1 === null || obj2 === null) {
+    return obj1 === obj2;
+  }
+
+  // Check if they're the same object
+  if (obj1 === obj2) {
+    return true;
+  }
+
+  // Get the keys of both objects
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if they have the same number of properties
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Recursively compare all properties
+  for (let key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+type Difference = {
+  added?: unknown;
+  removed?: unknown;
+  from?: unknown;
+  to?: unknown;
+};
+
+type DifferenceResult = {
+  [key: string]: Difference;
+};
+
+function findObjectDifferences(
+  obj1: Record<string, any>,
+  obj2: Record<string, any>,
+): DifferenceResult {
+  const differences: DifferenceResult = {};
+
+  function compareObjects(
+    object1: Record<string, any>,
+    object2: Record<string, any>,
+    path: string = "",
+  ): void {
+    const allKeys = new Set([...Object.keys(object1), ...Object.keys(object2)]);
+
+    for (const key of allKeys) {
+      const value1 = object1[key];
+      const value2 = object2[key];
+      const currentPath = path ? `${path}.${key}` : key;
+
+      if (!(key in object1)) {
+        differences[currentPath] = { added: value2 };
+      } else if (!(key in object2)) {
+        differences[currentPath] = { removed: value1 };
+      } else if (typeof value1 !== typeof value2) {
+        differences[currentPath] = { from: value1, to: value2 };
+      } else if (
+        typeof value1 === "object" &&
+        value1 !== null &&
+        value2 !== null
+      ) {
+        compareObjects(value1, value2, currentPath);
+      } else if (value1 !== value2) {
+        differences[currentPath] = { from: value1, to: value2 };
+      }
+    }
+  }
+
+  compareObjects(obj1, obj2);
+  return differences;
 }

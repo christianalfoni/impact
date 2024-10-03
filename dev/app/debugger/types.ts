@@ -8,8 +8,8 @@ export type StateChange = {
 export type ComponentData = {
   id: string;
   name: string;
-  props: Record<string, any>;
-  state: Record<string, any>;
+  props: null | Record<string, any>;
+  state: null | Record<string, any>;
   children: ComponentData[];
   stateTimeline: StateChange[];
   stale: boolean;

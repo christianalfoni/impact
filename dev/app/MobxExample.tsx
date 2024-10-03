@@ -66,7 +66,14 @@ function App() {
 
         <ul>
           {state.groceries.map((grocery, index) => (
-            <li key={index}>{grocery}</li>
+            <li
+              key={index}
+              onClick={() => {
+                state.groceries.splice(index, 1);
+              }}
+            >
+              {grocery}
+            </li>
           ))}
         </ul>
       </div>
