@@ -20,7 +20,14 @@ const awaitBridge = new Promise<Window>((resolve) => {
 
 export function connectDebuggerBridge(target: Window) {
   target.postMessage(types.CONNECT_DEBUG_MESSAGE, "*");
-  promiseResolver(target);
+
+  // Make sure `window.__REACT_DEVTOOLS_GLOBAL_HOOK__` and `target` are available
+  const interval = setInterval(() => {
+    if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__.rendererInterfaces) {
+      clearInterval(interval);
+      promiseResolver(target);
+    }
+  }, 100);
 }
 
 const receiver = new DebuggerProtocolReceiver();
