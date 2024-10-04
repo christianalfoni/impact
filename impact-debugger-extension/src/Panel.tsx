@@ -94,6 +94,10 @@ export default function ReactDevTool() {
 
     sendMessageToBackgroundScript({ name: "init" });
 
+    port.onDisconnect.addListener(() => {
+      location.reload();
+    });
+
     // Listen for messages from the background script
     port.onMessage.addListener((payload: DebugEvent) => {
       switch (payload.type) {
