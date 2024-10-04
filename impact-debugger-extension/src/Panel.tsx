@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 import { Lightning, Logo, LogoMuted } from "./Logo";
-import { ComponentData } from "./types";
+import { BackgroundScriptMessage, StoreData } from "./types";
 import { ComponentDetails } from "./Details";
 import { DebugEvent, StoreReference } from "@impact-react/store";
 
@@ -18,15 +18,15 @@ export default function ReactDevTool() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [store, dispatch] = useReducer(storeReducer, []);
-  const portRef = useRef<chrome.runtime.Port>();
+  const portRef = useRef<{ port: chrome.runtime.Port; tabId: number }>();
 
-  const filterTree = (node: ComponentData): ComponentData | null => {
+  const filterTree = (node: StoreData): StoreData | null => {
     if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
       return node;
     }
     const filteredChildren = node.children
       .map(filterTree)
-      .filter((child): child is ComponentData => child !== null);
+      .filter((child): child is StoreData => child !== null);
     if (filteredChildren.length > 0) {
       return { ...node, children: filteredChildren };
     }
@@ -35,32 +35,48 @@ export default function ReactDevTool() {
 
   const filteredTrees = store
     .map((tree) => (searchTerm ? filterTree(tree) : tree))
-    .filter((tree): tree is ComponentData => tree !== null);
+    .filter((tree): tree is StoreData => tree !== null);
 
   const selectedComponent = findComponentById(store, selectedId);
+
+  function sendMessageToBackgroundScript(
+    message: Omit<BackgroundScriptMessage, "tabId">,
+  ) {
+    if (!portRef.current) {
+      throw new Error("Sending message before connected to port");
+    }
+
+    portRef.current.port.postMessage({
+      ...message,
+      tabId: portRef.current.tabId,
+    });
+  }
 
   useEffect(() => {
     // Establish a connection with the background script
     const port = chrome.runtime.connect();
 
-    portRef.current = port;
-
-    // Send an initialization message with the current tab ID
-    port.postMessage({
-      name: "init",
+    portRef.current = {
+      port,
       tabId: chrome.devtools.inspectedWindow.tabId,
-    });
+    };
+
+    sendMessageToBackgroundScript({ name: "init" });
 
     // Listen for messages from the background script
     port.onMessage.addListener((payload: DebugEvent) => {
-      setIsLoading(false);
-
       switch (payload.type) {
+        case "init": {
+          setIsLoading(false);
+          dispatch({
+            type: "reset",
+          });
+          break;
+        }
         case "store_mounted": {
           dispatch({
             type: "add",
             payload: payload.storeReference,
-            reactFiberId: payload.reactFiberId,
           });
 
           break;
@@ -164,6 +180,7 @@ export default function ReactDevTool() {
                 data={tree}
                 selectedId={selectedId}
                 onSelect={setSelectedId}
+                sendMessageToBackgroundScript={sendMessageToBackgroundScript}
               />
             ))}
           </div>
@@ -200,11 +217,13 @@ function TreeNode({
   depth = 0,
   selectedId,
   onSelect,
+  sendMessageToBackgroundScript,
 }: {
-  data: ComponentData;
+  data: StoreData;
   depth?: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
+  sendMessageToBackgroundScript: (message: BackgroundScriptMessage) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = data.id === selectedId;
@@ -236,25 +255,24 @@ function TreeNode({
           event.stopPropagation();
         }}
         onMouseEnter={() => {
-          /*
-          protocolSender.sendMessage("highlight-element", {
-            reactFiberId: data.reactFiberId,
-            componentDisplayName: data.name,
+          sendMessageToBackgroundScript({
+            name: "message",
+            message: {
+              type: "highlight-store",
+              data: {
+                id: data.id,
+              },
+            },
           });
-          
-              // Send a message to the content script via the background script
-    port.postMessage({
-      name: "message",
-      tabId: chrome.devtools.inspectedWindow.tabId,
-      message: { from: "devtools-panel", message: "Hello from DevTools panel" },
-    });
-
-          */
         }}
         onMouseLeave={() => {
-          /*
-          protocolSender.sendMessage("highlight-clean");
-          */
+          sendMessageToBackgroundScript({
+            name: "message",
+            message: {
+              type: "highlight-clean",
+              data: undefined,
+            },
+          });
         }}
       >
         <span
@@ -303,17 +321,14 @@ function TreeNode({
             depth={depth + 1}
             selectedId={selectedId}
             onSelect={onSelect}
+            sendMessageToBackgroundScript={sendMessageToBackgroundScript}
           />
         ))}
     </div>
   );
 }
 
-function createChild(
-  store: StoreReference,
-  reactFiberId: number,
-  stale: boolean,
-): ComponentData {
+function createChild(store: StoreReference, stale: boolean): StoreData {
   return {
     id: store.id,
     name: store.name,
@@ -322,16 +337,17 @@ function createChild(
     stateTimeline: [], // todo
     children: [],
     stale,
-    reactFiberId,
     highlighted: false,
   };
 }
 
 type Action =
   | {
+      type: "reset";
+    }
+  | {
       type: "add";
       payload: StoreReference;
-      reactFiberId: number;
     }
   | { type: "stale"; payload: { id: string } }
   | {
@@ -345,11 +361,12 @@ type Action =
       };
     };
 
-function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
-  console.log("ACTION", action);
+function storeReducer(state: StoreData[], action: Action): StoreData[] {
   switch (action.type) {
+    case "reset":
+      return [];
     case "add":
-      return addComponent(state, action.payload, action.reactFiberId);
+      return addComponent(state, action.payload);
     case "stale":
       return markComponentAsStale(state, action.payload.id);
     case "update":
@@ -365,17 +382,47 @@ function storeReducer(state: ComponentData[], action: Action): ComponentData[] {
 }
 
 function updateComponent(
-  stateReducer: ComponentData[],
+  stateReducer: StoreData[],
   id: string,
-  props?: Record<string, unknown>,
-  state?: Record<string, unknown>,
-): ComponentData[] {
+  props?: any,
+  state?: any,
+): StoreData[] {
   return stateReducer.map((item) => {
+    const buildTimeline = () => {
+      if (state === undefined) {
+        return item.stateTimeline;
+      }
+
+      if (item.state === null || deepEqual(item.state, state)) {
+        return item.stateTimeline;
+      }
+
+      const diff = findObjectDifferences(item.state!, state);
+
+      const diffTo: any = {};
+      const diffFrom: any = {};
+      Object.keys(diff).forEach((key) => {
+        diffTo[key] = diff[key].to ?? diff[key].added;
+        diffFrom[key] = diff[key].from ?? diff[key].removed;
+      });
+
+      return [
+        {
+          timestamp: Date.now(),
+          key: Date.now() + JSON.stringify(state),
+          newValue: diffTo,
+          oldValue: diffFrom,
+        },
+        ...item.stateTimeline,
+      ];
+    };
+
     if (item.id === id) {
       return {
         ...item,
         ...(props !== undefined && { props }),
         ...(state !== undefined && { state }),
+        stateTimeline: buildTimeline(),
         highlighted: state !== undefined,
       };
     }
@@ -387,17 +434,13 @@ function updateComponent(
   });
 }
 
-function addComponent(
-  state: ComponentData[],
-  store: StoreReference,
-  reactFiberId: number,
-): ComponentData[] {
+function addComponent(state: StoreData[], store: StoreReference): StoreData[] {
   if (!store.parent) {
     return state.some((item) => item.id === store.id)
       ? state.map((item) =>
           item.id === store.id ? { ...item, stale: false } : item,
         )
-      : [...state, createChild(store, reactFiberId, false)];
+      : [...state, createChild(store, false)];
   }
 
   return state.map((item) => {
@@ -413,7 +456,7 @@ function addComponent(
           newChildren.splice(existingChildIndex, 1);
           return {
             ...item,
-            children: [...newChildren, createChild(store, reactFiberId, false)],
+            children: [...newChildren, createChild(store, false)],
           };
         }
         // If child exists and is not stale, don't modify
@@ -423,21 +466,18 @@ function addComponent(
       // If child doesn't exist, add it
       return {
         ...item,
-        children: [...item.children, createChild(store, reactFiberId, false)],
+        children: [...item.children, createChild(store, false)],
       };
     }
 
     return {
       ...item,
-      children: addComponent(item.children, store, reactFiberId),
+      children: addComponent(item.children, store),
     };
   });
 }
 
-function markComponentAsStale(
-  state: ComponentData[],
-  id: string,
-): ComponentData[] {
+function markComponentAsStale(state: StoreData[], id: string): StoreData[] {
   return state.map((item) => {
     if (item.id === id) {
       return { ...item, stale: true };
@@ -451,13 +491,99 @@ function markComponentAsStale(
 }
 
 function findComponentById(
-  trees: ComponentData[],
+  trees: StoreData[],
   id: string | null,
-): ComponentData | undefined {
+): StoreData | undefined {
   for (const tree of trees) {
     if (tree.id === id) return tree;
     const found = findComponentById(tree.children, id);
     if (found) return found;
   }
   return undefined;
+}
+
+function deepEqual(obj1: Record<string, any>, obj2: Record<string, any>) {
+  // Check if both inputs are objects
+  if (typeof obj1 !== "object" || typeof obj2 !== "object") {
+    return obj1 === obj2;
+  }
+
+  // Check if both are null (typeof null is 'object')
+  if (obj1 === null || obj2 === null) {
+    return obj1 === obj2;
+  }
+
+  // Check if they're the same object
+  if (obj1 === obj2) {
+    return true;
+  }
+
+  // Get the keys of both objects
+  const keys1 = Object.keys(obj1);
+  const keys2 = Object.keys(obj2);
+
+  // Check if they have the same number of properties
+  if (keys1.length !== keys2.length) {
+    return false;
+  }
+
+  // Recursively compare all properties
+  for (let key of keys1) {
+    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+type Difference = {
+  added?: unknown;
+  removed?: unknown;
+  from?: unknown;
+  to?: unknown;
+};
+
+type DifferenceResult = {
+  [key: string]: Difference;
+};
+
+function findObjectDifferences(
+  obj1: Record<string, any>,
+  obj2: Record<string, any>,
+): DifferenceResult {
+  const differences: DifferenceResult = {};
+
+  function compareObjects(
+    object1: Record<string, any>,
+    object2: Record<string, any>,
+    path: string = "",
+  ): void {
+    const allKeys = new Set([...Object.keys(object1), ...Object.keys(object2)]);
+
+    for (const key of allKeys) {
+      const value1 = object1[key];
+      const value2 = object2[key];
+      const currentPath = path ? `${path}.${key}` : key;
+
+      if (!(key in object1)) {
+        differences[currentPath] = { added: value2 };
+      } else if (!(key in object2)) {
+        differences[currentPath] = { removed: value1 };
+      } else if (typeof value1 !== typeof value2) {
+        differences[currentPath] = { from: value1, to: value2 };
+      } else if (
+        typeof value1 === "object" &&
+        value1 !== null &&
+        value2 !== null
+      ) {
+        compareObjects(value1, value2, currentPath);
+      } else if (value1 !== value2) {
+        differences[currentPath] = { from: value1, to: value2 };
+      }
+    }
+  }
+
+  compareObjects(obj1, obj2);
+  return differences;
 }

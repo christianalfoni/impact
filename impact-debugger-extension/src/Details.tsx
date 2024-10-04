@@ -1,5 +1,5 @@
 import { ClockIcon } from "lucide-react";
-import { ComponentData, StateChange } from "./types";
+import { StoreData, StateChange } from "./types";
 import ValueInspector from "./ValueInspector";
 
 function StateTimeline({ timeline }: { timeline: StateChange[] }) {
@@ -10,21 +10,22 @@ function StateTimeline({ timeline }: { timeline: StateChange[] }) {
         <p className="text-sm text-zinc-500">No state changes recorded.</p>
       ) : (
         <ul className="space-y-2">
-          {timeline.map((change, index) => (
-            <li key={index} className="rounded bg-zinc-800 p-2 text-sm">
-              <div className="mb-1 flex items-center text-zinc-400">
-                <ClockIcon className="mr-1 h-4 w-4" />
+          {timeline.slice(0, 10).map((change, index) => (
+            <li
+              key={index}
+              className="relative rounded bg-zinc-800 p-2 text-xs"
+            >
+              <div className="absolute right-2 top-2 mb-1 flex items-center text-zinc-400">
+                <ClockIcon className="mr-1 h-3 w-3" />
                 <span>{new Date(change.timestamp).toLocaleTimeString()}</span>
               </div>
-              <div className="text-white">
-                <span className="font-medium">{change.key}</span> changed:
-              </div>
-              <div className="text-red-400 line-through">
-                {JSON.stringify(change.oldValue)}
-              </div>
-              <div className="text-green-400">
-                {JSON.stringify(change.newValue)}
-              </div>
+
+              <pre className="text-green-400">
+                {JSON.stringify(change.newValue, null, 2)}
+              </pre>
+              <pre className="text-red-400">
+                {JSON.stringify(change.oldValue, null, 2)}
+              </pre>
             </li>
           ))}
         </ul>
@@ -33,7 +34,7 @@ function StateTimeline({ timeline }: { timeline: StateChange[] }) {
   );
 }
 
-export function ComponentDetails({ data }: { data?: ComponentData }) {
+export function ComponentDetails({ data }: { data?: StoreData }) {
   if (!data) return null;
 
   return (

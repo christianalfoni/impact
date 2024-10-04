@@ -42,8 +42,10 @@ function Counter() {
 
 export function App() {
   return (
-    <useCounterStore.Provider>
-      <Counter />
-    </useCounterStore.Provider>
+    <div>
+      <useCounterStore.Provider>
+        <Counter />
+      </useCounterStore.Provider>
+    </div>
   );
 }

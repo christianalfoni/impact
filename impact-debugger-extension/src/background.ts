@@ -1,15 +1,25 @@
 // src/background.js
 
+import { BackgroundScriptMessage } from "./types";
+
 // Connections to DevTools panels
 const connections: Record<string, chrome.runtime.Port> = {};
 
 // This is where the panel connects with the current inspected tab, so it can
 // show different tabs (needs implementation in panel code)
 chrome.runtime.onConnect.addListener((port) => {
-  const extensionListener = (message: any) => {
+  const extensionListener = (
+    message: BackgroundScriptMessage & { tabId: number },
+  ) => {
     if (message.name === "init") {
       connections[message.tabId] = port;
       return;
+    }
+    if (message.name === "message") {
+      chrome.tabs.sendMessage(message.tabId, {
+        source: "IMPACT_DEBUGGER",
+        message: message.message,
+      });
     }
   };
 

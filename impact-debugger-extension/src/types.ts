@@ -1,3 +1,5 @@
+import { DebugMessage } from "@impact-react/store";
+
 export type StateChange = {
   timestamp: number;
   key: string;
@@ -5,26 +7,22 @@ export type StateChange = {
   newValue: unknown;
 };
 
-export type ComponentData = {
+export type StoreData = {
   id: string;
   name: string;
   props: Record<string, unknown>;
   state: Record<string, unknown>;
-  children: ComponentData[];
+  children: StoreData[];
   stateTimeline: StateChange[];
   stale: boolean;
-  reactFiberId: number;
   highlighted: boolean;
 };
 
-export const DEBUG_SOURCE = "impact-react-debugger";
-
-export type DebuggerProtocol =
+export type BackgroundScriptMessage =
   | {
-      type: "highlight-element";
-      data: { reactFiberId: number; componentDisplayName: string };
+      name: "init";
     }
   | {
-      type: "highlight-clean";
-      data: undefined;
+      name: "message";
+      message: DebugMessage;
     };

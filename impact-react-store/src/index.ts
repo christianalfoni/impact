@@ -20,6 +20,9 @@ export type StoreReference = {
 
 export type DebugEvent =
   | {
+      type: "init";
+    }
+  | {
       type: "state";
       storeReference: StoreReference;
       state: Record<string, unknown>;
@@ -32,18 +35,85 @@ export type DebugEvent =
   | {
       type: "store_mounted";
       storeReference: StoreReference;
-      reactFiberId: number;
     }
   | {
       type: "store_unmounted";
       storeReference: StoreReference;
     };
 
+export type DebugMessage =
+  | {
+      type: "highlight-store";
+      data: { id: string };
+    }
+  | {
+      type: "highlight-clean";
+      data: undefined;
+    };
+
+function isImpactDebuggerMessage(event: MessageEvent): event is MessageEvent<{
+  source: "IMPACT_DEBUGGER";
+  message: DebugMessage;
+}> {
+  return event.data && event.data.source === "IMPACT_DEBUGGER";
+}
+
 let sendDebugMessage: (event: DebugEvent) => void | undefined;
+const storeNodeReferences: Record<
+  string,
+  {
+    node: HTMLElement | null;
+    name: string;
+  }
+> = {};
 
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   sendDebugMessage = (message) =>
     window.postMessage({ type: "IMPACT_DEBUG_MESSAGE", message }, "*");
+
+  sendDebugMessage({
+    type: "init",
+  });
+
+  window.addEventListener("message", (event) => {
+    if (isImpactDebuggerMessage(event)) {
+      switch (event.data.message.type) {
+        case "highlight-store": {
+          const storeNodeReference =
+            storeNodeReferences[event.data.message.data.id];
+          // @ts-ignore
+          const reactFiberId = // @ts-ignore
+            window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.rendererInterfaces
+              ?.get(1)
+              ?.getFiberIDForNative(storeNodeReference.node);
+          window.postMessage({
+            source: "react-devtools-content-script",
+            payload: {
+              event: "highlightNativeElement",
+              payload: {
+                displayName: storeNodeReference.name,
+                hideAfterTimeout: false,
+                id: reactFiberId,
+                openNativeElementsPanel: false,
+                rendererID: 1,
+                scrollIntoView: false,
+              },
+            },
+          });
+          break;
+        }
+        case "highlight-clean": {
+          window.postMessage({
+            source: "react-devtools-content-script",
+            payload: {
+              event: "clearNativeElementHighlight",
+            },
+          });
+          break;
+        }
+      }
+    }
+  });
 }
 
 function createUniqueId() {
@@ -215,18 +285,19 @@ export function configureStore(
 
       if (sendDebugMessage) {
         useEffect(() => {
-          const node = findStateNode(comp);
-          // @ts-ignore
-          const reactFiberId = // @ts-ignore
-            window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.rendererInterfaces
-              ?.get(1)
-              ?.getFiberIDForNative(node);
+          const storeReference = resolveStoreReference(storeContextRef.current);
 
           sendDebugMessage({
             type: "store_mounted",
-            storeReference: resolveStoreReference(storeContextRef.current),
-            reactFiberId,
+            storeReference,
           });
+
+          const node = findStateNode(comp);
+
+          storeNodeReferences[storeReference.id] = {
+            node,
+            name: storeReference.name,
+          };
 
           let disposeObserveStore: (() => void) | undefined;
 
@@ -248,6 +319,9 @@ export function configureStore(
               type: "store_unmounted",
               storeReference: resolveStoreReference(storeContextRef.current),
             });
+
+            storeReferences.delete(storeContextRef.current);
+            delete storeNodeReferences[storeReference.id];
 
             disposeObserveStore?.();
           };

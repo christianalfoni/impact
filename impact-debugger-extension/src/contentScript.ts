@@ -13,9 +13,6 @@ window.addEventListener(
 );
 
 // Listen for messages from the background script
-chrome.runtime.onMessage.addListener((request, _, sendResponse) => {
-  if (request.from === "devtools-panel") {
-    console.log("Message from DevTools panel:", request.message);
-    sendResponse({ status: "Content script received your message." });
-  }
+chrome.runtime.onMessage.addListener((request) => {
+  window.postMessage(request, "*");
 });
