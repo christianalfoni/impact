@@ -61,9 +61,7 @@ export function ComponentDetails({ data }: { data?: StoreData }) {
         </pre>
       </div>
       <div className="mb-4">
-        <h4 className="mb-1 text-sm font-medium text-zinc-400">
-          Current State
-        </h4>
+        <h4 className="mb-1 text-sm font-medium text-zinc-400">State</h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
           <ValueInspector
             value={data.state}

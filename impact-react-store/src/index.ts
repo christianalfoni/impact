@@ -176,6 +176,7 @@ export class StoreContainer {
   _resolvementError?: Error;
   _cleanups = new Set<() => void>();
   _storeValue: any;
+  _injectionValues: Record<symbol, any> = {};
 
   // When constructing the provider for the reactive context we only keep a reference to the
   // context and any parent reactive context container
@@ -194,6 +195,15 @@ export class StoreContainer {
   }
   hasValue() {
     return this._storeValue !== undefined;
+  }
+  addInjectionValue(symbol: symbol, value: any) {
+    this._injectionValues[symbol] = value;
+  }
+  getInjectionValue(symbol: symbol) {
+    return this._injectionValues[symbol];
+  }
+  hasInjectionValue(symbol: symbol) {
+    return symbol in this._injectionValues;
   }
   registerCleanup(cleanup: () => void) {
     this._cleanups.add(cleanup);
@@ -306,6 +316,7 @@ export function configureStore(
             storeRef.current !== null
           ) {
             disposeObserveStore = observeStore(storeRef.current, (state) => {
+              console.log("Send state", state, storeContextRef.current);
               sendDebugMessage({
                 type: "state",
                 storeReference: resolveStoreReference(storeContextRef.current),
@@ -535,4 +546,37 @@ function cleanup(cb: () => void) {
   }
 
   resolvingStoreContainer.registerCleanup(cb);
+}
+
+export function createStoreValue<T>(): {
+  (): T;
+  (value: T): void;
+} {
+  const symbol = Symbol();
+
+  function resolveValue(storeContainer: StoreContainer) {
+    if (storeContainer.hasInjectionValue(symbol)) {
+      return storeContainer.getInjectionValue(symbol);
+    }
+
+    if (!storeContainer.parent) {
+      throw new Error("The value is not provided by any store");
+    }
+
+    return resolveValue(storeContainer.parent);
+  }
+
+  return function (...args: [] | [T]) {
+    const resolvingStoreContainer = getResolvingStoreContainer();
+
+    if (!resolvingStoreContainer) {
+      throw new Error("You can not inject store values outside a store");
+    }
+
+    if (!args.length) {
+      return resolveValue(resolvingStoreContainer);
+    }
+
+    resolvingStoreContainer.addInjectionValue(symbol, args[0]);
+  };
 }

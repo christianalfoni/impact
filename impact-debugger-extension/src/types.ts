@@ -7,12 +7,17 @@ export type StateChange = {
   newValue: unknown;
 };
 
+export type StoreNode = {
+  id: string;
+  children: StoreNode[];
+};
+
 export type StoreData = {
   id: string;
+  parentId?: string;
   name: string;
   props: Record<string, unknown>;
   state: Record<string, unknown>;
-  children: StoreData[];
   stateTimeline: StateChange[];
   stale: boolean;
   highlighted: boolean;

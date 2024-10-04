@@ -8,36 +8,67 @@ import {
 } from "lucide-react";
 
 import { Lightning, Logo, LogoMuted } from "./Logo";
-import { BackgroundScriptMessage, StoreData } from "./types";
+import { BackgroundScriptMessage, StoreData, StoreNode } from "./types";
 import { ComponentDetails } from "./Details";
 import { DebugEvent, StoreReference } from "@impact-react/store";
+
+function buildTree(stores: Record<string, StoreData>): StoreNode[] {
+  // Map from id to StoreNode
+  const idToNodeMap: Record<string, StoreNode> = {};
+
+  // First, create a StoreNode for each Store
+  for (const id in stores) {
+    idToNodeMap[id] = { id, children: [] };
+  }
+
+  // Then, build the tree by linking children to their parents
+  const roots: StoreNode[] = [];
+
+  for (const id in stores) {
+    const store = stores[id];
+    const node = idToNodeMap[id];
+
+    if (store.parentId) {
+      // Get the parent node
+      const parentNode = idToNodeMap[store.parentId];
+      if (parentNode) {
+        parentNode.children.push(node);
+      } else {
+        // Parent not found; treat this node as a root
+        roots.push(node);
+      }
+    } else {
+      // No parentId; this node is a root
+      roots.push(node);
+    }
+  }
+
+  return roots;
+}
 
 export default function ReactDevTool() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
-  const [store, dispatch] = useReducer(storeReducer, []);
+  const [stores, dispatch] = useReducer(storesReducer, {});
   const portRef = useRef<{ port: chrome.runtime.Port; tabId: number }>();
 
-  const filterTree = (node: StoreData): StoreData | null => {
-    if (node.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return node;
-    }
+  const filterTree = (node: StoreNode): StoreNode | null => {
     const filteredChildren = node.children
       .map(filterTree)
-      .filter((child): child is StoreData => child !== null);
+      .filter((child): child is StoreNode => child !== null);
     if (filteredChildren.length > 0) {
       return { ...node, children: filteredChildren };
     }
     return null;
   };
 
-  const filteredTrees = store
+  const filteredTree = buildTree(stores)
     .map((tree) => (searchTerm ? filterTree(tree) : tree))
-    .filter((tree): tree is StoreData => tree !== null);
+    .filter((tree): tree is StoreNode => tree !== null);
 
-  const selectedComponent = findComponentById(store, selectedId);
+  const selectedComponent = selectedId ? stores[selectedId] : null;
 
   function sendMessageToBackgroundScript(
     message: Omit<BackgroundScriptMessage, "tabId">,
@@ -174,10 +205,11 @@ export default function ReactDevTool() {
               setSelectedId(null);
             }}
           >
-            {filteredTrees.map((tree, index) => (
+            {filteredTree.map((node, index) => (
               <TreeNode
                 key={index}
-                data={tree}
+                node={node}
+                stores={stores}
                 selectedId={selectedId}
                 onSelect={setSelectedId}
                 sendMessageToBackgroundScript={sendMessageToBackgroundScript}
@@ -213,19 +245,22 @@ export default function ReactDevTool() {
 }
 
 function TreeNode({
-  data,
+  node,
+  stores,
   depth = 0,
   selectedId,
   onSelect,
   sendMessageToBackgroundScript,
 }: {
-  data: StoreData;
+  node: StoreNode;
+  stores: Record<string, StoreData>;
   depth?: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
   sendMessageToBackgroundScript: (message: BackgroundScriptMessage) => void;
 }) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const data = stores[node.id];
+  const [isExpanded, setIsExpanded] = useState(Boolean(node.children.length));
   const isSelected = data.id === selectedId;
   const [isHighlighted, setIsHighlighted] = useState(data.highlighted);
 
@@ -282,7 +317,7 @@ function TreeNode({
             setIsExpanded(!isExpanded);
           }}
         >
-          {data.children.length > 0 &&
+          {node.children.length > 0 &&
             (isExpanded ? (
               <ChevronDownIcon className="h-4 w-4" />
             ) : (
@@ -314,10 +349,11 @@ function TreeNode({
         </span>
       </div>
       {isExpanded &&
-        data.children.map((child) => (
+        node.children.map((child) => (
           <TreeNode
             key={child.id}
-            data={child}
+            node={child}
+            stores={stores}
             depth={depth + 1}
             selectedId={selectedId}
             onSelect={onSelect}
@@ -332,10 +368,10 @@ function createChild(store: StoreReference, stale: boolean): StoreData {
   return {
     id: store.id,
     name: store.name,
-    props: {}, // todo
-    state: {}, // todo
-    stateTimeline: [], // todo
-    children: [],
+    parentId: store.parent?.id,
+    props: {},
+    state: {},
+    stateTimeline: [],
     stale,
     highlighted: false,
   };
@@ -361,10 +397,14 @@ type Action =
       };
     };
 
-function storeReducer(state: StoreData[], action: Action): StoreData[] {
+function storesReducer(
+  state: Record<string, StoreData>,
+  action: Action,
+): Record<string, StoreData> {
+  console.log("ACTION", action.type, action);
   switch (action.type) {
     case "reset":
-      return [];
+      return {};
     case "add":
       return addComponent(state, action.payload);
     case "stale":
@@ -382,124 +422,70 @@ function storeReducer(state: StoreData[], action: Action): StoreData[] {
 }
 
 function updateComponent(
-  stateReducer: StoreData[],
+  reducerState: Record<string, StoreData>,
   id: string,
   props?: any,
   state?: any,
-): StoreData[] {
-  return stateReducer.map((item) => {
-    const buildTimeline = () => {
-      if (state === undefined) {
-        return item.stateTimeline;
-      }
+) {
+  const item = reducerState[id];
 
-      if (item.state === null || deepEqual(item.state, state)) {
-        return item.stateTimeline;
-      }
-
-      const diff = findObjectDifferences(item.state!, state);
-
-      const diffTo: any = {};
-      const diffFrom: any = {};
-      Object.keys(diff).forEach((key) => {
-        diffTo[key] = diff[key].to ?? diff[key].added;
-        diffFrom[key] = diff[key].from ?? diff[key].removed;
-      });
-
-      return [
-        {
-          timestamp: Date.now(),
-          key: Date.now() + JSON.stringify(state),
-          newValue: diffTo,
-          oldValue: diffFrom,
-        },
-        ...item.stateTimeline,
-      ];
-    };
-
-    if (item.id === id) {
-      return {
-        ...item,
-        ...(props !== undefined && { props }),
-        ...(state !== undefined && { state }),
-        stateTimeline: buildTimeline(),
-        highlighted: state !== undefined,
-      };
-    }
-
-    return {
-      ...item,
-      children: updateComponent(item.children, id, props, state),
-    };
-  });
-}
-
-function addComponent(state: StoreData[], store: StoreReference): StoreData[] {
-  if (!store.parent) {
-    return state.some((item) => item.id === store.id)
-      ? state.map((item) =>
-          item.id === store.id ? { ...item, stale: false } : item,
-        )
-      : [...state, createChild(store, false)];
+  if (!item) {
+    return reducerState;
   }
 
-  return state.map((item) => {
-    if (item.id === store.parent!.id) {
-      const existingChildIndex = item.children.findIndex(
-        (child) => child.id === store.id,
-      );
-
-      if (existingChildIndex !== -1) {
-        // If child exists and is stale, remove it
-        if (item.children[existingChildIndex].stale) {
-          const newChildren = [...item.children];
-          newChildren.splice(existingChildIndex, 1);
-          return {
-            ...item,
-            children: [...newChildren, createChild(store, false)],
-          };
-        }
-        // If child exists and is not stale, don't modify
-        return item;
-      }
-
-      // If child doesn't exist, add it
-      return {
-        ...item,
-        children: [...item.children, createChild(store, false)],
-      };
+  const buildTimeline = () => {
+    if (state === undefined) {
+      return item.stateTimeline;
     }
 
-    return {
-      ...item,
-      children: addComponent(item.children, store),
-    };
-  });
-}
-
-function markComponentAsStale(state: StoreData[], id: string): StoreData[] {
-  return state.map((item) => {
-    if (item.id === id) {
-      return { ...item, stale: true };
+    if (item.state === null || deepEqual(item.state, state)) {
+      return item.stateTimeline;
     }
 
-    return {
+    const diff = findObjectDifferences(item.state!, state);
+
+    const diffTo: any = {};
+    const diffFrom: any = {};
+    Object.keys(diff).forEach((key) => {
+      diffTo[key] = diff[key].to ?? diff[key].added;
+      diffFrom[key] = diff[key].from ?? diff[key].removed;
+    });
+
+    return [
+      {
+        timestamp: Date.now(),
+        key: Date.now() + JSON.stringify(state),
+        newValue: diffTo,
+        oldValue: diffFrom,
+      },
+      ...item.stateTimeline,
+    ];
+  };
+
+  return {
+    ...reducerState,
+    [item.id]: {
       ...item,
-      children: markComponentAsStale(item.children, id),
-    };
-  });
+      ...(props !== undefined && { props }),
+      ...(state !== undefined && { state }),
+      stateTimeline: buildTimeline(),
+      highlighted: state !== undefined,
+    },
+  };
 }
 
-function findComponentById(
-  trees: StoreData[],
-  id: string | null,
-): StoreData | undefined {
-  for (const tree of trees) {
-    if (tree.id === id) return tree;
-    const found = findComponentById(tree.children, id);
-    if (found) return found;
-  }
-  return undefined;
+function addComponent(state: Record<string, StoreData>, store: StoreReference) {
+  return { ...state, [store.id]: createChild(store, false) };
+}
+
+function markComponentAsStale(state: Record<string, StoreData>, id: string) {
+  return {
+    ...state,
+    [id]: {
+      ...state[id],
+      stale: true,
+    },
+  };
 }
 
 function deepEqual(obj1: Record<string, any>, obj2: Record<string, any>) {
