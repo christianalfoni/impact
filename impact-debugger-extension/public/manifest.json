@@ -1,5 +1,5 @@
 {
-  "name": "My React DevTools Panel",
+  "name": "Impact Debugger",
   "version": "1.0",
   "manifest_version": 3,
   "description": "A React app integrated into Chrome DevTools.",

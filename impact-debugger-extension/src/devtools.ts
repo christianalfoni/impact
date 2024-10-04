@@ -1,6 +1,6 @@
 // src/devtools.js
 chrome.devtools.panels.create(
-  "Impact Stores",
+  "⚡ Impact Stores",
   "", // Optional icon path
   "panel.html", // HTML file for the panel's UI
   function (panel) {
