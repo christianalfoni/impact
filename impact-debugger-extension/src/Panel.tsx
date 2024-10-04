@@ -373,8 +373,6 @@ function createChild(store: StoreReference, stale: boolean): StoreData {
     id: store.id,
     name: store.name,
     parentId: store.parent?.id,
-    props: {},
-    state: {},
     stateTimeline: [],
     stale,
     highlighted: false,
@@ -442,7 +440,7 @@ function updateComponent(
       return item.stateTimeline;
     }
 
-    if (item.state === null || deepEqual(item.state, state)) {
+    if (!item.state || deepEqual(item.state, state)) {
       return item.stateTimeline;
     }
 
