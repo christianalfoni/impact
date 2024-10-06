@@ -172,12 +172,10 @@ export default function ReactDevTool() {
   }
 
   return (
-    <div className="flex h-screen bg-zinc-900 font-mono text-white">
+    <div className="flex flex-col md:flex-row h-screen w-screen bg-zinc-900 font-mono text-white">
       {isSidebarOpen && (
         <div
-          className={`flex flex-col border-r border-zinc-800 ${
-            selectedComponent ? "w-1/2" : "w-full"
-          }`}
+          className={`flex flex-col border-b md:border-b-0 md:border-r border-zinc-800 h-1/2 md:h-full md:w-2/3`}
         >
           <div className="flex items-center border-b border-zinc-800 px-4 py-4">
             <Logo />
@@ -204,7 +202,7 @@ export default function ReactDevTool() {
           </div>
 
           <div
-            className="flex-grow overflow-auto pr-4 pt-4"
+            className="flex-grow overflow-auto pr-4 pt-4 pb-10"
             onClick={() => {
               setSelectedId(null);
             }}
@@ -222,28 +220,25 @@ export default function ReactDevTool() {
           </div>
         </div>
       )}
-      {selectedComponent && (
-        <div
-          className={`flex-grow ${isSidebarOpen ? "" : "w-full"} flex flex-col`}
-        >
-          <div className="flex items-center justify-between p-4 pb-0 pt-5">
-            <h2 className="text-sm text-zinc-400">Store Details</h2>
+
+      <div className={`flex-grow flex flex-col`}>
+        {selectedComponent && (
+          <div className="flex-grow overflow-auto relative">
+            <ComponentDetails data={selectedComponent} />
+
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-zinc-400 hover:text-white"
+              className="text-zinc-400 hover:text-white absolute right-2 top-2"
             >
               {isSidebarOpen ? (
-                <ChevronLeftIcon className="h-5 w-5" />
+                <ChevronLeftIcon className="h-5 w-5 rotate-90" />
               ) : (
-                <ChevronRightIcon className="h-5 w-5" />
+                <ChevronRightIcon className="h-5 w-5 rotate-90" />
               )}
             </button>
           </div>
-          <div className="flex-grow overflow-auto">
-            <ComponentDetails data={selectedComponent} />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

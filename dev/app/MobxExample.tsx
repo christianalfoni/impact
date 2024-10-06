@@ -1,7 +1,7 @@
 "use client";
 
 import { createStore } from "@impact-react/mobx";
-import { connectDebuggerBridge } from "impact-react-debugger";
+// import { connectDebuggerBridge } from "impact-react-debugger";
 import { observable } from "mobx";
 
 import { useEffect, useRef, useState } from "react";
@@ -97,7 +97,7 @@ export function MobxExample() {
   useEffect(() => {
     const delayToAvoidCallTwice = setTimeout(() => {
       if (iframe.current?.contentWindow) {
-        connectDebuggerBridge(iframe.current.contentWindow);
+        // connectDebuggerBridge(iframe.current.contentWindow);
       }
     }, 1000);
 
@@ -115,7 +115,7 @@ export function MobxExample() {
       </div>
 
       <div className="m-5 w-full overflow-hidden rounded">
-        <iframe ref={iframe} width="100%" height="500px" src="/debugger" />
+        {/* <iframe ref={iframe} width="100%" height="500px" src="/debugger" /> */}
       </div>
     </>
   );

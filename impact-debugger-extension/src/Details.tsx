@@ -54,7 +54,7 @@ export function ComponentDetails({ data }: { data?: StoreData }) {
         <h4 className="mb-1 text-sm font-medium text-zinc-400">Props</h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
           <ValueInspector
-            value={data.props}
+            value={data.props ?? {}}
             delimiter="."
             expandedPaths={[""]}
           />
@@ -64,7 +64,7 @@ export function ComponentDetails({ data }: { data?: StoreData }) {
         <h4 className="mb-1 text-sm font-medium text-zinc-400">State</h4>
         <pre className="rounded bg-zinc-800 p-2 text-sm text-white">
           <ValueInspector
-            value={data.state}
+            value={data.state ?? {}}
             delimiter="."
             expandedPaths={[""]}
             isState

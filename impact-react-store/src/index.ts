@@ -81,6 +81,11 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
         case "highlight-store": {
           const storeNodeReference =
             storeNodeReferences[event.data.message.data.id];
+
+          if (!storeNodeReference) {
+            return;
+          }
+
           // @ts-ignore
           const reactFiberId = // @ts-ignore
             window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.rendererInterfaces
@@ -316,7 +321,6 @@ export function configureStore(
             storeRef.current !== null
           ) {
             disposeObserveStore = observeStore(storeRef.current, (state) => {
-              console.log("Send state", state, storeContextRef.current);
               sendDebugMessage({
                 type: "state",
                 storeReference: resolveStoreReference(storeContextRef.current),
