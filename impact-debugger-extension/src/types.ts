@@ -9,6 +9,7 @@ export type StateChange = {
 
 export type StoreNode = {
   id: string;
+  isStale: boolean;
   children: StoreNode[];
 };
 
@@ -23,11 +24,4 @@ export type StoreData = {
   highlighted: boolean;
 };
 
-export type BackgroundScriptMessage =
-  | {
-      name: "init";
-    }
-  | {
-      name: "message";
-      message: DebugMessage;
-    };
+export type BackgroundScriptMessage = DebugMessage;

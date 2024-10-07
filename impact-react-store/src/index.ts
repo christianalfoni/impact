@@ -43,6 +43,12 @@ export type DebugEvent =
 
 export type DebugMessage =
   | {
+      type: "ready";
+    }
+  | {
+      type: "initialised";
+    }
+  | {
       type: "highlight-store";
       data: { id: string };
     }
@@ -68,19 +74,47 @@ const storeNodeReferences: Record<
 > = {};
 
 if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-  sendDebugMessage = (message) =>
+  let _resolveDebuggerReady: () => void;
+  let debuggerReadyBarrier = new Promise<void>((resolve) => {
+    _resolveDebuggerReady = resolve;
+  });
+
+  const sendMessage = (message: DebugEvent) =>
     window.postMessage({ type: "IMPACT_DEBUG_MESSAGE", message }, "*");
 
-  sendDebugMessage({
+  sendDebugMessage = (message) => {
+    debuggerReadyBarrier = debuggerReadyBarrier.then(() =>
+      sendMessage(message),
+    );
+  };
+
+  sendMessage({
     type: "init",
   });
 
   window.addEventListener("message", (event) => {
     if (isImpactDebuggerMessage(event)) {
+      console.log(event.data.message);
       switch (event.data.message.type) {
+        case "ready": {
+          // Debugger might open after we have init
+          sendMessage({
+            type: "init",
+          });
+          break;
+        }
+        case "initialised": {
+          _resolveDebuggerReady();
+          break;
+        }
         case "highlight-store": {
           const storeNodeReference =
             storeNodeReferences[event.data.message.data.id];
+
+          if (!storeNodeReference) {
+            return;
+          }
+
           // @ts-ignore
           const reactFiberId = // @ts-ignore
             window.__REACT_DEVTOOLS_GLOBAL_HOOK__?.rendererInterfaces
@@ -316,7 +350,6 @@ export function configureStore(
             storeRef.current !== null
           ) {
             disposeObserveStore = observeStore(storeRef.current, (state) => {
-              console.log("Send state", state, storeContextRef.current);
               sendDebugMessage({
                 type: "state",
                 storeReference: resolveStoreReference(storeContextRef.current),

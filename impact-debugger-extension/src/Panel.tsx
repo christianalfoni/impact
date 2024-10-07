@@ -12,38 +12,66 @@ import { BackgroundScriptMessage, StoreData, StoreNode } from "./types";
 import { ComponentDetails } from "./Details";
 import { DebugEvent, StoreReference } from "@impact-react/store";
 
-function buildTree(stores: Record<string, StoreData>): StoreNode[] {
-  // Map from id to StoreNode
-  const idToNodeMap: Record<string, StoreNode> = {};
-
-  // First, create a StoreNode for each Store
-  for (const id in stores) {
-    idToNodeMap[id] = { id, children: [] };
-  }
-
-  // Then, build the tree by linking children to their parents
-  const roots: StoreNode[] = [];
+function buildTrees(stores: Record<string, StoreData>): StoreNode[][] {
+  // Step 1: Separate stores into non-stale and stale
+  const nonStaleStores: Record<string, StoreData> = {};
+  const staleStores: Record<string, StoreData> = {};
 
   for (const id in stores) {
-    const store = stores[id];
-    const node = idToNodeMap[id];
-
-    if (store.parentId) {
-      // Get the parent node
-      const parentNode = idToNodeMap[store.parentId];
-      if (parentNode) {
-        parentNode.children.push(node);
-      } else {
-        // Parent not found; treat this node as a root
-        roots.push(node);
-      }
+    if (stores[id].stale) {
+      staleStores[id] = stores[id];
     } else {
-      // No parentId; this node is a root
-      roots.push(node);
+      nonStaleStores[id] = stores[id];
     }
   }
 
-  return roots;
+  /**
+   * Helper function to build a tree from a subset of stores.
+   *
+   * @param storesSubset - A record of store data.
+   * @returns An array of root StoreNodes for the given subset.
+   */
+  function buildTreeSubset(
+    storesSubset: Record<string, StoreData>,
+  ): StoreNode[] {
+    const idToNodeMap: Record<string, StoreNode> = {};
+
+    // Create StoreNode for each store in the subset
+    for (const id in storesSubset) {
+      idToNodeMap[id] = {
+        id,
+        children: [],
+        isStale: storesSubset[id].stale,
+      };
+    }
+
+    const roots: StoreNode[] = [];
+
+    // Link children to their respective parents
+    for (const id in storesSubset) {
+      const store = storesSubset[id];
+      const node = idToNodeMap[id];
+
+      if (store.parentId && storesSubset[store.parentId]) {
+        const parentNode = idToNodeMap[store.parentId];
+        parentNode.children.push(node);
+      } else {
+        // No parentId or parent not in the subset; treat as root
+        roots.push(node);
+      }
+    }
+
+    return roots;
+  }
+
+  // Step 2: Build trees for non-stale and stale stores
+  const nonStaleRoots = buildTreeSubset(nonStaleStores);
+  const staleRoots = buildTreeSubset(staleStores);
+
+  // Step 3: Combine the results
+  // The first array contains non-stale trees
+  // Subsequent arrays contain stale trees
+  return [nonStaleRoots, ...staleRoots.map((root) => [root])];
 }
 
 export default function ReactDevTool() {
@@ -64,9 +92,7 @@ export default function ReactDevTool() {
     return null;
   };
 
-  const filteredTree = buildTree(stores)
-    .map((tree) => (searchTerm ? filterTree(tree) : tree))
-    .filter((tree): tree is StoreNode => tree !== null);
+  const trees = buildTrees(stores);
 
   const selectedComponent = selectedId ? stores[selectedId] : null;
 
@@ -92,7 +118,7 @@ export default function ReactDevTool() {
       tabId: chrome.devtools.inspectedWindow.tabId,
     };
 
-    sendMessageToBackgroundScript({ name: "init" });
+    sendMessageToBackgroundScript({ type: "ready" });
 
     port.onDisconnect.addListener(() => {
       location.reload();
@@ -106,6 +132,7 @@ export default function ReactDevTool() {
           dispatch({
             type: "reset",
           });
+          sendMessageToBackgroundScript({ type: "initialised" });
           break;
         }
         case "store_mounted": {
@@ -172,12 +199,10 @@ export default function ReactDevTool() {
   }
 
   return (
-    <div className="flex h-screen bg-zinc-900 font-mono text-white">
+    <div className="flex flex-col md:flex-row h-screen w-screen bg-zinc-900 font-mono text-white">
       {isSidebarOpen && (
         <div
-          className={`flex flex-col border-r border-zinc-800 ${
-            selectedComponent ? "w-1/2" : "w-full"
-          }`}
+          className={`flex flex-col border-b md:border-b-0 md:border-r border-zinc-800 h-1/2 md:h-full md:w-2/3`}
         >
           <div className="flex items-center border-b border-zinc-800 px-4 py-4">
             <Logo />
@@ -204,12 +229,12 @@ export default function ReactDevTool() {
           </div>
 
           <div
-            className="flex-grow overflow-auto pr-4 pt-4"
+            className="flex-grow overflow-auto pr-4 pt-4 pb-10"
             onClick={() => {
               setSelectedId(null);
             }}
           >
-            {filteredTree.map((node, index) => (
+            {(trees[0] || []).map((node, index) => (
               <TreeNode
                 key={index}
                 node={node}
@@ -222,28 +247,25 @@ export default function ReactDevTool() {
           </div>
         </div>
       )}
-      {selectedComponent && (
-        <div
-          className={`flex-grow ${isSidebarOpen ? "" : "w-full"} flex flex-col`}
-        >
-          <div className="flex items-center justify-between p-4 pb-0 pt-5">
-            <h2 className="text-sm text-zinc-400">Store Details</h2>
+
+      <div className={`flex-grow flex flex-col`}>
+        {selectedComponent && (
+          <div className="flex-grow overflow-auto relative">
+            <ComponentDetails data={selectedComponent} />
+
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="text-zinc-400 hover:text-white"
+              className="text-zinc-400 hover:text-white absolute right-2 top-2"
             >
               {isSidebarOpen ? (
-                <ChevronLeftIcon className="h-5 w-5" />
+                <ChevronLeftIcon className="h-5 w-5 rotate-90" />
               ) : (
-                <ChevronRightIcon className="h-5 w-5" />
+                <ChevronRightIcon className="h-5 w-5 rotate-90" />
               )}
             </button>
           </div>
-          <div className="flex-grow overflow-auto">
-            <ComponentDetails data={selectedComponent} />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -267,6 +289,8 @@ function TreeNode({
   const [isExpanded, setIsExpanded] = useState(Boolean(node.children.length));
   const isSelected = data.id === selectedId;
   const [isHighlighted, setIsHighlighted] = useState(data.highlighted);
+
+  useEffect(() => {});
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -295,22 +319,16 @@ function TreeNode({
         }}
         onMouseEnter={() => {
           sendMessageToBackgroundScript({
-            name: "message",
-            message: {
-              type: "highlight-store",
-              data: {
-                id: data.id,
-              },
+            type: "highlight-store",
+            data: {
+              id: data.id,
             },
           });
         }}
         onMouseLeave={() => {
           sendMessageToBackgroundScript({
-            name: "message",
-            message: {
-              type: "highlight-clean",
-              data: undefined,
-            },
+            type: "highlight-clean",
+            data: undefined,
           });
         }}
       >
