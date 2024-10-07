@@ -11,16 +11,16 @@ chrome.runtime.onConnect.addListener((port) => {
   const extensionListener = (
     message: BackgroundScriptMessage & { tabId: number },
   ) => {
-    if (message.name === "init") {
+    if (message.type === "ready") {
       connections[message.tabId] = port;
-      return;
     }
-    if (message.name === "message") {
-      chrome.tabs.sendMessage(message.tabId, {
-        source: "IMPACT_DEBUGGER",
-        message: message.message,
-      });
-    }
+
+    const { tabId, ...actualMessage } = message;
+
+    chrome.tabs.sendMessage(tabId, {
+      source: "IMPACT_DEBUGGER",
+      message: actualMessage,
+    });
   };
 
   port.onMessage.addListener(extensionListener);
