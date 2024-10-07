@@ -2,7 +2,7 @@
   "name": "Impact Debugger",
   "version": "1.0",
   "manifest_version": 3,
-  "description": "A React app integrated into Chrome DevTools.",
+  "description": "The Impact stores debugger",
   "devtools_page": "devtools.html",
   "icons": {
     "16": "icon16.png",
@@ -10,7 +10,7 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "permissions": ["scripting", "tabs"],
+  "permissions": ["scripting", "activeTab"],
   "background": {
     "service_worker": "background.js"
   },
