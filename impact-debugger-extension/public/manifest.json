@@ -10,13 +10,12 @@
     "48": "icon48.png",
     "128": "icon128.png"
   },
-  "permissions": ["scripting", "activeTab"],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["http://localhost/*", "https://*.app/*", "https://*.dev/*"],
       "js": ["contentScript.js"],
       "run_at": "document_start"
     }
