@@ -1,7 +1,4 @@
-import { h } from "preact";
-import { useState } from "preact/hooks";
-import { memo } from "preact/compat";
-import { inspector as styles } from "./styles";
+import { memo, useState } from "react";
 import { isArray, isObject } from "./utils";
 
 function renderValue({
@@ -13,6 +10,7 @@ function renderValue({
   onClickPath,
   onToggleExpand,
   onSubmitState,
+  isState,
 }: {
   onSubmitState?: (newState: string) => void;
   onToggleExpand: (path: string[]) => void;
@@ -22,6 +20,7 @@ function renderValue({
   renderPaths?: RenderPaths;
   expandedPaths: string[];
   onClickPath?: (path: string[]) => void;
+  isState?: boolean;
 }) {
   const wrapper = renderPaths && renderPaths[path];
   let node;
@@ -42,6 +41,7 @@ function renderValue({
         isArray={false}
         value={value}
         onSubmitState={onSubmitState}
+        isState={isState}
       />
     );
   } else if (isArray(value)) {
@@ -60,6 +60,7 @@ function renderValue({
         isArray
         value={value}
         onSubmitState={onSubmitState}
+        isState={isState}
       />
     );
   } else {
@@ -72,6 +73,7 @@ function renderValue({
         onClickPath={onClickPath}
         hasWrapper={Boolean(wrapper)}
         onSubmitState={onSubmitState}
+        isState={isState}
       />
     );
   }
@@ -96,7 +98,7 @@ const PathKey = ({
 }: PathKeyProps) => {
   return path.length ? (
     <span
-      style={styles.key}
+      className="mr-1 cursor-pointer text-zinc-500"
       onClick={
         disabled
           ? undefined
@@ -128,6 +130,7 @@ type NestedProps = {
   onToggleExpand: (path: string[]) => void;
   onClickPath?: (path: string[]) => void;
   onSubmitState?: (newState: string) => void;
+  isState?: boolean;
 };
 
 const Nested = memo(
@@ -144,6 +147,7 @@ const Nested = memo(
     value,
     delimiter,
     onSubmitState,
+    isState,
   }: NestedProps) => {
     const shouldCollapse = !expandedPaths.includes(path);
     const isClass = value.__CLASS__;
@@ -153,7 +157,7 @@ const Nested = memo(
 
       return (
         <div
-          style={styles.inlineNested}
+          className="flex cursor-pointer items-center"
           onClick={(event) => {
             event.stopPropagation();
             onToggleExpand(path.split(delimiter));
@@ -167,13 +171,13 @@ const Nested = memo(
             disabled={!onSubmitState || hasWrapper}
           />
           {startBracket}
-          <span style={styles.keyCount}>
+          <span className="text-sm text-zinc-500">
             {isArray ? (
               keys.length + " items"
             ) : (
-              <span style={styles.inlineNested}>
+              <span className="flex cursor-pointer items-center">
                 {isClass ? (
-                  <span style={styles.inlineClass}>{value.name}</span>
+                  <span className="mr-2 text-zinc-500">{value.name}</span>
                 ) : null}{" "}
                 {keys.sort().slice(0, 3).join(", ") + "..."}
               </span>
@@ -187,7 +191,7 @@ const Nested = memo(
     return (
       <div>
         <div
-          style={styles.bracket(true)}
+          className="flex cursor-pointer items-center text-zinc-300"
           onClick={(event) => {
             event.stopPropagation();
             onToggleExpand(path.split(delimiter));
@@ -202,7 +206,7 @@ const Nested = memo(
           />
           {startBracket}
         </div>
-        <div style={styles.nestedChildren}>
+        <div className="pl-4">
           {Array.isArray(value)
             ? value.map((_, index) =>
                 renderValue({
@@ -214,47 +218,52 @@ const Nested = memo(
                   onClickPath,
                   onSubmitState,
                   onToggleExpand,
+                  isState,
                 }),
               )
             : isClass
-            ? [
-                <span
-                  style={styles.otherValue}
-                  key={path.concat((path ? delimiter : "") + "__CLASS__")}
-                >
-                  {value.name}
-                </span>,
-                ...Object.keys(value.value)
+              ? [
+                  <span
+                    className="flex items-center text-zinc-500"
+                    key={path.concat((path ? delimiter : "") + "__CLASS__")}
+                  >
+                    {value.name}
+                  </span>,
+                  ...Object.keys(value.value)
+                    .sort()
+                    .map((key) => {
+                      return renderValue({
+                        path: path.concat((path ? delimiter : "") + key),
+                        value: value.value[key],
+                        delimiter,
+                        renderPaths,
+                        expandedPaths,
+                        onClickPath,
+                        onSubmitState,
+                        onToggleExpand,
+                        isState,
+                      });
+                    }),
+                ]
+              : Object.keys(value)
                   .sort()
                   .map((key) => {
                     return renderValue({
                       path: path.concat((path ? delimiter : "") + key),
-                      value: value.value[key],
+                      value: value[key],
                       delimiter,
                       renderPaths,
                       expandedPaths,
                       onClickPath,
                       onSubmitState,
                       onToggleExpand,
+                      isState,
                     });
-                  }),
-              ]
-            : Object.keys(value)
-                .sort()
-                .map((key) => {
-                  return renderValue({
-                    path: path.concat((path ? delimiter : "") + key),
-                    value: value[key],
-                    delimiter,
-                    renderPaths,
-                    expandedPaths,
-                    onClickPath,
-                    onSubmitState,
-                    onToggleExpand,
-                  });
-                })}
+                  })}
         </div>
-        <div style={styles.bracket(false)}>{endBracket}</div>
+        <div className="flex cursor-default items-center text-zinc-300">
+          {endBracket}
+        </div>
       </div>
     );
   },
@@ -268,6 +277,7 @@ type ValueComponentProps = {
   delimiter: string;
   selectedStatePath?: string;
   onSubmitState?: (newState: string) => void;
+  isState?: boolean;
 };
 
 const ValueComponent = memo(
@@ -279,6 +289,7 @@ const ValueComponent = memo(
     onSubmitState,
     hasWrapper,
     delimiter,
+    isState,
   }: ValueComponentProps) => {
     const [isHoveringString, setHoveringString] = useState(false);
 
@@ -288,7 +299,7 @@ const ValueComponent = memo(
       value[value.length - 1] === "]"
     ) {
       return (
-        <div style={styles.otherValue}>
+        <div className={`flex items-center`}>
           <PathKey
             path={path}
             delimiter={delimiter}
@@ -302,7 +313,7 @@ const ValueComponent = memo(
 
     if (typeof value === "string") {
       return (
-        <div style={styles.stringValue}>
+        <div className="flex items-center text-gray-100">
           <PathKey
             path={path}
             delimiter={delimiter}
@@ -312,6 +323,7 @@ const ValueComponent = memo(
           <div
             onMouseOver={() => setHoveringString(true)}
             onMouseOut={() => setHoveringString(false)}
+            className={`${isState ? "text-cyan-400" : "text-zinc-200"}`}
           >
             {'"'}
             {value.length > 50 && !isHoveringString
@@ -324,7 +336,9 @@ const ValueComponent = memo(
     }
 
     return (
-      <div style={styles.genericValue}>
+      <div
+        className={`flex items-center ${isState ? "text-cyan-400" : "text-zinc-200"}`}
+      >
         <PathKey
           path={path}
           delimiter={delimiter}
@@ -350,6 +364,7 @@ type InspectorProps = {
   onClickPath?: (path: string[]) => void;
   renderPaths?: RenderPaths;
   onSubmitState?: (newState: string) => void;
+  isState?: boolean;
 };
 
 const Inspector = ({
@@ -360,6 +375,7 @@ const Inspector = ({
   onClickPath = () => {},
   renderPaths,
   onSubmitState,
+  isState,
 }: InspectorProps) => {
   return (
     <div>
@@ -372,6 +388,7 @@ const Inspector = ({
         onClickPath,
         onToggleExpand,
         onSubmitState,
+        isState,
       })}
     </div>
   );

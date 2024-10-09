@@ -49,9 +49,11 @@ features:
 
 > **Impact** is born from the experience of building rich complex productivity applications. Their complexity is not primarily in data fetching, but managing a dynamic and highly interactive user interface on the client. Reactive primitives has helped us solve performance challenges while keeping us sane expressing all this complexity. At the same time these reactive primitives have forced us out of React and into a global scope. With **Impact** you can use the reactive primitives you know and love and replace the reconciling state management in React with intuitive and performant primitives.
 
-If you have used Impact in an application or you think it has valuable perspectives or concepts for a discussion, please use the [Template Slides Deck](https://docs.google.com/presentation/d/1pHBW-HxkugtK8Ny1ebj3a_klqu3HzHnSPvbVNw1drnU/edit?usp=sharing). Present Impact at your company, a local meetup or at a conference. Please reach out if you have any questions or think the slide deck should be updated.
+:popcorn: [**Watch the streams**](https://www.youtube.com/watch?v=QOkulQKkwN8&list=PLvEC9UhRenelvk-yQ8CQdbBHN_DEFC8to) :popcorn:
 
-## Install Impact
+If you have used Impact in an application or you think it has valuable perspectives or concepts for a discussion, please use the [Template Slides Deck](https://docs.google.com/presentation/d/1pHBW-HxkugtK8Ny1ebj3a_klqu3HzHnSPvbVNw1drnU/edit?usp=sharing). Present Impact at your company, a local meetup or at a conference. Please reach out if you have any questions or want to suggest changes to the slide deck.
+
+## Choose your reactive flavour
 
 - **@impact-react/signals**: [Documentation](./signal) - [Get started template](https://codesandbox.io/p/devbox/impact-signals-6h3gtk)
 - **@impact-react/mobx**: [Documentation](https://mobx.js.org/README.html) - [Get started template](https://codesandbox.io/p/devbox/impact-mobx-tzdy8n)
@@ -104,8 +106,9 @@ npm install @impact-react/legend
 
 ::: info
 
-With the babel plugin all components which calls a hook ending with the name `Store` will be wrapped in the related `observer`. That means all your store hooks needs to end with `Store`, for example `useAppStore` or `useGlobalStore`.
+With the babel plugin all components consuming a store will automatically observe. That means you do not need to add any `observer` higher order component. The only requirement is that your store hooks starts with `use` and ends with `Store`, for example `useAppStore` or `useGlobalStore`.
 
+You can combine it with fine grained reactivity inside components if you need that.
 :::
 
 </HomeContent>

@@ -1,6 +1,7 @@
 import { ObserverContext, SignalNotifier } from "./ObserverContext";
 
 import { debugHooks } from "./debugHooks";
+import { SIGNAL_GETTER } from "./signal";
 
 export type Derived<T> = () => T;
 
@@ -14,10 +15,7 @@ export function derived<T>(cb: () => T) {
   const signalNotifier = new SignalNotifier();
   const context = new ObserverContext("derived");
 
-  // TODO: How can we take advantage of WeakSet to dispose of the derived subscription?
-  // onWillUnmount(() => disposer?.());
-
-  return () => {
+  function derivedGetter() {
     if (ObserverContext.current) {
       ObserverContext.current.registerGetter(signalNotifier);
       if (debugHooks.onGetValue) {
@@ -53,5 +51,9 @@ export function derived<T>(cb: () => T) {
     }
 
     return value;
-  };
+  }
+
+  derivedGetter[SIGNAL_GETTER] = true;
+
+  return derivedGetter;
 }

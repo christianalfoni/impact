@@ -1,0 +1,26 @@
+{
+  "name": "Impact Debugger",
+  "version": "1.0",
+  "manifest_version": 3,
+  "description": "The Impact stores debugger",
+  "devtools_page": "devtools.html",
+  "icons": {
+    "16": "icon16.png",
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "https://*.app/*", "https://*.dev/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

@@ -12,9 +12,9 @@ function AppStore() {
 export const useAppStore = createStore(AppStore);
 ```
 
-## Provide
+## Provider
 
-The store should be provided through a component. The store now becomes accessible by the component and any nested component.
+The store should be provided to the component tree using the `.Provider`.
 
 ```tsx
 import { createStore } from "@impact-react/[*]";
@@ -31,7 +31,7 @@ function NestedComponent() {
   return <div />;
 }
 
-export default useAppStore.provider(function App() {
+function App() {
   const appStore = useAppStore();
 
   return (
@@ -40,8 +40,20 @@ export default useAppStore.provider(function App() {
       <NestedComponent />
     </div>
   );
-});
+}
+
+export function AppView() {
+  return (
+    <useAppStore.Provider>
+      <App />
+    </useAppStore.Provider>
+  );
+}
 ```
+
+::: tip
+Providing stores is often tied to views, as opposed to single components. Using that as a naming convention can be a good idea. It is also a good spot to add any error boundaries or suspense boundaries for the view.
+:::
 
 ## Props
 
@@ -59,14 +71,18 @@ function CounterStore(props: Props) {
 
 export const useCounterStore = createStore(CounterStore);
 
-const Counter = useCounterStore.provider(function Counter() {
+function Counter() {
   const counterStore = useCounterStore();
 
   return <div />;
-});
+}
 
 function App() {
-  return <Counter initialCount={10} />;
+  return (
+    <useCounterStore.Provider initialCount={10}>
+      <Counter />
+    </useCounterStore.Provider>
+  );
 }
 ```
 

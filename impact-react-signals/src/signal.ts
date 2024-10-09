@@ -100,6 +100,12 @@ export type Signal<T> = [
   ) => U extends Promise<infer V> ? ObservablePromise<V> : U,
 ];
 
+export const SIGNAL_GETTER = Symbol("SIGNAL_GETTER");
+
+export function isSignalGetter(value: unknown) {
+  return typeof value === "function" && SIGNAL_GETTER in value;
+}
+
 export function signal<T>(initialValue: T) {
   // If a signal has a promise we want to abort the current
   // resolving promise if we are changing it to a new one
@@ -130,54 +136,57 @@ export function signal<T>(initialValue: T) {
     );
   }
 
-  return [
-    () => {
-      if (ObserverContext.current) {
-        ObserverContext.current.registerGetter(signalNotifier);
-        if (debugHooks.onGetValue) {
-          debugHooks.onGetValue(ObserverContext.current, signalNotifier);
+  function signalGetter() {
+    if (ObserverContext.current) {
+      ObserverContext.current.registerGetter(signalNotifier);
+      if (debugHooks.onGetValue) {
+        debugHooks.onGetValue(ObserverContext.current, signalNotifier);
+      }
+    }
+
+    return value;
+  }
+
+  signalGetter[SIGNAL_GETTER] = true;
+
+  function signalSetter(newValue: any) {
+    // The update signature
+    if (typeof newValue === "function") {
+      newValue = newValue(value);
+    }
+
+    if (newValue instanceof Promise) {
+      newValue = createSignalPromise(newValue);
+    }
+
+    // We do nothing if the values are the same
+    if (value === newValue) {
+      return value;
+    }
+
+    value = newValue;
+
+    ObserverContext.current?.registerSetter(signalNotifier);
+
+    if (debugHooks.onSetValue) {
+      debugHooks.onSetValue(signalNotifier, value);
+    }
+
+    if (value instanceof Promise) {
+      // A promise could be an already resolved promise, in which case we do not want to notify as it is
+      // already done in "createObservablePromise". So we run our own micro task to check if the promise
+      // is still pending, where we do want to notify
+      Promise.resolve().then(() => {
+        if (value instanceof Promise && value.status === "pending") {
+          signalNotifier.notify();
         }
-      }
+      });
+    } else {
+      signalNotifier.notify();
+    }
 
-      return value;
-    },
-    (newValue: any) => {
-      // The update signature
-      if (typeof newValue === "function") {
-        newValue = newValue(value);
-      }
+    return value;
+  }
 
-      if (newValue instanceof Promise) {
-        newValue = createSignalPromise(newValue);
-      }
-
-      // We do nothing if the values are the same
-      if (value === newValue) {
-        return value;
-      }
-
-      value = newValue;
-
-      ObserverContext.current?.registerSetter(signalNotifier);
-
-      if (debugHooks.onSetValue) {
-        debugHooks.onSetValue(signalNotifier, value);
-      }
-
-      if (value instanceof Promise) {
-        // A promise could be an already resolved promise, in which case we do not want to notify as it is
-        // already done in "createObservablePromise". So we run our own micro task to check if the promise
-        // is still pending, where we do want to notify
-        Promise.resolve().then(() => {
-          if (value instanceof Promise && value.status === "pending") {
-            signalNotifier.notify();
-          }
-        });
-      } else {
-        signalNotifier.notify();
-      }
-
-      return value;
-    },
-  ] as Signal<T>;
+  return [signalGetter, signalSetter] as Signal<T>;
 }

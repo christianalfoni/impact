@@ -191,18 +191,37 @@ This is an example of how the `AppStore` depends on the user. If the id of the u
 
 ```tsx
 function AppStore(props) {
-  props.user;
-
-  return {};
+  return {
+    get user() {
+      return props.user;
+    },
+  };
 }
 
 const useAppStore = createStore(AppStore);
 
-const App = useAppStore.provider(function App() {});
+export default function AppView() {
+  const { authentication } = useGlobalStore();
 
-export default function Client() {
-  // This part resolves a user
-  return <App key={user.id} user={user} />;
+  if (authentication.state === "AUTHENTICATING") {
+    return <h1>Authenticating...</h1>;
+  }
+
+  if (authentication.state !== "UNAUTHENTICATED") {
+    return <h1>Please authenticate</h1>;
+  }
+
+  const user = authentication.state.user;
+
+  return (
+    <useAppStore.Provider key={user.id} user={user}>
+      <App />
+    </useAppStore.Provider>
+  );
+}
+
+function App() {
+  const { user } = useAppStore();
 }
 ```
 

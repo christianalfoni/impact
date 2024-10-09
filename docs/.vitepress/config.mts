@@ -24,7 +24,7 @@ export default defineConfig({
     nav: [
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
-      { text: "Guides", link: "/guides/queries-and-mutations" },
+      { text: "Guides", link: "/guides/developing-with-impact" },
       { text: "Impact API", link: "/create-component" },
       { text: "Signals API", link: "/signal" },
     ],
@@ -49,6 +49,10 @@ export default defineConfig({
       {
         text: "Guides",
         items: [
+          {
+            text: "Developing with Impact",
+            link: "/guides/developing-with-impact",
+          },
           {
             text: "Queries and Mutations",
             link: "/guides/queries-and-mutations",

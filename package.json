@@ -8,12 +8,12 @@
     "impact-react-mobx",
     "impact-react-preact",
     "impact-react-legend",
-    "impact-react-debugger",
+    "impact-debugger-extension",
     "dev",
     "dev-vite"
   ],
   "scripts": {
-    "dev": "concurrently -n app,debugger,dev -c blue,yellow,green \"cd impact-react && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",
+    "dev": "concurrently -n store,debugger,dev -c blue,yellow,green \"cd impact-react-store && yarn dev\" \"cd impact-react-debugger && yarn dev\" \"cd dev && yarn dev\"",
     "docs:dev": "vitepress dev docs",
     "docs:build": "node preBuild.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
@@ -35,7 +35,6 @@
     "eslint": "^8.48.0",
     "eslint-plugin-react": "^7.33.2",
     "immer": "^10.1.1",
-    "prettier": "^3.0.3",
     "react": "^18.3.1",
     "rimraf": "^2.6.1",
     "tslib": "^2.6.2",
@@ -48,6 +47,7 @@
     "@codesandbox/sandpack-client": "^2.12.0",
     "@ddietr/codemirror-themes": "^1.4.2",
     "codemirror": "^6.0.1",
+    "prettier": "^3.3.3",
     "vue-codemirror": "^6.1.1"
   }
 }

@@ -1,20 +1,79 @@
-import { useState } from "react";
+import { createStore } from "@impact-react/signals";
+import { signal } from "@impact-react/signals";
+import { createStoreValue } from "@impact-react/store";
 
-const useCounterStore = createStore((_, cleanup) => {
-  const [count, setCount] = signal(50);
+const injectFoo = createStoreValue<string>();
 
-  const interval = setInterval(() => setCount(count() + 1), 1000);
+function CounterStore() {
+  const [list, setList] = signal([{ title: "foo" }]);
 
-  cleanup(() => clearInterval(interval));
+  injectFoo("bar");
+
+  return { list, setList };
+}
+
+const useCounterStore = createStore(CounterStore);
+
+function NestedStore() {
+  const foo = injectFoo();
+
+  const [observableFoo] = signal(foo);
 
   return {
-    count,
+    observableFoo,
   };
-});
+}
 
-export const Counter = useCounterStore.provider(function Counter() {
+const useNestedStore = createStore(NestedStore);
+
+function Counter() {
   const state = useCounterStore();
 
-  return <h1>Count {state.count() + 5}</h1>;
-});
+  return (
+    <div>
+      <button
+        onClick={() =>
+          state.setList((current) => [
+            {
+              title: "BlappatiBlapp",
+            },
+            ...current.slice(1),
+          ])
+        }
+      >
+        Change name
+      </button>
+      <button
+        onClick={() =>
+          state.setList((current) => [...current, { title: "BOOOOH" }])
+        }
+      >
+        Add
+      </button>
+      <ul>
+        {state.list().map((item, index) => (
+          <li key={index}>{item.title}</li>
+        ))}
+      </ul>
+      <useNestedStore.Provider>
+        <Nested />
+      </useNestedStore.Provider>
+    </div>
+  );
+}
 
+function Nested() {
+  const { observableFoo } = useNestedStore();
+
+  return <h1>hihi {observableFoo()}</h1>;
+}
+
+export function App() {
+  return (
+    <div>
+      <useCounterStore.Provider>
+        <Counter />
+      </useCounterStore.Provider>
+    </div>
+  );
+}
