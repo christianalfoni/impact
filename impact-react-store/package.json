@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/store",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
