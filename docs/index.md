@@ -111,4 +111,10 @@ With the babel plugin all components consuming a store will automatically observ
 You can combine it with fine grained reactivity inside components if you need that.
 :::
 
+## Chrome Extension
+
+See active stores and state changes: [Go to Chrome Store](https://chromewebstore.google.com/detail/impact-debugger/ppaccbkhggblkiidlfjcplopflkjbbal)
+
+![debugger](./debugger.png)
+
 </HomeContent>
