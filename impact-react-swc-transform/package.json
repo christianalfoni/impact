@@ -1,34 +1,14 @@
 {
-  "name": "@impact-react/swc-transform",
-  "version": "1.0.0",
-  "type": "module",
-  "repository": "git+https://github.com/christianalfoni/impact.git",
-  "module": "./dist/esm/index.js",
-  "main": "./dist/esm/index.js",
-  "exports": {
-    ".": {
-      "import": "./dist/esm/index.js",
-      "types": "./dist/esm/index.d.ts",
-      "default": "./dist/cjs/index.cjs"
-    }
-  },
-  "types": "./dist/esm/index.d.ts",
-  "scripts": {
-    "dev": "tsc -p ./tsconfig.build-esm.json --watch",
-    "build": "yarn clean && yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../create-dist",
-    "build:esm": "tsc -p ./tsconfig.build-esm.json",
-    "transform": "yarn build:cjs && node test-transform",
-    "clean": "rimraf ./dist",
-    "typecheck": "tsc --noEmit",
-    "prepublish": "yarn build"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "dependencies": {
-    "@swc/core": "^1.7.40",
-    "@swc/helpers": "^0.5.13"
-  }
+    "name": "impact-react-swc-transform",
+    "version": "0.1.0",
+    "description": "",
+    "author": "",
+    "license": "ISC",
+    "keywords": ["swc-plugin"],
+    "main": "target/wasm32-wasi/release/impact_react_swc_transform.wasm",
+    "scripts": {
+        "prepublishOnly": "cargo build-wasi --release"
+    },
+    "files": [],
+    "preferUnplugged": true
 }

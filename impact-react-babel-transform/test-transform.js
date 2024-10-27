@@ -44,9 +44,13 @@ const Counter6 = observer(function Counter6() {
     {
       plugins: [
         "@babel/plugin-syntax-jsx",
-        (await import("./dist/cjs/index.cjs")).createTransformer(
-          "@impact-react/signals",
-        ),
+        [
+          (await import("./dist/cjs/index.cjs")).transform,
+          {
+            filename: process.cwd() + "/test.tsx",
+            packageName: "@impact-react/signals",
+          },
+        ],
       ],
     },
   );
