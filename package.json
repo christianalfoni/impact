@@ -3,6 +3,7 @@
   "private": true,
   "workspaces": [
     "impact-react-babel-transform",
+    "impact-react-swc-transform",
     "impact-react-store",
     "impact-react-signals",
     "impact-react-mobx",
