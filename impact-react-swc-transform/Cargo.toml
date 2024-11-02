@@ -1,26 +1,30 @@
 [package]
 
-description = "SWC plugin for https://www.npmjs.com/package/babel-plugin-remove-console"
+description = "SWC plugin for https://www.npmjs.com/package/babel-plugin-react-remove-properties"
 
-name         = "swc_plugin_remove_console"
-authors      = ["강동윤/Donny <kdy.1997.dev@gmail.com>"]
-edition      = "2021"
-homepage     = "https://github.com/swc-project/plugins"
-license      = "Apache-2.0"
-repository   = "https://github.com/swc-project/plugins.git"
-rust-version = "1.70"
+
+authors      = { workspace = true }
+edition      = { workspace = true }
+homepage     = { workspace = true }
+license      = { workspace = true }
+name         = "swc_plugin_react_remove_properties"
+publish      = false
+repository   = { workspace = true }
+rust-version = { workspace = true }
+version      = "0.19.4"
 
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-remove_console   = { path = "./transform" }
-serde_json       = "1.0.117"
-swc_common       = { version = "1.0.0", features = ["concurrent"] }
-swc_core         = { version = "1.0.0", features = ["ecma_plugin_transform"] }
-swc_ecma_ast     = "1.0.0"
-swc_ecma_utils   = "1.0.0"
-swc_ecma_visit   = "1.0.0"
-swc_plugin_macro = "1.0.0"
-tracing          = { version = "0.1.40", features = ["release_max_level_off"] }
+react_remove_properties = { path = "./transform" }
+serde_json              = { workspace = true }
+swc_cached              = { workspace = true }
+swc_common              = { workspace = true, features = ["concurrent"] }
+swc_core                = { workspace = true, features = ["ecma_plugin_transform"] }
+swc_ecma_ast            = { workspace = true }
+swc_ecma_utils          = { workspace = true }
+swc_ecma_visit          = { workspace = true }
+swc_plugin_macro        = { workspace = true }
+tracing                 = { workspace = true, features = ["release_max_level_off"] }
