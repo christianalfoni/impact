@@ -848,7 +848,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
-name = "react_remove_properties"
+name = "react_store_observer"
 version = "0.24.24"
 dependencies = [
  "serde",
@@ -1545,10 +1545,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "swc_plugin_react_remove_properties"
+name = "swc_plugin_react_store_observer"
 version = "0.19.4"
 dependencies = [
- "react_remove_properties",
+ "react_store_observer",
+ "serde",
  "serde_json",
  "swc_cached",
  "swc_common",

@@ -1,9 +1,9 @@
 [package]
 
-description = "AST Transforms for import modularizer"
+description = "AST Transforms for React store observer"
 
 
-name = "react_remove_properties"
+name = "react_store_observer"
 
 authors      = { workspace = true }
 edition      = { workspace = true }

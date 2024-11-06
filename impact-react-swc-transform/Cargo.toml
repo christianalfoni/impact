@@ -1,13 +1,12 @@
 [package]
 
-description = "SWC plugin for https://www.npmjs.com/package/babel-plugin-react-remove-properties"
-
+description = "SWC plugin for React store observer transformation"
 
 authors      = { workspace = true }
 edition      = { workspace = true }
 homepage     = { workspace = true }
 license      = { workspace = true }
-name         = "swc_plugin_react_remove_properties"
+name         = "swc_plugin_react_store_observer"
 publish      = false
 repository   = { workspace = true }
 rust-version = { workspace = true }
@@ -18,7 +17,8 @@ version      = "0.19.4"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-react_remove_properties = { path = "./transform" }
+react_store_observer = { path = "./transform" }
+serde                   = { workspace = true }
 serde_json              = { workspace = true }
 swc_cached              = { workspace = true }
 swc_common              = { workspace = true, features = ["concurrent"] }
