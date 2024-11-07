@@ -1,36 +1,20 @@
 #![allow(clippy::not_unsafe_ptr_arg_deref)]
+
+use react_store_observer::react_store_observer;
+
 use swc_core::{
     ecma::{
-        ast::*,
-        visit::{FoldWith, Fold},
+        ast::Program,
+        visit::{FoldWith},
     },
     plugin::{plugin_transform, proxies::TransformPluginProgramMetadata},
 };
 use serde::Deserialize;
 
+// We can reuse the Config from transform module, but need it here for deserialization
 #[derive(Debug, Default, Deserialize)]
 pub struct Config {
     pub package_name: String,
-}
-
-struct StoreObserver {
-    config: Config,
-    needs_import: bool,
-}
-
-impl StoreObserver {
-    fn new(package_name: String) -> Self {
-        Self {
-            config: Config { package_name },
-            needs_import: false,
-        }
-    }
-
-    // ...existing StoreObserver methods from transform/src/lib.rs...
-}
-
-impl Fold for StoreObserver {
-    // ...existing Fold implementation from transform/src/lib.rs...
 }
 
 #[plugin_transform]
@@ -39,5 +23,6 @@ fn swc_plugin(program: Program, metadata: TransformPluginProgramMetadata) -> Pro
         &metadata.get_transform_plugin_config().unwrap_or_default()
     ).unwrap_or_default();
     
-    program.fold_with(&mut StoreObserver::new(config.package_name))
+    let mut visitor = react_store_observer(config.package_name);
+    program.fold_with(&mut visitor)
 }

@@ -32,6 +32,10 @@ const Counter7 = __observer(function Counter7() {
   return <h1>Hello</h1>;
 });
 
+const Counter8 = function Counter8() {
+  const state = useCounterStore();
+};
+
 export {
   UserProfile,
   RegularComponent,
@@ -40,4 +44,5 @@ export {
   RegularFunctionComponent,
   Counter6,
   Counter7,
+  Counter8,
 };

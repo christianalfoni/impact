@@ -14,10 +14,10 @@ const CartWidget = __observer(()=>{
     return <div>{cart.items.length}</div>;
 });
 
-function Counter4() {
+const Counter4 = __observer(function Counter4() {
     const state = useCounterStore();
     return <h1>Hello</h1>;
-}
+});
 
 const RegularFunctionComponent = __observer(function() {
     const state = useCounterStore();
@@ -34,4 +34,8 @@ const Counter7 = __observer(function Counter7() {
     return <h1>Hello</h1>;
 });
 
-export { UserProfile, RegularComponent, CartWidget, Counter4, RegularFunctionComponent, Counter6, Counter7 };
+const Counter8 = function Counter8() {
+    const state = useCounterStore();
+}
+
+export { UserProfile, RegularComponent, CartWidget, Counter4, RegularFunctionComponent, Counter6, Counter7, Counter8 };

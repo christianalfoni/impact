@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
+import impactTransform from "@impact-react/signals/swc-transform";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,12 +9,7 @@ export default defineConfig({
   },
   plugins: [
     react({
-      plugins: [
-        [
-          "@impact-react/swc-transform",
-          { package_name: "@impact-react/signals" },
-        ],
-      ],
+      plugins: [impactTransform()],
     }),
   ],
 });

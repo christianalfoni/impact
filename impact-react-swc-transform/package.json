@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/swc-transform",
-  "version": "4.0.0",
+  "version": "1.0.0",
   "description": "SWC plugin for https://www.npmjs.com/package/babel-plugin-react-remove-properties",
   "main": "swc_plugin_react_store_observer.wasm",
   "scripts": {

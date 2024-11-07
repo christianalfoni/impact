@@ -1,0 +1,1 @@
+{"version":3,"file":"babel-transform.js","sourceRoot":"","sources":["../../src/babel-transform.ts"],"names":[],"mappings":";;AAAA,mEAAkE;AAElE,kBAAe,IAAA,mCAAiB,EAAC,uBAAuB,CAAC,CAAC","sourcesContent":["import { createTransformer } from \"@impact-react/babel-transform\";\n\nexport default createTransformer(\"@impact-react/signals\");\n"]}

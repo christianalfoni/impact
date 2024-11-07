@@ -5,7 +5,7 @@ pub struct Config {
     package_name: String,
 }
 
-pub fn react_store_observer(package_name: String) -> impl Pass {
+pub fn react_store_observer(package_name: String) -> impl Pass + Fold {
     fold_pass(StoreObserver {
         config: Config { package_name },
         needs_import: false,
@@ -49,6 +49,34 @@ impl StoreObserver {
                 false
             }
         })
+    }
+
+    fn contains_jsx(&self, body: &BlockStmt) -> bool {
+        for stmt in &body.stmts {
+            match stmt {
+                Stmt::Return(return_stmt) => {
+                    if let Some(expr) = &return_stmt.arg {
+                        if self.is_jsx_element(expr) {
+                            return true;
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
+    }
+
+    fn is_jsx_element(&self, expr: &Expr) -> bool {
+        match expr {
+            Expr::JSXElement(_) | Expr::JSXFragment(_) => true,
+            Expr::Paren(paren) => self.is_jsx_element(&paren.expr),
+            _ => false,
+        }
+    }
+
+    fn should_transform_function(&self, body: &BlockStmt) -> bool {
+        self.contains_store_hook(body) && self.contains_jsx(body)
     }
 
     fn is_already_observed(&self, expr: &Expr) -> bool {
@@ -140,6 +168,63 @@ impl Fold for StoreObserver {
         module
     }
 
+    fn fold_decl(&mut self, decl: Decl) -> Decl {
+        match decl {
+            Decl::Fn(fn_decl) => {
+                if let Some(body) = &fn_decl.function.body {
+                    if self.should_transform_function(body) {
+                        let ident = fn_decl.ident.clone();
+                        return Decl::Var(Box::new(VarDecl {
+                            span: Default::default(),
+                            kind: VarDeclKind::Const,
+                            declare: false,
+                            decls: vec![VarDeclarator {
+                                span: Default::default(),
+                                name: Pat::Ident(BindingIdent {
+                                    id: ident.clone(),
+                                    type_ann: None,
+                                }),
+                                init: Some(Box::new(self.wrap_with_observer(Expr::Fn(FnExpr {
+                                    ident: Some(ident),
+                                    function: fn_decl.function,
+                                })))),
+                                definite: false,
+                            }],
+                            ctxt: Default::default(),
+                        }));
+                    }
+                }
+                Decl::Fn(fn_decl)
+            }
+            Decl::Var(var) => {
+                let mut var = (*var).clone();
+                for decl in &mut var.decls {
+                    if let Some(init) = &decl.init {
+                        match &**init {
+                            Expr::Fn(fn_expr) => {
+                                if let Some(body) = &fn_expr.function.body {
+                                    if self.should_transform_function(body) {
+                                        decl.init = Some(Box::new(self.wrap_with_observer(*init.clone())));
+                                    }
+                                }
+                            }
+                            Expr::Arrow(arrow) => {
+                                if let BlockStmtOrExpr::BlockStmt(block) = &*arrow.body {
+                                    if self.should_transform_function(block) {
+                                        decl.init = Some(Box::new(self.wrap_with_observer(*init.clone())));
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                Decl::Var(Box::new(var))
+            }
+            _ => decl,
+        }
+    }
+
     fn fold_expr(&mut self, expr: Expr) -> Expr {
         // Check for existing observer before transforming children
         if self.is_already_observed(&expr) {
@@ -151,14 +236,14 @@ impl Fold for StoreObserver {
         match &expr {
             Expr::Arrow(arrow) => {
                 if let BlockStmtOrExpr::BlockStmt(block) = &*arrow.body {
-                    if self.contains_store_hook(block) {
+                    if self.should_transform_function(block) {
                         return self.wrap_with_observer(expr);
                     }
                 }
             }
             Expr::Fn(fn_expr) => {
                 if let Some(body) = &fn_expr.function.body {
-                    if self.contains_store_hook(body) {
+                    if self.should_transform_function(body) {
                         return self.wrap_with_observer(expr);
                     }
                 }
