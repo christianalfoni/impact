@@ -1,30 +1,13 @@
-import { createStore } from "@impact-react/signals";
-import { signal } from "@impact-react/signals";
-import { createStoreValue } from "@impact-react/store";
-
-const injectFoo = createStoreValue<string>();
+import { createStore } from "@impact-react/preact";
+import { signal } from "@preact/signals-react";
 
 function CounterStore() {
-  const [list, setList] = signal([{ title: "foo" }]);
+  const list = signal([{ title: "foo" }]);
 
-  injectFoo("bar");
-
-  return { list, setList };
+  return { list };
 }
 
 const useCounterStore = createStore(CounterStore);
-
-function NestedStore() {
-  const foo = injectFoo();
-
-  const [observableFoo] = signal(foo);
-
-  return {
-    observableFoo,
-  };
-}
-
-const useNestedStore = createStore(NestedStore);
 
 function Counter() {
   const state = useCounterStore();
@@ -33,11 +16,11 @@ function Counter() {
     <div>
       <button
         onClick={() =>
-          state.setList((current) => [
+          (state.list.value = [
             {
               title: "BlappatiBlapp",
             },
-            ...current.slice(1),
+            ...state.list.value.slice(1),
           ])
         }
       >
@@ -45,27 +28,18 @@ function Counter() {
       </button>
       <button
         onClick={() =>
-          state.setList((current) => [...current, { title: "BOOOOH" }])
+          (state.list.value = [...state.list.value, { title: "BOOOOH" }])
         }
       >
         Add
       </button>
       <ul>
-        {state.list().map((item, index) => (
+        {state.list.value.map((item, index) => (
           <li key={index}>{item.title}</li>
         ))}
       </ul>
-      <useNestedStore.Provider>
-        <Nested />
-      </useNestedStore.Provider>
     </div>
   );
-}
-
-function Nested() {
-  const { observableFoo } = useNestedStore();
-
-  return <h1>hihi {observableFoo()}</h1>;
 }
 
 export function App() {

@@ -1,0 +1,22 @@
+{
+  "name": "@impact-react/swc-transform",
+  "version": "1.0.0",
+  "description": "Reactive contexts for React",
+  "author": "Christian Alfoni <christianalfoni@gmail.com>",
+  "license": "MIT",
+  "type": "module",
+  "repository": "git+https://github.com/christianalfoni/impact.git",
+  "main": "swc_plugin_react_store_observer.wasm",
+  "scripts": {
+    "prepack": "cargo build --release -p swc_plugin_react_store_observer --target wasm32-wasip1 && cp ../target/wasm32-wasip1/release/swc_plugin_react_store_observer.wasm ."
+  },
+  "homepage": "https://swc.rs",
+  "bugs": {
+    "url": "https://github.com/swc-project/plugins/issues"
+  },
+  "keywords": [],
+  "preferUnplugged": true,
+  "dependencies": {
+    "@swc/counter": "^0.1.3"
+  }
+}

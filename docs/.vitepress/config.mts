@@ -25,7 +25,7 @@ export default defineConfig({
       { text: "Home", link: "/" },
       { text: "Learn", link: "/learn/" },
       { text: "Guides", link: "/guides/developing-with-impact" },
-      { text: "Impact API", link: "/create-component" },
+      { text: "Impact API", link: "/create-store" },
       { text: "Signals API", link: "/signal" },
     ],
 

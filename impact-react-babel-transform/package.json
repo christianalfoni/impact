@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/babel-transform",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
