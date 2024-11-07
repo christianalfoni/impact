@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const root = process.cwd();
 const DIST_FOLDER_NAME = "dist";
-const TRANSFORM_NAMES = ["transform", "babel-transform", "swc-transform"];
+const TRANSFORM_NAMES = ["babel-plugin", "swc-plugin"];
 const DIST_CJS_FOLDER = path.join(root, DIST_FOLDER_NAME, "cjs");
 const DIST_ESM_FOLDER = path.join(root, DIST_FOLDER_NAME, "esm");
 

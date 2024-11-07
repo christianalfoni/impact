@@ -1,10 +1,10 @@
-import { createStore } from "@impact-react/signals";
-import { signal } from "@impact-react/signals";
+import { createStore } from "@impact-react/preact";
+import { signal } from "@preact/signals-react";
 
 function CounterStore() {
-  const [list, setList] = signal([{ title: "foo" }]);
+  const list = signal([{ title: "foo" }]);
 
-  return { list, setList };
+  return { list };
 }
 
 const useCounterStore = createStore(CounterStore);
@@ -16,11 +16,11 @@ function Counter() {
     <div>
       <button
         onClick={() =>
-          state.setList((current) => [
+          (state.list.value = [
             {
               title: "BlappatiBlapp",
             },
-            ...current.slice(1),
+            ...state.list.value.slice(1),
           ])
         }
       >
@@ -28,13 +28,13 @@ function Counter() {
       </button>
       <button
         onClick={() =>
-          state.setList((current) => [...current, { title: "BOOOOH" }])
+          (state.list.value = [...state.list.value, { title: "BOOOOH" }])
         }
       >
         Add
       </button>
       <ul>
-        {state.list().map((item, index) => (
+        {state.list.value.map((item, index) => (
           <li key={index}>{item.title}</li>
         ))}
       </ul>

@@ -32,8 +32,6 @@ export const transform: PluginObj = {
       // @ts-ignore
       const PACKAGE_NAME = state.opts.packageName as string;
 
-      console.log(filename, PACKAGE_NAME);
-
       if (filename && !shouldProcessFile(filename)) {
         // Skip processing
         return;

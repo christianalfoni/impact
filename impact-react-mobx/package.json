@@ -1,6 +1,6 @@
 {
   "name": "@impact-react/mobx",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Reactive contexts for React",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
@@ -13,19 +13,24 @@
       "import": "./dist/esm/index.js",
       "types": "./dist/esm/index.d.ts"
     },
-    "./transform": {
-      "import": "./dist-transform/esm/index.js",
-      "types": "./dist-transform/esm/index.d.ts",
-      "default": "./dist-transform/cjs/index.cjs"
+    "./babel-plugin": {
+      "import": "./dist-babel-plugin/esm/index.js",
+      "types": "./dist-babel-plugin/esm/index.d.ts",
+      "default": "./dist-babel-plugin/cjs/index.cjs"
+    },
+    "./swc-plugin": {
+      "import": "./dist-swc-plugin/esm/index.js",
+      "types": "./dist-swc-plugin/esm/index.d.ts",
+      "default": "./dist-swc-plugin/cjs/index.cjs"
     }
   },
   "types": "./dist/esm/index.d.ts",
   "scripts": {
     "dev": "tsc -p ./tsconfig.build-esm.json --watch",
-    "build": "yarn clean && yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc -p ./tsconfig.build-cjs.json && node ../create-dist",
+    "build": "yarn clean && yarn build:cjs && yarn build:esm && node ../create-dist",
+    "build:cjs": "tsc -p ./tsconfig.build-cjs.json",
     "build:esm": "tsc -p ./tsconfig.build-esm.json",
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./dist ./dist-babel-plugin ./dist-swc-plugin",
     "typecheck": "tsc --noEmit",
     "prepublish": "yarn build"
   },
@@ -40,7 +45,8 @@
   ],
   "files": [
     "dist",
-    "dist-transform"
+    "dist-babel-plugin",
+    "dist-swc-plugin"
   ],
   "peerDependencies": {
     "mobx": "*",
@@ -49,6 +55,7 @@
   },
   "dependencies": {
     "@impact-react/store": "^1.1.0",
-    "@impact-react/babel-transform": "^1.0.2"
+    "@impact-react/babel-transform": "^2.0.0",
+    "@impact-react/swc-transform": "^1.0.0"
   }
 }
