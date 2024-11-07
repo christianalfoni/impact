@@ -63,12 +63,16 @@ If you have used Impact in an application or you think it has valuable perspecti
 ::: code-group
 
 ```sh [signals]
-# Install
 npm install @impact-react/signals
 
 # Opt-in babel plugin
 {
-  "plugins": ["@impact-react/signals/transform"]
+  "plugins": [require("@impact-react/signals/babel-plugin")()]
+}
+
+# Opt-in swc plugin
+{
+  "plugins": [require("@impact-react/signals/swc-plugin")()]
 }
 ```
 
@@ -78,7 +82,12 @@ npm install @impact-react/mobx
 
 # Opt-in babel plugin
 {
-  "plugins": ["@impact-react/mobx/transform"]
+  "plugins": [require("@impact-react/mobx/babel-plugin")()]
+}
+
+# Opt-in swc plugin
+{
+  "plugins": [require("@impact-react/mobx/swc-plugin")()]
 }
 ```
 
@@ -88,7 +97,12 @@ npm install @impact-react/preact
 
 # Opt-in babel plugin
 {
-  "plugins": ["@impact-react/preact/transform"]
+  "plugins": [require("@impact-react/preact/babel-plugin")()]
+}
+
+# Opt-in swc plugin
+{
+  "plugins": [require("@impact-react/preact/swc-plugin")()]
 }
 ```
 
@@ -98,7 +112,12 @@ npm install @impact-react/legend
 
 # Opt-in babel plugin
 {
-  "plugins": ["@impact-react/legend/transform"]
+  "plugins": [require("@impact-react/legend/babel-plugin")()]
+}
+
+# Opt-in swc plugin
+{
+  "plugins": [require("@impact-react/legend/swc-plugin")()]
 }
 ```
 
@@ -106,7 +125,7 @@ npm install @impact-react/legend
 
 ::: info
 
-With the babel plugin all components consuming a store will automatically observe. That means you do not need to add any `observer` higher order component. The only requirement is that your store hooks starts with `use` and ends with `Store`, for example `useAppStore` or `useGlobalStore`.
+Choosing a plugin makes all components consuming a store to automatically observe. That means you do not need to add any `observer` higher order component. The only requirement is that your store hooks starts with `use` and ends with `Store`, for example `useAppStore` or `useGlobalStore`.
 
 You can combine it with fine grained reactivity inside components if you need that.
 :::
