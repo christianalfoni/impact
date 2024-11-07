@@ -8,7 +8,8 @@ lerna-debug.log*
 docs/.vitepress/dist
 docs/.vitepress/cache
 dist
-dist-transform
+dist-babel-plugin
+dist-swc-plugin
 dist.zip
 target
 .DS_Store
