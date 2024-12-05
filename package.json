@@ -19,7 +19,7 @@
     "docs:build": "node preBuild.mjs && vitepress build docs",
     "docs:preview": "vitepress preview docs"
   },
-  "description": "Bringing reactivity to React",
+  "description": "Bringing reactivity to React, is awesome",
   "author": "Christian Alfoni <christianalfoni@gmail.com>",
   "license": "MIT",
   "repository": "git+https://github.com/christianalfoni/impact.git",

@@ -4,9 +4,6 @@
 
 <br />
 
-<p align="center">
-⚠️ <b>In BETA</b> ⚠️
-</p>
 
 <p align="center">
   <a href="https://impact-react.dev" style="font-size:18px;">https://impact-react.dev</a>
