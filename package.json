@@ -1,6 +1,7 @@
 {
   "name": "impact-react-monorepo",
   "private": true,
+  "mip": "mop",
   "workspaces": [
     "impact-react-babel-transform",
     "impact-react-swc-transform",
@@ -50,5 +51,6 @@
     "codemirror": "^6.0.1",
     "prettier": "^3.3.3",
     "vue-codemirror": "^6.1.1"
-  }
+  },
+  "foo": "bar"
 }
