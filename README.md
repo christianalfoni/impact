@@ -8,6 +8,10 @@
 ⚠️ <b>In BETA</b> ⚠️
 </p>
 
+Line1
+Line2
+Line3
+
 <p align="center">
   <a href="https://impact-react.dev" style="font-size:18px;">https://impact-react.dev</a>
 </p>
