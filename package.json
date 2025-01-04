@@ -1,6 +1,6 @@
 {
   "name": "impact-react-monorepo",
-  "private": true,
+  "private": false,
   "workspaces": [
     "impact-react-babel-transform",
     "impact-react-swc-transform",
