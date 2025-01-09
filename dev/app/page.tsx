@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <hr />
-      <h4>Signals</h4>
+       <h4>Impact Signals</h4>
       {/*<SignalsExample />*/}
       <hr />
       <h4>Mobx</h4>
