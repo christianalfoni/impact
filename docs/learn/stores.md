@@ -113,7 +113,7 @@ export const useAppStore = createStore(AppStore);
 
 :::
 
-The hook returned from `createStore` has a `.provider` property to provide the store to a component and any of its nested children as well.
+The hook returned from `createStore` has a `.Provider` property to provide the store to a component tree.
 
 ```tsx
 import { useAppStore } from "./stores/AppStore";
@@ -124,11 +124,13 @@ function Counter() {
   return <div />;
 }
 
-export default useAppStore.provider(function App() {
-  const appStore = useAppStore();
-
-  return <Counter />;
-});
+export default function App() {
+  return (
+    <useAppStore.Provider>
+      <Counter />
+    </useAppStore.Provider>
+  )
+}
 ```
 
 If you are using the [Babel Plugin](../index#automatic-observation) any components consuming a store will automatically observe changes to that store and memo itself for optimal reconciliation.
